@@ -2,13 +2,14 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSettings>
+#include <QFileDialog>
+#include "imglistview.h"
+#include "systemtreeview.h"
 
-namespace Ui {
-class MainWindow;
-}
+namespace Ui { class MainWindow; }
 
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow{
 	Q_OBJECT
 
 public:
@@ -16,7 +17,13 @@ public:
 	~MainWindow();
 
 private:
+	void readSettings();
+
+	void saveSettings();
+
+
 	Ui::MainWindow *ui;
+	QString startDir;
 };
 
 #endif // MAINWINDOW_H

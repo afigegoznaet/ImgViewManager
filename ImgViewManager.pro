@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,11 +24,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-        main.cpp \
-        mainwindow.cpp
+		main.cpp \
+		mainwindow.cpp \
+	systemtreeview.cpp \
+	imglistview.cpp \
+	imgthumbnaildelegate.cpp
 
 HEADERS += \
-        mainwindow.h
+		mainwindow.h \
+	systemtreeview.h \
+	imglistview.h \
+	imgthumbnaildelegate.h
 
 FORMS += \
-        mainwindow.ui
+		mainwindow.ui
+
+RESOURCES += \
+	imgviewmanager.qrc
