@@ -5,13 +5,13 @@
 #include <QFileSystemModel>
 #include <QImageReader>
 #include <QDebug>
-#include <QtConcurrent>
+
 #include <QPixmapCache>
 
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
-	ImgThumbnailDelegate(QObject *parent = Q_NULLPTR);
+	explicit ImgThumbnailDelegate(QObject *parent = Q_NULLPTR);
 	void setModel(QFileSystemModel* model){this->model = model;}
 
 protected:

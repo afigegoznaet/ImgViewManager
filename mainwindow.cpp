@@ -21,8 +21,11 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 MainWindow::~MainWindow(){
+	qDebug()<<"exiting from main";
+	ui->imagesView->prepareExit();
 	saveSettings();
 	delete ui;
+	qDebug()<<"ui deleted";
 }
 
 void MainWindow::readSettings(){

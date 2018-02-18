@@ -4,6 +4,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	fsModel = new QFileSystemModel(this);
 	auto rootIdx = fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
+
 	setModel(fsModel);
 	//setRootIndex(rootIdx);
 	//setCurrentIndex(rootIdx);
@@ -17,7 +18,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 }
 
 void SystemTreeView::init(QString& startDir){
-	auto dirs = startDir.split('/');
+
 	auto idx = fsModel->index(startDir);
 
 	qDebug()<<"Idx is valid: "<<idx;

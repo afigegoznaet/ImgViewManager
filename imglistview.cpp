@@ -1,11 +1,10 @@
 #include "imglistview.h"
 
-ImgListView::ImgListView(QWidget *parent) : QListView(parent){
+ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false){
 	fsModel = new QFileSystemModel(this);
 	auto rootIdx = fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
-	QStringList filter;
 	filter << "*.png";
 	filter << "*.jpeg";
 	filter << "*.jpg";
@@ -31,10 +30,76 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent){
 	setIconSize(QSize(height/8,height/8));
 	setLayoutMode (QListView::Batched);
 	setUniformItemSizes(true);
+	connect(this, SIGNAL(callUpdate(const QModelIndex &)),
+			this, SLOT(update(const QModelIndex &)), Qt::QueuedConnection);
+	connect(this,SIGNAL(doubleClicked(QModelIndex)),
+			this,SLOT(onDoubleClicked()));
+	setSelectionMode(QAbstractItemView::ExtendedSelection);
+	selectionModel()->setModel(fsModel);
 }
 
 void ImgListView::changeDir(QString dir){
+	prefetchProc.cancel();
+	qDebug()<<"Changing dir";
 	qDebug()<<dir;
 	fsModel->setRootPath(dir);
 	setRootIndex(fsModel->index(dir));
+	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
+	qDebug()<<"Prefetch started";
+}
+
+void ImgListView::prefetchThumbnails(){
+	int i=0;
+	for(auto& fileInfo : fsModel->rootDirectory().entryInfoList(filter)){
+
+		//qDebug()<<"not exiting";
+		i++;
+		QSize iconSize = this->iconSize();
+		QImageReader reader(fileInfo.absoluteFilePath());
+		auto picSize = reader.size();
+		double coef = picSize.height()*1.0/picSize.width();
+
+		if(coef>1)
+			iconSize.setWidth(iconSize.width()/coef);
+		else
+			iconSize.setHeight(iconSize.height()*coef);
+
+		reader.setScaledSize(iconSize);
+		reader.setQuality(20);
+		QImage image = reader.read();
+
+		if(isExiting){
+			//qDebug()<<"cancel prefetch";
+			return;
+		}
+		auto pm = QPixmap::fromImage(image);
+		//painter->drawPixmap(0, 0, pm);
+		QPixmapCache::insert(fileInfo.absoluteFilePath(), pm);
+
+		auto idx = fsModel->index(fileInfo.absoluteFilePath());
+
+		//if(visibleRegion().contains(visualRect(idx).topLeft()))
+			emit callUpdate(idx);
+	}
+
+}
+
+
+void ImgListView::keyPressEvent(QKeyEvent *event){
+	auto key = event->key();
+
+	if(key == Qt::Key_Return || key == Qt::Key_Enter)
+		onDoubleClicked();
+	else
+		QAbstractItemView::keyPressEvent(event);
+}
+
+
+void ImgListView::onDoubleClicked(){
+	auto selectedThumbnails = selectionModel()->selectedIndexes();
+	for(auto &index : selectedThumbnails){
+		QFileInfo info=fsModel->fileInfo(index);
+		QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath()));
+	}
+
 }

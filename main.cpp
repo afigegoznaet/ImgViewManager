@@ -16,12 +16,13 @@ int main(int argc, char *argv[])
 	qDebug()<<pixmap.height();
 	QSplashScreen splash(pixmap);
 	splash.show();
-	QThread::sleep(2);
+	//QThread::sleep(2);
 
 	MainWindow w;
 	w.setWindowTitle("Clipart Viewer");
 
-	splash.finish(&w);
+
 	w.show();
+	splash.finish(&w);
 	return a.exec();
 }
