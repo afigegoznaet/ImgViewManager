@@ -28,13 +28,15 @@ SOURCES += \
 		mainwindow.cpp \
 	systemtreeview.cpp \
 	imglistview.cpp \
-	imgthumbnaildelegate.cpp
+	imgthumbnaildelegate.cpp \
+    thumbnailsfilemodel.cpp
 
 HEADERS += \
 		mainwindow.h \
 	systemtreeview.h \
 	imglistview.h \
-	imgthumbnaildelegate.h
+	imgthumbnaildelegate.h \
+    thumbnailsfilemodel.h
 
 FORMS += \
 		mainwindow.ui

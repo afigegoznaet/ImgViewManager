@@ -7,17 +7,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 	ui->setupUi(this);
 	readSettings();
-
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),ui->imagesView, SLOT(changeDir(QString)));
-
 	ui->fileTree->init(startDir);
-	/*
-	QFileDialog selector(this);
 
-	startDir = selector.getExistingDirectory(this,
-				"Select starting folder",startDir);
-	qDebug()<<selector.directory();
-	*/
+	ui->menuAbout->exec();
 }
 
 MainWindow::~MainWindow(){

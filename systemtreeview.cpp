@@ -1,6 +1,7 @@
 #include "systemtreeview.h"
 
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
+	//fsModel = new ThumbnailsFileModel(this);
 	fsModel = new QFileSystemModel(this);
 	auto rootIdx = fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);

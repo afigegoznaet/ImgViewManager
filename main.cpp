@@ -15,14 +15,16 @@ int main(int argc, char *argv[])
 	QPixmap pixmap(":/Images/splash.png");
 	qDebug()<<pixmap.height();
 	QSplashScreen splash(pixmap);
-	splash.show();
-	//QThread::sleep(2);
 
+	splash.show();
+	qApp->processEvents();
 	MainWindow w;
 	w.setWindowTitle("Clipart Viewer");
-
-
+	qApp->processEvents();
 	w.show();
+
+
 	splash.finish(&w);
+
 	return a.exec();
 }

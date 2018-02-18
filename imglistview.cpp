@@ -50,6 +50,8 @@ void ImgListView::changeDir(QString dir){
 
 void ImgListView::prefetchThumbnails(){
 	int i=0;
+	auto flags = Qt::ColorOnly | Qt::ThresholdDither
+			| Qt::ThresholdAlphaDither;
 	for(auto& fileInfo : fsModel->rootDirectory().entryInfoList(filter)){
 
 		//qDebug()<<"not exiting";
@@ -65,25 +67,21 @@ void ImgListView::prefetchThumbnails(){
 			iconSize.setHeight(iconSize.height()*coef);
 
 		reader.setScaledSize(iconSize);
-		reader.setQuality(20);
-		QImage image = reader.read();
+		reader.setAutoTransform(true);
+		reader.setQuality(15);
 
-		if(isExiting){
-			//qDebug()<<"cancel prefetch";
+		if(isExiting)
 			return;
-		}
-		auto pm = QPixmap::fromImage(image);
-		//painter->drawPixmap(0, 0, pm);
-		QPixmapCache::insert(fileInfo.absoluteFilePath(), pm);
 
+		auto pm = QPixmap::fromImageReader(&reader, flags);
+		QPixmapCache::insert(fileInfo.absoluteFilePath(), pm);
 		auto idx = fsModel->index(fileInfo.absoluteFilePath());
 
-		//if(visibleRegion().contains(visualRect(idx).topLeft()))
+		auto appRegion = visibleRegion();
+		//if(appRegion.contains(visualRect(idx)))
 			emit callUpdate(idx);
 	}
-
 }
-
 
 void ImgListView::keyPressEvent(QKeyEvent *event){
 	auto key = event->key();
@@ -102,4 +100,9 @@ void ImgListView::onDoubleClicked(){
 		QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath()));
 	}
 
+}
+
+void ImgListView::prepareExit(){
+	isExiting = true;
+	prefetchProc.waitForFinished();
 }

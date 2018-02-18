@@ -2,9 +2,8 @@
 #define SYSTEMTREEVIEW_H
 
 #include <QTreeView>
-#include <QDebug>
-#include <QFileSystemModel>
 #include <QHeaderView>
+#include "thumbnailsfilemodel.h"
 
 class SystemTreeView : public QTreeView{
 	Q_OBJECT
@@ -18,6 +17,7 @@ signals:
 public slots:
 private:
 	QFileSystemModel* fsModel;
+
 };
 
 #endif // SYSTEMTREEVIEW_H

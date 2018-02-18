@@ -14,7 +14,7 @@ class ImgListView : public QListView{
 	Q_OBJECT
 public:
 	explicit ImgListView(QWidget *parent = nullptr);
-	void prepareExit(){isExiting = true;}
+	void prepareExit();
 
 signals:
 	void callUpdate(const QModelIndex &);
