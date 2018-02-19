@@ -81,6 +81,7 @@ void ImgListView::prefetchThumbnails(){
 		//if(appRegion.contains(visualRect(idx)))
 			emit callUpdate(idx);
 	}
+	qDebug()<<"Prefetch finished";
 }
 
 void ImgListView::keyPressEvent(QKeyEvent *event){

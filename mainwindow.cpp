@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),ui->imagesView, SLOT(changeDir(QString)));
 	ui->fileTree->init(startDir);
 
-	ui->menuAbout->exec();
+	//ui->menuAbout->exec();
 }
 
 MainWindow::~MainWindow(){

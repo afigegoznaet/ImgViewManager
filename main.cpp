@@ -21,10 +21,10 @@ int main(int argc, char *argv[])
 	MainWindow w;
 	w.setWindowTitle("Clipart Viewer");
 	qApp->processEvents();
-	w.show();
+
 
 
 	splash.finish(&w);
-
+	w.show();
 	return a.exec();
 }
