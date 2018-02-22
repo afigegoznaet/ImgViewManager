@@ -36,6 +36,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false)
 			this,SLOT(onDoubleClicked()));
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	selectionModel()->setModel(fsModel);
+	setMovement(Movement::Static);
 }
 
 void ImgListView::changeDir(QString dir){

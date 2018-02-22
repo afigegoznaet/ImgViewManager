@@ -26,6 +26,7 @@ public slots:
 private:
 	QFileSystemModel* model;
 	QPixmapCache cache;
+	int flags;
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H
