@@ -9,13 +9,13 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false)
 	namedFilters << "*.jpeg";
 	namedFilters << "*.jpg";
 
+	filterText = "";
+
 	fsModel->setNameFilterDisables(false);
 	proxyModel= new ThumbnailsFileModel(this);
 	proxyModel->setSourceModel(fsModel);
 	proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-	//proxyModel->setFilterRole(0);
-	//proxyModel->setFilterKeyColumn(0);
-	//proxyModel->setFilterFixedString("*");
+
 	setModel(proxyModel);
 
 
@@ -46,6 +46,12 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false)
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	selectionModel()->setModel(proxyModel);
 	setMovement(Movement::Static);
+	connect(fsModel, &QFileSystemModel::directoryLoaded, [&](){
+		emit numFiles(
+					proxyModel->rootDirectory().entryInfoList().count(),
+					proxyModel->rowCount(rootIndex())
+					);
+	} );
 }
 
 void ImgListView::changeDir(QString dir){
@@ -55,14 +61,9 @@ void ImgListView::changeDir(QString dir){
 	proxyModel->setRootPath(dir);
 	applyFilter("");
 	setRootIndex(proxyModel->index(dir));
-	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
+	//prefetchProc =
+	QtConcurrent::run([&](){prefetchThumbnails();});
 	qDebug()<<"Prefetch started";
-	QStringList filters(namedFilters);
-	filters<<filterText;
-	emit numFiles(
-				proxyModel->rootDirectory().entryInfoList(namedFilters).count(),
-				1
-				);
 }
 
 void ImgListView::prefetchThumbnails(){
@@ -126,13 +127,15 @@ void ImgListView::prepareExit(){
 }
 
 void ImgListView::applyFilter(QString filter){
-	if(filter.length()<2)
+	if(filter.length()<1)
 		proxyModel->setFilterWildcard("*.*");
-	filterText = "*";
-	filterText += filter;
-	filterText += "*";
-	//QRegExp regExp(filter, Qt::CaseInsensitive, QRegExp::Wildcard);
 
+	filterText = filter;
 	proxyModel->setFilterRegExp(QRegExp(filter, Qt::CaseInsensitive,
 												QRegExp::FixedString));
+
+	emit numFiles(
+				proxyModel->rootDirectory().entryInfoList(namedFilters).count(),
+				proxyModel->rowCount(rootIndex())
+				);
 }
