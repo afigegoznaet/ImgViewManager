@@ -26,7 +26,6 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		}
 
 		if(option.state & QStyle::State_Selected){
-			qDebug()<<"Highlighted";
 			auto brush = option.palette.highlight();
 			painter->setPen(option.palette.highlightedText().color());
 			painter->fillRect(boundingRect, brush);

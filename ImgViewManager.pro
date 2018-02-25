@@ -29,17 +29,26 @@ SOURCES += \
 	systemtreeview.cpp \
 	imglistview.cpp \
 	imgthumbnaildelegate.cpp \
-    thumbnailsfilemodel.cpp
+	thumbnailsfilemodel.cpp \
+	FileMoverDelegate.cpp \
+	FileProgressDialog.cpp
 
 HEADERS += \
 		mainwindow.h \
 	systemtreeview.h \
 	imglistview.h \
 	imgthumbnaildelegate.h \
-    thumbnailsfilemodel.h
+	thumbnailsfilemodel.h \
+	FileMoverDelegate.hpp \
+	FileProgressDialog.hpp
 
 FORMS += \
-		mainwindow.ui
+		mainwindow.ui \
+	progressDialog.ui
 
 RESOURCES += \
 	imgviewmanager.qrc
+
+win32-msvc* {
+	QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
+}

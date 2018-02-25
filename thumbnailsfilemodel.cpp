@@ -81,6 +81,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		return true;
 	//qDebug()<<QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 	//if (source_parent == sm->index(sm->rootPath()) || source_row <2)
+
 		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
 	qDebug()<<"!!!: "<<source_row;

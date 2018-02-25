@@ -8,6 +8,9 @@
 #include <atomic>
 #include <QKeyEvent>
 #include <QDesktopServices>
+#include <QMessageBox>
+#include <QFileDialog>
+#include "FileProgressDialog.hpp"
 #include "imgthumbnaildelegate.h"
 #include "thumbnailsfilemodel.h"
 
@@ -20,10 +23,12 @@ public:
 signals:
 	void callUpdate(const QModelIndex &);
 	void numFiles(int total, int visible);
+	void setFileAction(QFileInfoList fileList, QString destination);
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();
 	void applyFilter(QString namedFilters);
+	void exportImages();
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
@@ -38,7 +43,7 @@ private:
 	std::atomic_bool stopPrefetching;
 	QString filterText;
 	QMap<QString, QPixmap> thumbnailsCache;
-
+	ProgressDialog* copyDialog;
 };
 
 #endif // IMGLISTVIEW_H

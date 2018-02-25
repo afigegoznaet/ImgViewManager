@@ -55,6 +55,10 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), isExiting(false),
 					);
 	} );
 
+	copyDialog = new ProgressDialog(this);
+
+	connect(this, SIGNAL(setFileAction(QFileInfoList,QString)),
+			copyDialog, SLOT(processFileAction(QFileInfoList,QString)));
 }
 
 void ImgListView::changeDir(QString dir){
@@ -65,11 +69,13 @@ void ImgListView::changeDir(QString dir){
 	applyFilter("");
 	setRootIndex(proxyModel->fileIndex(dir));
 	//thumbnailPainter->prepareExit();
+	qDebug()<<"Waiting to finish";
 	stopPrefetching = true;
 	prefetchProc.cancel();
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 	thumbnailsCache.clear();
+	qDebug()<<"Finished waiting";
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	qDebug()<<"Prefetch started";
 }
@@ -178,4 +184,46 @@ void ImgListView::applyFilter(QString filter){
 				proxyModel->rootDirectory().entryInfoList(namedFilters).count(),
 				proxyModel->rowCount(rootIndex())
 				);
+}
+
+
+void ImgListView::exportImages(){
+	auto selections = selectionModel()->selectedIndexes();
+	if( 0 == selections.count() ){
+		QMessageBox msgBox;
+		msgBox.setIcon(QMessageBox::Warning);
+		msgBox.setWindowTitle("Warning");
+		msgBox.setText("No files selected");
+		//msgBox.setInformativeText("Do you want to save your changes?");
+		msgBox.setStandardButtons(QMessageBox::Ok);
+		msgBox.setDefaultButton(QMessageBox::Ok);
+		msgBox.exec();
+		return;
+	}
+	QFileDialog selector(this,"Select output folder",
+						 proxyModel->rootDirectory().absolutePath());
+	selector.setFileMode(QFileDialog::DirectoryOnly);
+	if (!selector.exec())
+		return;
+	else
+		selector.selectedFiles();
+
+	QString expDir = selector.selectedFiles().first();
+
+	if(0 == expDir.compare(proxyModel->rootDirectory().absolutePath())){
+		QMessageBox msgBox;
+		msgBox.setIcon(QMessageBox::Warning);
+		msgBox.setWindowTitle("Wrong directory");
+		msgBox.setText("Output directory can not be the same");
+		//msgBox.setInformativeText("Do you want to save your changes?");
+		msgBox.setStandardButtons(QMessageBox::Ok);
+		msgBox.setDefaultButton(QMessageBox::Ok);
+		msgBox.exec();
+		return;
+	}
+	QFileInfoList fileList;
+	for(auto &index : selections)
+		if( 0 == index.column() )
+			fileList << proxyModel->fileInfo(index);
+	emit setFileAction(fileList, expDir);
 }
