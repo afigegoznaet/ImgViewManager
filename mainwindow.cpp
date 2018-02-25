@@ -32,6 +32,7 @@ void MainWindow::readSettings(){
 	resize(settings.value("size", QSize(400, 400)).toSize());
 	move(settings.value("pos", QPoint(200, 200)).toPoint());
 	startDir = settings.value("StartDir",QDir::rootPath()).toString();
+	qDebug()<<"Read: "<<startDir;
 	if(!ui->splitter->restoreState(settings.value("splitterSizes").toByteArray()))
 		ui->splitter->setSizes({200,200});
 	settings.endGroup();
@@ -44,7 +45,9 @@ void MainWindow::saveSettings(){
 	settings.setValue("size", size());
 	settings.setValue("pos", pos());
 	settings.setValue("TreeWidth", ui->fileTree->width());
-	qDebug()<< ui->fileTree->getCurrentDir();
+	startDir = ui->fileTree->getCurrentDir();
+	qDebug()<<"Save: "<<startDir;
+	settings.setValue("StartDir", startDir);
 	settings.setValue("splitterSizes", ui->splitter->saveState());
 	settings.endGroup();
 }
