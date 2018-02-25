@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QFileDialog>
+#include <QMessageBox>
 #include "imglistview.h"
 #include "systemtreeview.h"
 
@@ -18,13 +19,14 @@ public:
 
 public slots:
 	void setFileInfo(int total, int visible);
-
+	void showAbout();
 private:
 	void readSettings();
 	void saveSettings();
 
 	Ui::MainWindow *ui;
 	QString startDir;
+	QString info = "";
 };
 
 #endif // MAINWINDOW_H

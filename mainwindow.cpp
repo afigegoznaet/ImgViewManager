@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui->infoBox->setEnabled(false);
 	connect(ui->filterBox, SIGNAL(textChanged(QString)), ui->imagesView, SLOT(applyFilter(QString)));
 
+	ui->menuBar->addAction("About",this, SLOT(showAbout()));
 }
 
 MainWindow::~MainWindow(){
@@ -53,10 +54,19 @@ void MainWindow::saveSettings(){
 }
 
 void MainWindow::setFileInfo(int total, int visible){
-	QString info = "";
-	info += QString::number(visible);
+	info = QString::number(visible);
 	info += " files visible of ";
 	info += QString::number(total);
 	qDebug()<<info;
 	ui->infoBox->setText(info);
+}
+
+void MainWindow::showAbout(){
+	QMessageBox msgBox;
+	msgBox.setWindowTitle("About");
+	msgBox.setText("Incepted in 2018 in Chisinau, Moldova");
+	//msgBox.setInformativeText("Do you want to save your changes?");
+	msgBox.setStandardButtons(QMessageBox::Ok);
+	msgBox.setDefaultButton(QMessageBox::Ok);
+	msgBox.exec();
 }

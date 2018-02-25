@@ -23,7 +23,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 
 void SystemTreeView::init(QString& startDir){
 
-	auto idx = fsModel->index(startDir);
+	auto idx = fsModel->fileIndex(startDir);
 
 	qDebug()<<"Idx is valid: "<<idx;
 	setCurrentIndex(idx);

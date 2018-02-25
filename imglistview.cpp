@@ -62,9 +62,10 @@ void ImgListView::changeDir(QString dir){
 	qDebug()<<dir;
 	proxyModel->setRootPath(dir);
 	applyFilter("");
-	setRootIndex(proxyModel->index(dir));
+	setRootIndex(proxyModel->fileIndex(dir));
 	//thumbnailPainter->prepareExit();
 	prefetchProc.cancel();
+	prefetchProc.waitForFinished();
 	thumbnailsCache.clear();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	qDebug()<<"Prefetch started";
@@ -116,7 +117,7 @@ void ImgListView::prefetchThumbnails(){
 		if(isExiting)
 			return;
 
-		auto idx = proxyModel->index(fileInfo.absoluteFilePath());
+		auto idx = proxyModel->fileIndex(fileInfo.absoluteFilePath());
 		emit callUpdate(idx);
 	}
 

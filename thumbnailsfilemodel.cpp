@@ -25,7 +25,7 @@ QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index) const{
 	return source->fileInfo(mapToSource(index));;
 }
 
-QModelIndex ThumbnailsFileModel::index(const QString &path) const{
+QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
 	auto idx = (dynamic_cast<QFileSystemModel*>(this->sourceModel()))
 				->index(path, 0);
 	return mapFromSource(idx);
@@ -49,7 +49,7 @@ bool ThumbnailsFileModel::isVisible(const QModelIndex& parent)const{
 		auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
 		qDebug()<<dirEntries.count();
 		for(auto& entry : dirEntries){
-			auto idx = index(entry.absoluteFilePath());
+			auto idx = fileIndex(entry.absoluteFilePath());
 			qDebug()<<entry.absoluteFilePath();
 			qDebug()<<"Idx is valid: "<<idx.isValid();
 			if(isVisible(idx))
