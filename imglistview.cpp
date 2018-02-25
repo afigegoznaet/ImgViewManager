@@ -1,21 +1,30 @@
 #include "imglistview.h"
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false){
-	fsModel = new QFileSystemModel(this);
+	QFileSystemModel *fsModel = new QFileSystemModel(this);
 	auto rootIdx = fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
-	filter << "*.png";
-	filter << "*.jpeg";
-	filter << "*.jpg";
-	fsModel->setNameFilters(filter);
-	fsModel->setNameFilterDisables(false);
+	namedFilters << "*.png";
+	namedFilters << "*.jpeg";
+	namedFilters << "*.jpg";
 
+	fsModel->setNameFilterDisables(false);
+	proxyModel= new ThumbnailsFileModel(this);
+	proxyModel->setSourceModel(fsModel);
+	proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+	//proxyModel->setFilterRole(0);
+	//proxyModel->setFilterKeyColumn(0);
+	//proxyModel->setFilterFixedString("*");
+	setModel(proxyModel);
+
+
+	applyFilter("");
 	thumbnailPainter = new ImgThumbnailDelegate(this);
-	thumbnailPainter->setModel(fsModel);
+	thumbnailPainter->setModel(proxyModel);
 	setItemDelegate(thumbnailPainter);
 
-	setModel(fsModel);
+	//setModel(fsModel);
 	setViewMode(IconMode);
 	setResizeMode(Adjust);
 
@@ -35,7 +44,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false)
 	connect(this,SIGNAL(doubleClicked(QModelIndex)),
 			this,SLOT(onDoubleClicked()));
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
-	selectionModel()->setModel(fsModel);
+	selectionModel()->setModel(proxyModel);
 	setMovement(Movement::Static);
 }
 
@@ -43,17 +52,24 @@ void ImgListView::changeDir(QString dir){
 	prefetchProc.cancel();
 	qDebug()<<"Changing dir";
 	qDebug()<<dir;
-	fsModel->setRootPath(dir);
-	setRootIndex(fsModel->index(dir));
+	proxyModel->setRootPath(dir);
+	applyFilter("");
+	setRootIndex(proxyModel->index(dir));
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	qDebug()<<"Prefetch started";
+	QStringList filters(namedFilters);
+	filters<<filterText;
+	emit numFiles(
+				proxyModel->rootDirectory().entryInfoList(namedFilters).count(),
+				1
+				);
 }
 
 void ImgListView::prefetchThumbnails(){
 	int i=0;
 	auto flags = Qt::ColorOnly | Qt::ThresholdDither
 			| Qt::ThresholdAlphaDither;
-	for(auto& fileInfo : fsModel->rootDirectory().entryInfoList(filter)){
+	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
 
 		//qDebug()<<"not exiting";
 		i++;
@@ -76,7 +92,7 @@ void ImgListView::prefetchThumbnails(){
 
 		auto pm = QPixmap::fromImageReader(&reader, flags);
 		QPixmapCache::insert(fileInfo.absoluteFilePath(), pm);
-		auto idx = fsModel->index(fileInfo.absoluteFilePath());
+		auto idx = proxyModel->index(fileInfo.absoluteFilePath());
 
 		auto appRegion = visibleRegion();
 		//if(appRegion.contains(visualRect(idx)))
@@ -98,7 +114,7 @@ void ImgListView::keyPressEvent(QKeyEvent *event){
 void ImgListView::onDoubleClicked(){
 	auto selectedThumbnails = selectionModel()->selectedIndexes();
 	for(auto &index : selectedThumbnails){
-		QFileInfo info=fsModel->fileInfo(index);
+		QFileInfo info=proxyModel->fileInfo(index);
 		QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath()));
 	}
 
@@ -107,4 +123,16 @@ void ImgListView::onDoubleClicked(){
 void ImgListView::prepareExit(){
 	isExiting = true;
 	prefetchProc.waitForFinished();
+}
+
+void ImgListView::applyFilter(QString filter){
+	if(filter.length()<2)
+		proxyModel->setFilterWildcard("*.*");
+	filterText = "*";
+	filterText += filter;
+	filterText += "*";
+	//QRegExp regExp(filter, Qt::CaseInsensitive, QRegExp::Wildcard);
+
+	proxyModel->setFilterRegExp(QRegExp(filter, Qt::CaseInsensitive,
+												QRegExp::FixedString));
 }

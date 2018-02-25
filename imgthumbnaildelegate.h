@@ -5,14 +5,13 @@
 #include <QFileSystemModel>
 #include <QImageReader>
 #include <QDebug>
-
 #include <QPixmapCache>
-
+#include "thumbnailsfilemodel.h"
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
 	explicit ImgThumbnailDelegate(QObject *parent = Q_NULLPTR);
-	void setModel(QFileSystemModel* model){this->model = model;}
+	void setModel(ThumbnailsFileModel* model){this->model = model;}
 
 protected:
 	void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -24,7 +23,7 @@ public slots:
 
 
 private:
-	QFileSystemModel* model;
+	ThumbnailsFileModel* model;
 	QPixmapCache cache;
 	int flags;
 };

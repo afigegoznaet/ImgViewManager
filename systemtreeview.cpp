@@ -1,21 +1,24 @@
 #include "systemtreeview.h"
 
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
-	//fsModel = new ThumbnailsFileModel(this);
-	fsModel = new QFileSystemModel(this);
-	auto rootIdx = fsModel->setRootPath(QDir::rootPath());
-	fsModel->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
+	fsModel = new ThumbnailsFileModel(this);
+	auto model = new QFileSystemModel(this);
+	auto rootIdx = model->setRootPath(QDir::rootPath());
+	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 
+	fsModel->setSourceModel(model);
 	setModel(fsModel);
-	//setRootIndex(rootIdx);
-	//setCurrentIndex(rootIdx);
-	for (int i = 1; i < fsModel->columnCount(); ++i)
+
+	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
 
 	connect(selectionModel(), &QItemSelectionModel::currentChanged,
 			[&](QModelIndex current, QModelIndex){
 		emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
 			});
+
+	connect(this, SIGNAL(expanded(const QModelIndex &)),
+			fsModel, SLOT(expanded(const QModelIndex &)));
 }
 
 void SystemTreeView::init(QString& startDir){

@@ -16,11 +16,12 @@ public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
 
+public slots:
+	void setFileInfo(int total, int visible);
+
 private:
 	void readSettings();
-
 	void saveSettings();
-
 
 	Ui::MainWindow *ui;
 	QString startDir;

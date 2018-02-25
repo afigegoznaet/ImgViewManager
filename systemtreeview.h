@@ -16,7 +16,7 @@ signals:
 	void changeDir(QString dir);
 public slots:
 private:
-	QFileSystemModel* fsModel;
+	ThumbnailsFileModel* fsModel;
 
 };
 

@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QDesktopServices>
 #include "imgthumbnaildelegate.h"
+#include "thumbnailsfilemodel.h"
 
 class ImgListView : public QListView{
 	Q_OBJECT
@@ -18,19 +19,23 @@ public:
 
 signals:
 	void callUpdate(const QModelIndex &);
+	void numFiles(int total, int visible);
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();
+	void applyFilter(QString namedFilters);
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
 
 
-	QFileSystemModel* fsModel;
+	//QFileSystemModel* fsModel;
+	ThumbnailsFileModel* proxyModel;
 	ImgThumbnailDelegate* thumbnailPainter;
-	QStringList filter;
+	QStringList namedFilters;
 	QFuture<void> prefetchProc;
 	std::atomic_bool isExiting;
+	QString filterText;
 };
 
 #endif // IMGLISTVIEW_H
