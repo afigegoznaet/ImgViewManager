@@ -35,8 +35,10 @@ private:
 	QStringList namedFilters;
 	QFuture<void> prefetchProc;
 	std::atomic_bool isExiting;
+	std::atomic_bool stopPrefetching;
 	QString filterText;
 	QMap<QString, QPixmap> thumbnailsCache;
+
 };
 
 #endif // IMGLISTVIEW_H

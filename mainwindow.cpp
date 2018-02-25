@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui(new Ui::MainWindow){
 
 	ui->setupUi(this);
-	connect(ui->imagesView, SIGNAL(numFiles(int,int)), this, SLOT(setFileInfo(int,int)));
+	connect(ui->imagesView, SIGNAL(numFiles(int,int)), this, SLOT(setFileInfo(int,int)), Qt::QueuedConnection);
 	readSettings();
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),ui->imagesView, SLOT(changeDir(QString)));
 	ui->fileTree->init(startDir);

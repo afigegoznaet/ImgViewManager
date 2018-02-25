@@ -1,6 +1,7 @@
 #include "imglistview.h"
 
-ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false){
+ImgListView::ImgListView(QWidget *parent) : QListView(parent), isExiting(false),
+	stopPrefetching(false){
 	QFileSystemModel *fsModel = new QFileSystemModel(this);
 	fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
@@ -64,8 +65,10 @@ void ImgListView::changeDir(QString dir){
 	applyFilter("");
 	setRootIndex(proxyModel->fileIndex(dir));
 	//thumbnailPainter->prepareExit();
+	stopPrefetching = true;
 	prefetchProc.cancel();
 	prefetchProc.waitForFinished();
+	stopPrefetching = false;
 	thumbnailsCache.clear();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	qDebug()<<"Prefetch started";
@@ -92,6 +95,8 @@ void ImgListView::prefetchThumbnails(){
 	int countAtStart = thumbnailsCache.count();
 
 	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
+		if(stopPrefetching)
+			break;
 		QPixmap cachedImage;
 		auto currentFileName = fileInfo.fileName();
 		if(thumbnailsCache.contains(currentFileName)){
