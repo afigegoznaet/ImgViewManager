@@ -2,7 +2,7 @@
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false){
 	QFileSystemModel *fsModel = new QFileSystemModel(this);
-	auto rootIdx = fsModel->setRootPath(QDir::rootPath());
+	fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
 	namedFilters << "*.png";
@@ -71,9 +71,8 @@ void ImgListView::changeDir(QString dir){
 }
 
 void ImgListView::prefetchThumbnails(){
-	int i=0;
-	auto flags = Qt::ColorOnly | Qt::ThresholdDither
-			| Qt::ThresholdAlphaDither;
+	//auto flags = Qt::ColorOnly | Qt::ThresholdDither
+			//| Qt::ThresholdAlphaDither;
 	QString fileName = proxyModel->rootDirectory().absolutePath();
 	fileName +="/.thumbnails";
 	QFile thumbnailsFile(fileName);

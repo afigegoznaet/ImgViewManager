@@ -9,7 +9,7 @@ class ThumbnailsFileModel : public QSortFilterProxyModel{
 public:
 	explicit ThumbnailsFileModel(QObject *parent = Q_NULLPTR);
 	QFileInfo fileInfo(const QModelIndex &index) const;
-	QModelIndex index(const QString &path, int column = 0) const;
+	virtual QModelIndex index(const QString &path) const;
 	QDir rootDirectory() const;
 	void setNameFilters(const QStringList &filters);
 	QModelIndex setRootPath(const QString &newPath);
@@ -20,7 +20,7 @@ private:
 	bool isVisible(const QModelIndex&parent) const;
 	bool hasImages(const QModelIndex& dirIndex) const;
 	bool filterAcceptsRow(int source_row,
-						  const QModelIndex &source_parent) const;
+						  const QModelIndex &source_parent) const override;
 	QStringList filter;
 };
 

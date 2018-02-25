@@ -25,9 +25,9 @@ QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index) const{
 	return source->fileInfo(mapToSource(index));;
 }
 
-QModelIndex ThumbnailsFileModel::index(const QString &path, int column) const{
+QModelIndex ThumbnailsFileModel::index(const QString &path) const{
 	auto idx = (dynamic_cast<QFileSystemModel*>(this->sourceModel()))
-				->index(path, column);
+				->index(path, 0);
 	return mapFromSource(idx);
 }
 

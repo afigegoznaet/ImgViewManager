@@ -3,7 +3,7 @@
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	fsModel = new ThumbnailsFileModel(this);
 	auto model = new QFileSystemModel(this);
-	auto rootIdx = model->setRootPath(QDir::rootPath());
+	model->setRootPath(QDir::rootPath());
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 
 	fsModel->setSourceModel(model);
