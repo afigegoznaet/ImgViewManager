@@ -13,6 +13,7 @@ class ImgThumbnailDelegate : public QItemDelegate{
 public:
 	explicit ImgThumbnailDelegate(QMap<QString, QPixmap>& cache, QObject *parent);
 	void setModel(ThumbnailsFileModel* model){this->model = model;}
+	void prepareExit(){isExiting = true;}
 
 protected:
 	void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -20,14 +21,13 @@ protected:
 
 signals:
 
-public slots:
-
 
 private:
 	ThumbnailsFileModel* model;
 	QPixmapCache cache;
 	int flags;
 	QMap<QString, QPixmap>& currentCache;
+	bool isExiting = false;
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H

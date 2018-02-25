@@ -12,6 +12,8 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 	if(index.isValid()){
 
+		if(isExiting)
+			return;
 		auto fileInfo = model->fileInfo(index);
 
 		QFontMetrics fm(option.font);
