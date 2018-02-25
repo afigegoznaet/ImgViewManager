@@ -5,12 +5,13 @@
 #include <QFileSystemModel>
 #include <QImageReader>
 #include <QDebug>
+#include <QMap>
 #include <QPixmapCache>
 #include "thumbnailsfilemodel.h"
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
-	explicit ImgThumbnailDelegate(QObject *parent = Q_NULLPTR);
+	explicit ImgThumbnailDelegate(QMap<QString, QPixmap>& cache, QObject *parent);
 	void setModel(ThumbnailsFileModel* model){this->model = model;}
 
 protected:
@@ -26,6 +27,7 @@ private:
 	ThumbnailsFileModel* model;
 	QPixmapCache cache;
 	int flags;
+	QMap<QString, QPixmap>& currentCache;
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H

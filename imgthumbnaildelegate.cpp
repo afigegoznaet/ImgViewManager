@@ -1,7 +1,7 @@
 #include "imgthumbnaildelegate.h"
 
-ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent)
-	: QItemDelegate(parent){
+ImgThumbnailDelegate::ImgThumbnailDelegate(QMap<QString, QPixmap> &cache, QObject* parent)
+	: QItemDelegate(parent), currentCache(cache){
 	QPixmapCache::setCacheLimit(100*QPixmapCache::cacheLimit());
 	flags = Qt::AlignHCenter | Qt::AlignBottom
 			| Qt::TextWrapAnywhere;
@@ -17,9 +17,11 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		QFontMetrics fm(option.font);
 		auto boundingRect = fm.boundingRect(option.rect,flags,fileInfo.fileName());
 
-		QPixmap pm;
-		if (QPixmapCache::find(fileInfo.absoluteFilePath(), &pm))
+		auto fileName = fileInfo.fileName();
+		if(currentCache.contains(fileName)){
+			QPixmap pm = currentCache[fileInfo.fileName()];
 			painter->drawPixmap(option.rect.left()+1, option.rect.top()+1, pm);
+		}
 
 		if(option.state & QStyle::State_Selected){
 			qDebug()<<"Highlighted";

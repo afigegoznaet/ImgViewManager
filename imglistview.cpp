@@ -11,6 +11,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false)
 
 	filterText = "";
 
+	fsModel->setNameFilters(namedFilters);
 	fsModel->setNameFilterDisables(false);
 	proxyModel= new ThumbnailsFileModel(this);
 	proxyModel->setSourceModel(fsModel);
@@ -20,7 +21,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent) , isExiting(false)
 
 
 	applyFilter("");
-	thumbnailPainter = new ImgThumbnailDelegate(this);
+	thumbnailPainter = new ImgThumbnailDelegate(thumbnailsCache, this);
 	thumbnailPainter->setModel(proxyModel);
 	setItemDelegate(thumbnailPainter);
 
@@ -61,8 +62,9 @@ void ImgListView::changeDir(QString dir){
 	proxyModel->setRootPath(dir);
 	applyFilter("");
 	setRootIndex(proxyModel->index(dir));
-	//prefetchProc =
-	QtConcurrent::run([&](){prefetchThumbnails();});
+	prefetchProc.cancel();
+	thumbnailsCache.clear();
+	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	qDebug()<<"Prefetch started";
 }
 
@@ -70,35 +72,58 @@ void ImgListView::prefetchThumbnails(){
 	int i=0;
 	auto flags = Qt::ColorOnly | Qt::ThresholdDither
 			| Qt::ThresholdAlphaDither;
+	QString fileName = proxyModel->rootDirectory().absolutePath();
+	fileName +="/.thumbnails";
+	QFile thumbnailsFile(fileName);
+
+
+	QDataStream in (&thumbnailsFile);
+	in.setVersion(QDataStream::Qt_5_7);
+	if(!thumbnailsFile.open(QIODevice::ReadOnly))
+		qDebug()<<"Error opening thumbnails file";
+	else
+		in>> thumbnailsCache;
+
+	thumbnailsFile.close();
+
+
 	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
+		QPixmap cachedImage;
+		auto currentFileName = fileInfo.fileName();
+		if(thumbnailsCache.contains(currentFileName)){
+			cachedImage = thumbnailsCache[currentFileName];
+		}else{
+			QSize iconSize = this->iconSize();
+			QImageReader reader(fileInfo.absoluteFilePath());
+			auto picSize = reader.size();
+			double coef = picSize.height()*1.0/picSize.width();
 
-		//qDebug()<<"not exiting";
-		i++;
-		QSize iconSize = this->iconSize();
-		QImageReader reader(fileInfo.absoluteFilePath());
-		auto picSize = reader.size();
-		double coef = picSize.height()*1.0/picSize.width();
+			if(coef>1)
+				iconSize.setWidth(iconSize.width()/coef);
+			else
+				iconSize.setHeight(iconSize.height()*coef);
 
-		if(coef>1)
-			iconSize.setWidth(iconSize.width()/coef);
-		else
-			iconSize.setHeight(iconSize.height()*coef);
-
-		reader.setScaledSize(iconSize);
-		reader.setAutoTransform(true);
-		reader.setQuality(15);
+			reader.setScaledSize(iconSize);
+			reader.setAutoTransform(true);
+			reader.setQuality(15);
+			cachedImage = QPixmap::fromImageReader(&reader);
+			thumbnailsCache.insert(currentFileName,cachedImage);
+		}
 
 		if(isExiting)
 			return;
 
-		auto pm = QPixmap::fromImageReader(&reader, flags);
-		QPixmapCache::insert(fileInfo.absoluteFilePath(), pm);
 		auto idx = proxyModel->index(fileInfo.absoluteFilePath());
-
-		auto appRegion = visibleRegion();
-		//if(appRegion.contains(visualRect(idx)))
-			emit callUpdate(idx);
+		emit callUpdate(idx);
 	}
+
+	thumbnailsFile.open(QIODevice::WriteOnly);
+	QDataStream out (&thumbnailsFile);
+	out.setVersion(QDataStream::Qt_5_7);
+	out<<thumbnailsCache;
+	thumbnailsFile.flush();
+	thumbnailsFile.close();
+
 	qDebug()<<"Prefetch finished";
 }
 
