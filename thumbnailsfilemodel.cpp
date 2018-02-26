@@ -1,4 +1,5 @@
 #include "thumbnailsfilemodel.h"
+#include "imglistview.h"
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	: QSortFilterProxyModel(parent){
@@ -71,31 +72,21 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 
 
 	auto pIdx = sourceModel()->index(source_row, 0, source_parent);
-/*
-	qDebug()<<pIdx.isValid();
-	qDebug()<<pIdx;
-	qDebug()<< sm->fileInfo(pIdx).absoluteFilePath();
-	qDebug()<< sm->rootPath();
-	qDebug()<< sm->fileInfo(pIdx).absolutePath();*/
+
 	if(sm->rootPath().compare(sm->fileInfo(pIdx).absolutePath()))
 		return true;
-	//qDebug()<<QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
-	//if (source_parent == sm->index(sm->rootPath()) || source_row <2)
 
-		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
-
-	qDebug()<<"!!!: "<<source_row;
-	qDebug()<<"Parent: "<<QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+	if(sm->fileInfo(pIdx).isDir() && qobject_cast<ImgListView*>(parent()))
+		return false;
+	return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
-	qDebug()<< source->fileInfo(pIdx).absoluteFilePath();
+
 	auto idx = mapFromSource(pIdx);
-	qDebug()<<idx.isValid();
+
 	if(!idx.isValid())
 		return false;
-	qDebug()<<idx.isValid();
-	qDebug()<<"Filter:"<<fileInfo(idx).baseName();
-	qDebug()<<idx;
+
 	return isVisible(idx);
 }
 
@@ -112,4 +103,5 @@ void ThumbnailsFileModel::setNameFilters(const QStringList &filters){
 QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath){
 	QFileSystemModel *sm = qobject_cast<QFileSystemModel*>(sourceModel());
 	return sm->setRootPath(newPath);
+
 }

@@ -1,7 +1,6 @@
 #include "imglistview.h"
 
-ImgListView::ImgListView(QWidget *parent) : QListView(parent), isExiting(false),
-	stopPrefetching(false){
+ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	QFileSystemModel *fsModel = new QFileSystemModel(this);
 	fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
@@ -62,16 +61,17 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), isExiting(false),
 }
 
 void ImgListView::changeDir(QString dir){
-	prefetchProc.cancel();
+	stopPrefetching = true;
 	qDebug()<<"Changing dir";
 	qDebug()<<dir;
 	proxyModel->setRootPath(dir);
 	applyFilter("");
 	setRootIndex(proxyModel->fileIndex(dir));
+
 	//thumbnailPainter->prepareExit();
 	qDebug()<<"Waiting to finish";
-	stopPrefetching = true;
-	prefetchProc.cancel();
+
+	//prefetchProc.cancel();
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 	thumbnailsCache.clear();
@@ -84,9 +84,8 @@ void ImgListView::prefetchThumbnails(){
 	//auto flags = Qt::ColorOnly | Qt::ThresholdDither
 			//| Qt::ThresholdAlphaDither;
 	QString fileName = proxyModel->rootDirectory().absolutePath();
-	fileName +="/.thumbnails";
+	fileName +="/.kthumbnails";
 	QFile thumbnailsFile(fileName);
-
 
 	QDataStream in (&thumbnailsFile);
 	in.setVersion(QDataStream::Qt_5_7);
@@ -125,22 +124,21 @@ void ImgListView::prefetchThumbnails(){
 			thumbnailsCache.insert(currentFileName,cachedImage);
 		}
 
-		if(isExiting)
-			return;
-
 		auto idx = proxyModel->fileIndex(fileInfo.absoluteFilePath());
 		emit callUpdate(idx);
 	}
 
 	if(countAtStart != thumbnailsCache.count()){
 		qDebug()<<"Saving cache to file";
-		thumbnailsFile.open(QIODevice::WriteOnly);
-		thumbnailsFile.resize(0);
-		QDataStream out (&thumbnailsFile);
-		out.setVersion(QDataStream::Qt_5_7);
-		out<<thumbnailsCache;
-		thumbnailsFile.flush();
-		thumbnailsFile.close();
+		if(thumbnailsFile.open(QIODevice::WriteOnly)){
+			thumbnailsFile.resize(0);
+			QDataStream out (&thumbnailsFile);
+			out.setVersion(QDataStream::Qt_5_7);
+			out<<thumbnailsCache;
+			thumbnailsFile.flush();
+			thumbnailsFile.close();
+		}
+
 
 	}
 
@@ -167,7 +165,7 @@ void ImgListView::onDoubleClicked(){
 }
 
 void ImgListView::prepareExit(){
-	isExiting = true;
+	stopPrefetching = true;
 	thumbnailPainter->prepareExit();
 	prefetchProc.waitForFinished();
 }
