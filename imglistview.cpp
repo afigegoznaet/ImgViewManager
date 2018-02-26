@@ -62,22 +62,19 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 void ImgListView::changeDir(QString dir){
 	stopPrefetching = true;
-	qDebug()<<"Changing dir";
-	qDebug()<<dir;
+	//qDebug()<<"Changing dir";
+	//qDebug()<<dir;
 	proxyModel->setRootPath(dir);
 	applyFilter("");
 	setRootIndex(proxyModel->fileIndex(dir));
-
-	//thumbnailPainter->prepareExit();
-	qDebug()<<"Waiting to finish";
 
 	//prefetchProc.cancel();
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 	thumbnailsCache.clear();
-	qDebug()<<"Finished waiting";
+
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
-	qDebug()<<"Prefetch started";
+
 }
 
 void ImgListView::prefetchThumbnails(){
@@ -96,7 +93,7 @@ void ImgListView::prefetchThumbnails(){
 
 	thumbnailsFile.close();
 
-	qDebug()<<sizeof(thumbnailsCache);
+	qDebug()<<"Sizeof: "<<sizeof(thumbnailsCache);
 	int countAtStart = thumbnailsCache.count();
 
 	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
@@ -129,7 +126,7 @@ void ImgListView::prefetchThumbnails(){
 	}
 
 	if(countAtStart != thumbnailsCache.count()){
-		qDebug()<<"Saving cache to file";
+		//qDebug()<<"Saving cache to file";
 		if(thumbnailsFile.open(QIODevice::WriteOnly)){
 			thumbnailsFile.resize(0);
 			QDataStream out (&thumbnailsFile);
@@ -142,7 +139,7 @@ void ImgListView::prefetchThumbnails(){
 
 	}
 
-	qDebug()<<"Prefetch finished";
+	//qDebug()<<"Prefetch finished";
 }
 
 void ImgListView::keyPressEvent(QKeyEvent *event){

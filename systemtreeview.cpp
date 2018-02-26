@@ -25,7 +25,7 @@ void SystemTreeView::init(QString& startDir){
 
 	auto idx = fsModel->fileIndex(startDir);
 
-	qDebug()<<"Idx is valid: "<<idx;
+	//qDebug()<<"Idx is valid: "<<idx;
 	setCurrentIndex(idx);
 	scrollTo(idx);
 }

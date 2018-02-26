@@ -162,7 +162,7 @@ void ProgressDialog::DoSomething(void){
 
 		//connect(&mover,SIGNAL(bytesProgress(uint)), this, SLOT(onWrite(uint)));
 		connect(&mover, SIGNAL(completed(int)),this,SLOT(movementResult(int)), Qt::QueuedConnection);
-		//connect(this, SIGNAL(setStatus(int)),&mover,SLOT(setStatus(int)), Qt::QueuedConnection);
+		connect(this, SIGNAL(setStatus(int)),&mover,SLOT(setStatus(int)), Qt::QueuedConnection);
 		//emit setStatus(status);
 
 		//delete mover;

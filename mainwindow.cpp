@@ -66,7 +66,7 @@ void MainWindow::setFileInfo(int total, int visible){
 	info = QString::number(visible);
 	info += " files visible of ";
 	info += QString::number(total);
-	qDebug()<<info;
+	//qDebug()<<info;
 	ui->infoBox->setText(info);
 }
 
