@@ -34,9 +34,9 @@ private:
 	QString pauseButtonLabels[2]= {"Continue","Pause"};
 	QMutex moverBlocker;
 	int counter = 0;
+	QFutureWatcher<void> watcher;
 
 	void DoSomething(void);
-
 	QMessageBox::StandardButton showError(int result);
 
 signals:

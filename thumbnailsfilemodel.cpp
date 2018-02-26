@@ -80,7 +80,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		return false;
 	return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
-	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
+	//auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
 
 	auto idx = mapFromSource(pIdx);
 

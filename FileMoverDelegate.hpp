@@ -13,6 +13,7 @@ class FileMoverDelegate : public QObject
 	Q_OBJECT
 public:
 	explicit FileMoverDelegate(QString source, QString destination, QString action, QObject *parent = 0);
+	int doWork();
 	~FileMoverDelegate();
 	//void execute();
 	QMetaObject::Connection hz;

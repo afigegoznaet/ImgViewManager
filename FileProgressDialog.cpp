@@ -18,7 +18,7 @@ ProgressDialog::ProgressDialog(QWidget *parent, Qt::WindowFlags f) :
 	progress->tableWidget->setHorizontalHeaderLabels(m_TableHeader);
 	progress->progressBar->setMinimum(0);
 	progress->progressBar->setMaximum( 100 );
-	connect(this, SIGNAL(dirMoved(int)),this,SLOT(movementResult(int)));
+	//connect(this, SIGNAL(dirMoved(int)),this,SLOT(movementResult(int)));
 
 	connect(this, SIGNAL(sendErrMsg(QString )), this,SLOT(errorMsg(QString )), Qt::QueuedConnection);
 	connect(this, SIGNAL(hideDialogSignal()), this,SLOT(hideDialogSlot()), Qt::QueuedConnection);
@@ -118,13 +118,12 @@ void ProgressDialog::movementResult(int result){
 
 	moverBlocker.lock();
 
-	progress->progressBar->setValue(++counter);
-	if(progress->tableWidget->rowCount())
-		progress->tableWidget->removeRow(0);
-
 	auto reply = showError(result);
 	if(reply == QMessageBox::Yes){
 		//status = 1;
+		progress->progressBar->setValue(++counter);
+		if(progress->tableWidget->rowCount())
+			progress->tableWidget->removeRow(0);
 		QtConcurrent::run(this, &ProgressDialog::DoSomething);
 	}
 	moverBlocker.unlock();
@@ -159,12 +158,12 @@ void ProgressDialog::DoSomething(void){
 
 		qDebug()<<source;
 		destination.append(fileName);
-		FileMoverDelegate mover(source, destination, "Copy", this);
+		FileMoverDelegate mover(source, destination, "Copy");
 
-		connect(&mover,SIGNAL(bytesProgress(uint)), this, SLOT(onWrite(uint)));
+		//connect(&mover,SIGNAL(bytesProgress(uint)), this, SLOT(onWrite(uint)));
 		connect(&mover, SIGNAL(completed(int)),this,SLOT(movementResult(int)), Qt::QueuedConnection);
 		//connect(this, SIGNAL(setStatus(int)),&mover,SLOT(setStatus(int)), Qt::QueuedConnection);
-		emit setStatus(status);
+		//emit setStatus(status);
 
 		//delete mover;
 

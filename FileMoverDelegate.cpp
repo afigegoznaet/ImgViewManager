@@ -1,6 +1,7 @@
 #include "FileMoverDelegate.hpp"
 #include <QDebug>
 #include <QStorageInfo>
+#include "FileProgressDialog.hpp"
 
 /*
 #ifdef _WIN32
@@ -28,7 +29,7 @@ int FileMoverDelegate::copy(){
 	sourceFile.open(QIODevice::ReadOnly);
 	destinationFile.open(QIODevice::WriteOnly | QIODevice::Truncate);//Need to add a question dialog for this
 
-	quint64 totalSize = sourceFile.size();
+	//quint64 totalSize = sourceFile.size();
 	quint64 tempSize = 0;
 
 	char buffer[MAX_READ];//1 Mb
@@ -95,6 +96,8 @@ FileMoverDelegate::~FileMoverDelegate(){
 
 FileMoverDelegate::FileMoverDelegate(QString source, QString destination, QString action, QObject *parent) :
 	QObject(parent), destination(destination), source(source), action(action), status(true){
+	//connect(this, SIGNAL(completed(int)),qobject_cast<ProgressDialog*>(parent),SLOT(movementResult(int)), Qt::QueuedConnection);
+
 	qDebug()<<"Mover constructor"<<thread();
 }
 
