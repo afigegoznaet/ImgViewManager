@@ -21,7 +21,7 @@ public:
 signals:
 
 public slots:
-	void expanded(const QModelIndex &fileIndex);
+
 private:
 	bool isVisible(const QModelIndex&parent) const;
 	bool hasPics(const QModelIndex&parent) const;
@@ -31,9 +31,6 @@ private:
 
 	QStringList filter;
 	mutable QMap<QString,QAtomicInt> treeMap;
-	mutable QMutex locker;
-	mutable QAtomicInt counter=0;
-	mutable QFuture<bool> treeParser;
 };
 
 #endif // THUMBNAILSFILEMODEL_H

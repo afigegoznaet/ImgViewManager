@@ -3,14 +3,10 @@
 #include <QSplashScreen>
 #include <QThread>
 
-
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
 	QCoreApplication::setOrganizationName("Custom Customer");
 	QCoreApplication::setApplicationName("Clipart Viewer");
-
-
 
 	QPixmap pixmap(":/Images/splash.png");
 	qDebug()<<pixmap.height();
@@ -21,8 +17,6 @@ int main(int argc, char *argv[])
 	MainWindow w;
 	w.setWindowTitle("Clipart Viewer");
 	qApp->processEvents();
-
-
 
 	splash.finish(&w);
 	w.show();

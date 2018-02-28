@@ -17,18 +17,18 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 		emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
 			});
 
-	connect(this, SIGNAL(expanded(const QModelIndex &)),
-			fsModel, SLOT(expanded(const QModelIndex &)));
 }
 
 void SystemTreeView::init(QString& startDir){
 
 	//fsModel->init(startDir);
+	QDir dir(startDir);
+	while(dir.cdUp()){
+		auto idx = fsModel->fileIndex(dir.absolutePath());
+		expand(idx);
+	}
 	auto idx = fsModel->fileIndex(startDir);
 	expand(idx);
-	//auto idx = fsModel->fileIndex(startDir);
-
-	//qDebug()<<"Idx is valid: "<<idx;
 	setCurrentIndex(idx);
 	scrollTo(idx);
 }

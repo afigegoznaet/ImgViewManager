@@ -66,7 +66,6 @@ void MainWindow::setFileInfo(int total, int visible){
 	info = QString::number(visible);
 	info += " files visible of ";
 	info += QString::number(total);
-	//qDebug()<<info;
 	ui->infoBox->setText(info);
 }
 
@@ -75,7 +74,6 @@ void MainWindow::showAbout(){
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
 	msgBox.setText("Incepted in 2018 in Chisinau, Moldova");
-	//msgBox.setInformativeText("Do you want to save your changes?");
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();

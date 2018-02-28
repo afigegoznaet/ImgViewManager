@@ -107,13 +107,6 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& parent)const{
 }
 
 
-void ThumbnailsFileModel::expanded(const QModelIndex &index){
-
-	//qDebug()<<"Expanded";
-	//qDebug()<<fileInfo(index).absoluteFilePath();
-	//qDebug()<<"Visible: "<<hasPics(mapToSource(index));
-}
-
 bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 						const QModelIndex &source_parent) const{
 
@@ -130,31 +123,18 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 	}else{
 		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
-		//if(dir.absolutePath().contains(sm->fileInfo(pIdx).absolutePath()))
-			//return true;
+
 		bool res1 = treeMap.contains(dir.absolutePath());
 		if(res1)
 			return treeMap[dir.absolutePath()];
 
 		QString path = dir.absolutePath();
-		if(path.contains("/proc"))
+		if(path.startsWith("/proc"))
 			return false;
-		//locker.lock();
-		//treeParser = QtConcurrent::run([&, path](){
-			qDebug()<<"Path: "<<path;
-			QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-			bool res = hasPics(asd->index(path,0));
-			qDebug()<<"Trying to update: "<<res;
-			return res;
 
-		//});
-
-		//treeParser.waitForFinished();
-		//locker.unlock();
-		return treeParser.result();
-
+		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
+		return hasPics(asd->index(path,0));
 	}
-
 
 }
 
@@ -175,24 +155,7 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath){
 }
 
 void ThumbnailsFileModel::init(QString& startDir){
-	qDebug()<<"Init: "<<startDir;
-	//QtConcurrent::run([&,startDir](){
-
-		//locker.lock();
-		//treeParser.waitForFinished();
-		//treeParser = QtConcurrent::run([&,startDir](){
-			QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-			if(hasPics(asd->index(startDir,0))){
-				qDebug()<<"Init folder has pics: "<<startDir;
-				auto tree = qobject_cast<SystemTreeView*>(parent());
-				//tree->setCurrentIndex(asd->index(startDir,0));
-				//tree->scrollTo(asd->index(startDir,0));
-				//return true;
-			}
-			//return false;
-		//});
-		//locker.unlock();
-	//});
-	qDebug()<<"Init: "<<startDir;
+	QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
+	hasPics(asd->index(startDir,0));
 }
 
