@@ -3,8 +3,7 @@
 ImgThumbnailDelegate::ImgThumbnailDelegate(QMap<QString, QPixmap> &cache, QObject* parent)
 	: QItemDelegate(parent), currentCache(cache){
 	QPixmapCache::setCacheLimit(100*QPixmapCache::cacheLimit());
-	flags = Qt::AlignHCenter | Qt::AlignBottom
-			| Qt::TextWrapAnywhere;
+	flags = Qt::AlignHCenter | Qt::AlignBottom;
 }
 
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -12,16 +11,15 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 	if(index.isValid()){
 
-		if(isExiting)
-			return;
 		auto fileInfo = model->fileInfo(index);
+		auto fileName = fileInfo.fileName();
 
 		QFontMetrics fm(option.font);
-		auto boundingRect = fm.boundingRect(option.rect,flags,fileInfo.fileName());
+		auto boundingRect = fm.boundingRect(option.rect,flags,fileName);
 
-		auto fileName = fileInfo.fileName();
-		if(currentCache.contains(fileName)){
-			QPixmap pm = currentCache[fileInfo.fileName()];
+		auto pixIt = currentCache.constFind(fileName);
+		if(!isExiting && pixIt != currentCache.constEnd()){
+			QPixmap pm = *pixIt;
 			painter->drawPixmap(option.rect.left()+1, option.rect.top()+1, pm);
 		}
 
@@ -32,7 +30,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		}else
 			painter->setPen(option.palette.text().color());
 
-		painter->drawText(option.rect, flags, fileInfo.fileName());
+		painter->drawText(option.rect, flags, fileInfo.baseName());
 
 	}
 }

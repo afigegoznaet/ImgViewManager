@@ -38,6 +38,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	qDebug()<<height;
 	qDebug()<<width;
 	setIconSize(QSize(height/8,height/8));
+	qDebug()<<"Icon size: "<<iconSize();
 	setLayoutMode (QListView::Batched);
 	setUniformItemSizes(true);
 	connect(this, SIGNAL(callUpdate(const QModelIndex &)),
@@ -62,17 +63,18 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 void ImgListView::changeDir(QString dir){
 	stopPrefetching = true;
+	thumbnailPainter->prepareExit();
 	//qDebug()<<"Changing dir";
 	//qDebug()<<dir;
 	proxyModel->setRootPath(dir);
-	applyFilter("");
+	//applyFilter("");
 	setRootIndex(proxyModel->fileIndex(dir));
 
 	//prefetchProc.cancel();
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 	thumbnailsCache.clear();
-
+	thumbnailPainter->undoExit();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 
 }
@@ -104,7 +106,7 @@ void ImgListView::prefetchThumbnails(){
 		if(thumbnailsCache.contains(currentFileName)){
 			cachedImage = thumbnailsCache[currentFileName];
 		}else{
-			QSize iconSize = this->iconSize();
+			QSize iconSize(128,128);
 			QImageReader reader(fileInfo.absoluteFilePath());
 			auto picSize = reader.size();
 			double coef = picSize.height()*1.0/picSize.width();

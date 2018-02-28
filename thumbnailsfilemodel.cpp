@@ -122,6 +122,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 			return false;
 		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 	}else{
+		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
 
 		bool res1 = treeMap.contains(dir.absolutePath());
