@@ -1,22 +1,27 @@
 #include "thumbnailsfilemodel.h"
 #include "imglistview.h"
+#include "systemtreeview.h"
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	: QSortFilterProxyModel(parent){
 	filter << "*.png";
 	filter << "*.jpeg";
 	filter << "*.jpg";
+
 }
 
 
 bool ThumbnailsFileModel::hasImages(const QModelIndex& dirIndex, bool isSource) const{
 
+	//locker.lock();
 	auto info = fileInfo(dirIndex, isSource);
 	if(!info.isDir())
 		return false;
 	QDir dir(info.absoluteFilePath());
 	dir.setNameFilters(filter);
-	if(dir.count())
+	int cnt = dir.count();
+	//locker.unlock();
+	if(cnt)
 		return true;
 	return false;
 }
@@ -35,12 +40,7 @@ QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
 }
 
 bool ThumbnailsFileModel::isVisible(const QModelIndex& parent)const{
-	//qDebug()<<"Parent******************************"<<parent;
-	//qDebug()<<sourceModel()->parent(parent);
-
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
-	//qDebug()<<fileInfo(parent).absoluteFilePath();
-	//qDebug()<<"children";
 	if(source->hasChildren(mapToSource(parent)) ){
 		//qDebug()<< source->rowCount(mapToSource(parent));
 		if(hasImages(parent))
@@ -55,8 +55,11 @@ bool ThumbnailsFileModel::isVisible(const QModelIndex& parent)const{
 			auto idx = fileIndex(entry.absoluteFilePath());
 			//qDebug()<<entry.absoluteFilePath();
 			//qDebug()<<"Idx is valid: "<<idx.isValid();
-			if(isVisible(idx))
+			if(isVisible(idx)){
+				qDebug()<<entry.absolutePath();
 				return true;
+			}
+
 		}
 	}
 	return false;
@@ -64,41 +67,51 @@ bool ThumbnailsFileModel::isVisible(const QModelIndex& parent)const{
 
 
 bool ThumbnailsFileModel::hasPics(const QModelIndex& parent)const{
-	//qDebug()<<"Parent******************************"<<parent;
-	//qDebug()<<sourceModel()->parent(parent);
+
 
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
-	//qDebug()<<fileInfo(parent).absoluteFilePath();
-	//qDebug()<<source->fileInfo(parent).absoluteFilePath();
+	QDir dir(source->fileInfo(parent).absoluteFilePath());
+	//qDebug()<<"Check if visible: "<<dir.absolutePath();
 	if(source->hasChildren(parent) ){
-
-		if(hasImages(parent, true))
+		if(hasImages(parent, true)){
+			treeMap[dir.absolutePath()] = true;
 			return true;
+		}
 
-		QDir dir(source->fileInfo(parent).absoluteFilePath());
+
+
 		if(!(dir.dirName().compare(".") && dir.dirName().compare("..") && dir.dirName().length()))
 			return true;
-		auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
+		auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 		//qDebug()<<dirEntries.count();
 
 		for(auto& entry : dirEntries){
-
-			auto idx = fileIndex(entry.absoluteFilePath());
+			//locker.lock();
+			auto idx = source->index(entry.absoluteFilePath());
+			//locker.unlock();
 			//qDebug()<<entry.absoluteFilePath();
 			//qDebug()<<"Idx is valid: "<<idx.isValid();
-			if(hasPics( mapToSource(idx)))
+
+			if(hasPics( idx )){
+				//qDebug()<<entry.absolutePath();
+				treeMap[dir.absolutePath()] = true;
 				return true;
+			}
 		}
 	}
+
+
+
+	treeMap[dir.absolutePath()] = false;
 	return false;
 }
 
 
 void ThumbnailsFileModel::expanded(const QModelIndex &index){
 
-	qDebug()<<"Expanded";
-	qDebug()<<fileInfo(index).absoluteFilePath();
-	qDebug()<<"Visible: "<<isVisible(index);
+	//qDebug()<<"Expanded";
+	//qDebug()<<fileInfo(index).absoluteFilePath();
+	//qDebug()<<"Visible: "<<hasPics(mapToSource(index));
 }
 
 bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
@@ -109,32 +122,40 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 
 	auto pIdx = sm->index(source_row, 0, source_parent);
 
-	if(sm->rootPath().compare(sm->fileInfo(pIdx).absolutePath()))
-		return true;
-
-	if(sm->fileInfo(pIdx).isDir() && qobject_cast<ImgListView*>(parent()))
-		return false;
-	else if(sm->fileInfo(pIdx).isDir()){
-		if(QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent))
-			try{
-				return true;//hasPics(pIdx);
-		}catch(std::exception e){
-			qDebug()<<e.what();
-			return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
-		}
-
-
-	}else
+	if(qobject_cast<ImgListView*>(parent())){
+		if(sm->rootPath().compare(sm->fileInfo(pIdx).absolutePath()))
+			return true;
+		if(sm->fileInfo(pIdx).isDir())
+			return false;
 		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+	}else{
+		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
+		//if(dir.absolutePath().contains(sm->fileInfo(pIdx).absolutePath()))
+			//return true;
+		bool res1 = treeMap.contains(dir.absolutePath());
+		if(res1)
+			return treeMap[dir.absolutePath()];
 
-	//auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
+		QString path = dir.absolutePath();
+		if(path.contains("/proc"))
+			return false;
+		//locker.lock();
+		//treeParser = QtConcurrent::run([&, path](){
+			qDebug()<<"Path: "<<path;
+			QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
+			bool res = hasPics(asd->index(path,0));
+			qDebug()<<"Trying to update: "<<res;
+			return res;
 
-	auto idx = mapFromSource(pIdx);
+		//});
 
-	if(!idx.isValid())
-		return false;
+		//treeParser.waitForFinished();
+		//locker.unlock();
+		return treeParser.result();
 
-	return isVisible(idx);
+	}
+
+
 }
 
 QDir ThumbnailsFileModel::rootDirectory() const{
@@ -152,3 +173,26 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath){
 	return sm->setRootPath(newPath);
 
 }
+
+void ThumbnailsFileModel::init(QString& startDir){
+	qDebug()<<"Init: "<<startDir;
+	//QtConcurrent::run([&,startDir](){
+
+		//locker.lock();
+		//treeParser.waitForFinished();
+		//treeParser = QtConcurrent::run([&,startDir](){
+			QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
+			if(hasPics(asd->index(startDir,0))){
+				qDebug()<<"Init folder has pics: "<<startDir;
+				auto tree = qobject_cast<SystemTreeView*>(parent());
+				//tree->setCurrentIndex(asd->index(startDir,0));
+				//tree->scrollTo(asd->index(startDir,0));
+				//return true;
+			}
+			//return false;
+		//});
+		//locker.unlock();
+	//});
+	qDebug()<<"Init: "<<startDir;
+}
+
