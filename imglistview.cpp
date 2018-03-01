@@ -63,7 +63,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 void ImgListView::changeDir(QString dir){
 	stopPrefetching = true;
-	thumbnailPainter->stopDrawing();
+
 	//qDebug()<<"Changing dir";
 	//qDebug()<<dir;
 	proxyModel->setRootPath(dir);
@@ -73,6 +73,7 @@ void ImgListView::changeDir(QString dir){
 	//prefetchProc.cancel();
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
+	thumbnailPainter->stopDrawing();
 	thumbnailsCache.clear();
 	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
