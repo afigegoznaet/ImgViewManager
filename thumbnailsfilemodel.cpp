@@ -14,12 +14,14 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 bool ThumbnailsFileModel::hasImages(const QModelIndex& dirIndex, bool isSource) const{
 
 	//locker.lock();
+	qDebug()<<"hasimg";
 	auto info = fileInfo(dirIndex, isSource);
+
 	if(!info.isDir())
 		return false;
 	QDir dir(info.absoluteFilePath());
 	dir.setNameFilters(filter);
-	int cnt = dir.count();
+	uint cnt = dir.count();
 	//locker.unlock();
 	if(cnt)
 		return true;
@@ -28,14 +30,17 @@ bool ThumbnailsFileModel::hasImages(const QModelIndex& dirIndex, bool isSource) 
 
 QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index, bool isSource) const{
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
+	//qDebug()<<"fileInfo";
 	if(isSource)
 		return source->fileInfo(index);;
+
 	return source->fileInfo(mapToSource(index));;
 }
 
 QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
 	auto idx = (dynamic_cast<QFileSystemModel*>(this->sourceModel()))
 				->index(path, 0);
+	//qDebug()<<"fileindex";
 	return mapFromSource(idx);
 }
 
@@ -46,6 +51,7 @@ bool ThumbnailsFileModel::isVisible(const QModelIndex& parent)const{
 		if(hasImages(parent))
 			return true;
 
+		qDebug()<<"isVisible";
 		QDir dir(fileInfo(parent).absoluteFilePath());
 		if(!(dir.dirName().compare(".") && dir.dirName().compare("..") && dir.dirName().length()))
 			return true;
@@ -70,6 +76,7 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& parent)const{
 
 
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
+	qDebug()<<"hasPics";
 	QDir dir(source->fileInfo(parent).absoluteFilePath());
 	//qDebug()<<"Check if visible: "<<dir.absolutePath();
 	if(source->hasChildren(parent) ){
@@ -112,17 +119,28 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 
 	QFileSystemModel *sm = qobject_cast<QFileSystemModel*>(sourceModel());
 
-
 	auto pIdx = sm->index(source_row, 0, source_parent);
+	QString path1 = sm->rootPath();
+	//qDebug()<<"acceptRow";
+	QString path2 = sm->fileInfo(pIdx).absolutePath();
+	QDir pt(path2);
+
 
 	if(qobject_cast<ImgListView*>(parent())){
-		if(sm->rootPath().compare(sm->fileInfo(pIdx).absolutePath()))
+		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+
+		if( pt.isReadable() && path1.compare(path2)){
+			//qDebug()<<path1;
+			//qDebug()<<path2;
 			return true;
+		}
 		if(sm->fileInfo(pIdx).isDir())
 			return false;
 		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 	}else{
-		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+		if(!pt.isReadable() )
+			return false;
+		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);/*
 		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
 
 		bool res1 = treeMap.contains(dir.absolutePath());
@@ -134,7 +152,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 			return false;
 
 		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-		return hasPics(asd->index(path,0));
+		return hasPics(asd->index(path,0));*/
 	}
 
 }

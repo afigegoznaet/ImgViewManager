@@ -14,7 +14,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 
 	connect(selectionModel(), &QItemSelectionModel::currentChanged,
 			[&](QModelIndex current, QModelIndex){
-		emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
+				emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
 			});
 
 }
@@ -35,5 +35,6 @@ void SystemTreeView::init(QString& startDir){
 
 QString SystemTreeView::getCurrentDir(){
 	auto idx = currentIndex();
+	qDebug()<<"currentDir";
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }

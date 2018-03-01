@@ -101,7 +101,7 @@ void ImgListView::prefetchThumbnails(){
 			break;
 		auto currentFileName = fileInfo.fileName();
 		if(!thumbnailsCache.contains(currentFileName)) {
-			QSize iconSize(128,128);
+			QSize iconSize = this->iconSize();
 			QImageReader reader(fileInfo.absoluteFilePath());
 			auto picSize = reader.size();
 			double coef = picSize.height()*1.0/picSize.width();

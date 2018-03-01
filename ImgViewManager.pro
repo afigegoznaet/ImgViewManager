@@ -11,10 +11,12 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = ImgViewManager
 TEMPLATE = app
 
-#QMAKE_CXXFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
+#QMAKE_CXXFLAGS+="-fsanitize=address"
 #QMAKE_CXXFLAGS+="-fsanitize=thread"
 #QMAKE_CFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
-#QMAKE_LFLAGS+="-fsanitize=address"
+#QMAKE_LFLAGS+="-fsanitize=thread -shared"
+QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
+QMAKE_LFLAGS+="-fsanitize=address"
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings

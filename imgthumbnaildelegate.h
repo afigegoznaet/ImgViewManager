@@ -14,8 +14,8 @@ class ImgThumbnailDelegate : public QItemDelegate{
 public:
 	explicit ImgThumbnailDelegate(QHash<QString, QPixmap>& cache, QObject *parent);
 	void setModel(ThumbnailsFileModel* model){this->model = model;}
-	void stopDrawing(){canDraw = true;}
-	void resumeDrawing(){canDraw = false;}
+	void stopDrawing(){canDraw = false;}
+	void resumeDrawing(){canDraw = true;}
 
 protected:
 	void paint(QPainter *painter, const QStyleOptionViewItem &option,
