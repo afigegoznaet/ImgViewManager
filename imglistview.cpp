@@ -88,14 +88,12 @@ void ImgListView::prefetchThumbnails(){
 
 	QDataStream in (&thumbnailsFile);
 	in.setVersion(QDataStream::Qt_5_7);
-	if(!thumbnailsFile.open(QIODevice::ReadOnly))
-		qDebug()<<"Error opening thumbnails file";
-	else
+	if(thumbnailsFile.open(QIODevice::ReadOnly))
 		in>> thumbnailsCache;
 
 	thumbnailsFile.close();
 
-	qDebug()<<"Sizeof: "<<sizeof(thumbnailsCache);
+	//qDebug()<<"Sizeof: "<<sizeof(thumbnailsCache);
 	int countAtStart = thumbnailsCache.count();
 
 	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
