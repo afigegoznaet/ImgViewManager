@@ -23,6 +23,9 @@ MainWindow::MainWindow(QWidget *parent) :
 	connect(ui->actionExport_Images, SIGNAL(triggered(bool)),
 			ui->imagesView, SLOT(exportImages()));
 
+	qDebug()<<"sizeof QModelIndex"<<sizeof(QModelIndex);
+	qDebug()<<"sizeof QPixmap"<<sizeof(QPixmap);
+	qDebug()<<"sizeof QString"<<sizeof(QString);
 }
 
 MainWindow::~MainWindow(){

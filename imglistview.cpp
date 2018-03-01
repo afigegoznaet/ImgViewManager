@@ -63,7 +63,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 void ImgListView::changeDir(QString dir){
 	stopPrefetching = true;
-	thumbnailPainter->prepareExit();
+	thumbnailPainter->stopDrawing();
 	//qDebug()<<"Changing dir";
 	//qDebug()<<dir;
 	proxyModel->setRootPath(dir);
@@ -74,7 +74,7 @@ void ImgListView::changeDir(QString dir){
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 	thumbnailsCache.clear();
-	thumbnailPainter->undoExit();
+	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 
 }
@@ -101,11 +101,8 @@ void ImgListView::prefetchThumbnails(){
 	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
 		if(stopPrefetching)
 			break;
-		QPixmap cachedImage;
 		auto currentFileName = fileInfo.fileName();
-		if(thumbnailsCache.contains(currentFileName)){
-			cachedImage = thumbnailsCache[currentFileName];
-		}else{
+		if(!thumbnailsCache.contains(currentFileName)) {
 			QSize iconSize(128,128);
 			QImageReader reader(fileInfo.absoluteFilePath());
 			auto picSize = reader.size();
@@ -119,8 +116,9 @@ void ImgListView::prefetchThumbnails(){
 			reader.setScaledSize(iconSize);
 			reader.setAutoTransform(true);
 			reader.setQuality(15);
-			cachedImage = QPixmap::fromImageReader(&reader);
-			thumbnailsCache.insert(currentFileName,cachedImage);
+			thumbnailPainter->stopDrawing();
+			thumbnailsCache.insert(currentFileName, QPixmap::fromImageReader(&reader));
+			thumbnailPainter->resumeDrawing();
 		}
 
 		auto idx = proxyModel->fileIndex(fileInfo.absoluteFilePath());
@@ -165,7 +163,7 @@ void ImgListView::onDoubleClicked(){
 
 void ImgListView::prepareExit(){
 	stopPrefetching = true;
-	thumbnailPainter->prepareExit();
+	thumbnailPainter->stopDrawing();
 	prefetchProc.waitForFinished();
 }
 
