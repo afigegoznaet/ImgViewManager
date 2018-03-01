@@ -23,7 +23,22 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		auto pixIt = currentCache.constFind(fileName);
 		if(canDraw && pixIt != currentCache.constEnd()){
 			QPixmap pm = *pixIt;
-			painter->drawPixmap(option.rect.left(), option.rect.top(), pm);
+			int hDelta(0), vDelta(0);
+			qDebug()<<"pm size: "<<pm.size();
+			qDebug()<<"rect size: "<<option.rect;
+			qDebug()<<"width: "<<(pm.width()<option.rect.width());
+			qDebug()<<"height: "<<(pm.height()<option.rect.height());
+			if(pm.width()<option.rect.width()
+				|| pm.height()+
+					boundingRect.height() < option.rect.height()){
+				hDelta = (option.rect.width() - pm.width())/2;
+				vDelta = (option.rect.height() -
+						  boundingRect.height() - pm.height())/2;
+			}
+
+			painter->drawPixmap(option.rect.left() + hDelta,
+								option.rect.top() + vDelta,
+				pm.width(), pm.height(),pm);
 		}
 
 

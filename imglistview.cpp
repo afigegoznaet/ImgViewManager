@@ -105,13 +105,14 @@ void ImgListView::prefetchThumbnails(){
 			QSize iconSize = this->iconSize();
 			QImageReader reader(fileInfo.absoluteFilePath());
 			auto picSize = reader.size();
-			double coef = picSize.height()*1.0/picSize.width();
-
-			if(coef>1)
-				iconSize.setWidth(iconSize.width()/coef);
-			else
-				iconSize.setHeight(iconSize.height()*coef);
-
+			if(picSize.width()>iconSize.width() || picSize.height()>iconSize.height()){
+				auto picSize = reader.size();
+				double coef = picSize.height()*1.0/picSize.width();
+				if(coef>1)
+					iconSize.setWidth(iconSize.width()/coef);
+				else
+					iconSize.setHeight(iconSize.height()*coef);
+			}
 			reader.setScaledSize(iconSize);
 			reader.setAutoTransform(true);
 			reader.setQuality(15);
