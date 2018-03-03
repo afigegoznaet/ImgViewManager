@@ -62,6 +62,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	connect(this, SIGNAL(setFileAction(QFileInfoList,QString)),
 			copyDialog, SLOT(processFileAction(QFileInfoList,QString)));
+	connect(this, SIGNAL(callFullUpdate()), this, SLOT(update()), Qt::QueuedConnection);
 }
 
 void ImgListView::changeDir(QString dir){
@@ -80,6 +81,7 @@ void ImgListView::changeDir(QString dir){
 	thumbnailsCache.clear();
 	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
+	emit callFullUpdate();
 
 }
 
@@ -124,7 +126,7 @@ void ImgListView::prefetchThumbnails(){
 			thumbnailPainter->resumeDrawing();
 		}
 
-		auto idx = proxyModel->fileIndex(fileInfo.absoluteFilePath());
+		QPersistentModelIndex idx = proxyModel->fileIndex(fileInfo.absoluteFilePath());
 		emit callUpdate(idx);
 	}
 
@@ -143,6 +145,7 @@ void ImgListView::prefetchThumbnails(){
 	}
 
 	//qDebug()<<"Prefetch finished";
+	emit callFullUpdate();
 }
 
 void ImgListView::keyPressEvent(QKeyEvent *event){

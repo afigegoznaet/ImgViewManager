@@ -24,6 +24,7 @@ signals:
 	void callUpdate(const QModelIndex &);
 	void numFiles(int total, int visible);
 	void setFileAction(QFileInfoList fileList, QString destination);
+	void callFullUpdate();
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();

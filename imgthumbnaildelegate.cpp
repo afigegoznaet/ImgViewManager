@@ -7,9 +7,10 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QPixmap> &cache, QObje
 }
 
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-							  const QModelIndex &index) const{
+							  const QModelIndex &ind) const{
 
-	if(index.isValid()){
+	if(ind.isValid()){
+		QPersistentModelIndex index(ind);
 		//qDebug()<<"Paint";
 		auto fileInfo = model->fileInfo(index);
 		//qDebug()<<"Got info";
@@ -34,7 +35,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 			painter->setPen(option.palette.text().color());
 
 		auto pixIt = currentCache.constFind(fileName);
-		if(canDraw && pixIt != currentCache.constEnd()){
+		if(index.isValid() && canDraw && pixIt != currentCache.constEnd()){
 			QPixmap pm = *pixIt;
 			int hDelta(0), vDelta(0);
 			//qDebug()<<"pm size: "<<pm.size();
@@ -51,23 +52,25 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 			//qDebug()<<"hDelta: "<<hDelta;
 			//qDebug()<<"vDelta: "<<vDelta;
-			if(hDelta >0 && vDelta >0)
-			painter->drawPixmap(option.rect.left() + hDelta,
-								option.rect.top() + vDelta,
-				pm.width(), pm.height(),pm);
-			else if(hDelta >0)
+			if(index.isValid()){
+				if(hDelta >0 && vDelta >0)
 				painter->drawPixmap(option.rect.left() + hDelta,
 									option.rect.top() + vDelta,
-					pm.width(), option.rect.height()-boundingRect.height(),pm);
+					pm.width(), pm.height(),pm);
+				else if(hDelta >0)
+					painter->drawPixmap(option.rect.left() + hDelta,
+										option.rect.top() + vDelta,
+						pm.width(), option.rect.height()-boundingRect.height(),pm);
 
-			else if(vDelta >0)
-				painter->drawPixmap(option.rect.left() + hDelta,
-									option.rect.top() + vDelta,
-					option.rect.width() + hDelta, pm.height(),pm);
-			else
-				painter->drawPixmap(option.rect.left() + hDelta,
-									option.rect.top() + vDelta,
-					option.rect.width() + hDelta, option.rect.height()-boundingRect.height(),pm);
+				else if(vDelta >0)
+					painter->drawPixmap(option.rect.left() + hDelta,
+										option.rect.top() + vDelta,
+						option.rect.width() + hDelta, pm.height(),pm);
+				else
+					painter->drawPixmap(option.rect.left() + hDelta,
+										option.rect.top() + vDelta,
+						option.rect.width() + hDelta, option.rect.height()-boundingRect.height(),pm);
+			}
 		}
 
 
