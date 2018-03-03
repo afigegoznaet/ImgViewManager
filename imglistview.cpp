@@ -5,6 +5,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
+
 	namedFilters << "*.png";
 	namedFilters << "*.jpeg";
 	namedFilters << "*.jpg";
@@ -38,7 +39,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	qDebug()<<height;
 	qDebug()<<width;
 	setIconSize(QSize(height/8,height/8));
+	setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
 	qDebug()<<"Icon size: "<<iconSize();
+	qDebug()<<"Grid size: "<<gridSize();
 	setLayoutMode (QListView::Batched);
 	setUniformItemSizes(true);
 	connect(this, SIGNAL(callUpdate(const QModelIndex &)),
