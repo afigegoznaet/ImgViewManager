@@ -22,15 +22,16 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 void SystemTreeView::init(QString& startDir){
 
 	//fsModel->init(startDir);
-	QDir dir(startDir);
+	/*QDir dir(startDir);
 	while(dir.cdUp()){
 		auto idx = fsModel->fileIndex(dir.absolutePath());
 		expand(idx);
-	}
+	}*/
 	auto idx = fsModel->fileIndex(startDir);
 	expand(idx);
 	setCurrentIndex(idx);
 	scrollTo(idx);
+	expandAll();
 }
 
 QString SystemTreeView::getCurrentDir(){

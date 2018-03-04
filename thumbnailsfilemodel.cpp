@@ -114,12 +114,14 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 	QString path2 = sm->fileInfo(pIdx).absolutePath();
 	QDir pt(path2);
 
+	if(!pt.isReadable() )
+		return false;
 
 	if(qobject_cast<ImgListView*>(parent())){
 
 		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
-		if( pt.isReadable() && path1.compare(path2))
+		if( path1.compare(path2))
 			return true;
 		if(sm->fileInfo(pIdx).isDir())
 			return false;
@@ -127,9 +129,8 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 	}else{
 
 
-		if(!pt.isReadable() )
-			return false;
-		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+
+		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
 
 		bool res1 = treeMap.contains(dir.absolutePath());
