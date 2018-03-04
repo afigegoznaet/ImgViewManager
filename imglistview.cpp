@@ -63,9 +63,35 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(setFileAction(QFileInfoList,QString)),
 			copyDialog, SLOT(processFileAction(QFileInfoList,QString)));
 	connect(this, SIGNAL(callFullUpdate()), this, SLOT(update()), Qt::QueuedConnection);
+
+
+	dirLoadBar = new QProgressBar(this);
+	dirLoadBar->setMinimum(0);
+	dirLoadBar->setMaximum(0);
+	dirLoadBar->resize(QSize(300, 25));
+	dirLoadBar->setStyleSheet("background:transparent");
+	dirLoadBar->setAttribute(Qt::WA_TranslucentBackground);
+	dirLoadBar->move(600,600);
+	dirLoadBar->setVisible(false);
+
+	connect(this, &ImgListView::progressSetVisible, dirLoadBar, &QProgressBar::setVisible, Qt::QueuedConnection);
+
+	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
+	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
+
+	/*
+	void progressSetMaximum(int value);
+	void progressSetValue(int value);
+	void progressSetPosition(QPoint pos);*/
+
 }
 
 void ImgListView::changeDir(QString dir){
+
+	auto region = geometry();
+	dirLoadBar->move((QPoint(region.left()+(region.width() - dirLoadBar->width())/2,
+					 region.top()+(region.height() - dirLoadBar->height())/2)));
+
 	stopPrefetching = true;
 
 	//qDebug()<<"Changing dir";
@@ -86,8 +112,7 @@ void ImgListView::changeDir(QString dir){
 }
 
 void ImgListView::prefetchThumbnails(){
-	//auto flags = Qt::ColorOnly | Qt::ThresholdDither
-			//| Qt::ThresholdAlphaDither;
+
 	QString fileName = proxyModel->rootDirectory().absolutePath();
 	fileName +="/.kthumbnails";
 	QFile thumbnailsFile(fileName);
@@ -96,13 +121,17 @@ void ImgListView::prefetchThumbnails(){
 	in.setVersion(QDataStream::Qt_5_7);
 	if(thumbnailsFile.open(QIODevice::ReadOnly))
 		in>> thumbnailsCache;
-
 	thumbnailsFile.close();
-
-	//qDebug()<<"Sizeof: "<<sizeof(thumbnailsCache);
 	int countAtStart = thumbnailsCache.count();
 
-	for(auto& fileInfo : proxyModel->rootDirectory().entryInfoList(namedFilters)){
+	auto dirEntries = proxyModel->rootDirectory().entryInfoList(namedFilters);
+
+	emit progressSetVisible(true);
+	emit progressSetMaximum(dirEntries.count());
+	int counter = 0 ;
+
+	for(auto& fileInfo : dirEntries ){
+		emit progressSetValue(counter++);
 		if(stopPrefetching)
 			break;
 		auto currentFileName = fileInfo.fileName();
@@ -144,8 +173,9 @@ void ImgListView::prefetchThumbnails(){
 
 	}
 
+	emit progressSetVisible(false);
 	//qDebug()<<"Prefetch finished";
-	emit callFullUpdate();
+	//emit callFullUpdate();
 }
 
 void ImgListView::keyPressEvent(QKeyEvent *event){

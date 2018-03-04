@@ -74,7 +74,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		}
 
 
-		auto newText = fm.elidedText(fileInfo.baseName(),Qt::ElideLeft,boundingRect.width());
+		auto newText = fm.elidedText(fileInfo.baseName(),Qt::ElideRight,boundingRect.width());
 		painter->drawText(option.rect, flags, newText);
 		//qDebug()<<"Painted";
 	}

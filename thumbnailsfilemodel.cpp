@@ -13,8 +13,8 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 
 bool ThumbnailsFileModel::hasImages(const QModelIndex& dirIndex, bool isSource) const{
 
-	//locker.lock();
-	//qDebug()<<"hasimg";
+	if(!dirIndex.isValid())
+		return false;
 	auto info = fileInfo(dirIndex, isSource);
 
 	if(!info.isDir())
@@ -29,47 +29,24 @@ bool ThumbnailsFileModel::hasImages(const QModelIndex& dirIndex, bool isSource) 
 }
 
 QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index, bool isSource) const{
+	if(!index.isValid())
+		return QFileInfo();
+	QPersistentModelIndex idx(index);
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
-	//qDebug()<<"fileInfo";
 	if(isSource)
-		return source->fileInfo(index);;
+		return source->fileInfo(idx);;
 
-	return source->fileInfo(mapToSource(index));;
+	return source->fileInfo(mapToSource(idx));;
 }
 
 QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
-	auto idx = (dynamic_cast<QFileSystemModel*>(this->sourceModel()))
+	QPersistentModelIndex idx = (dynamic_cast<QFileSystemModel*>(this->sourceModel()))
 				->index(path, 0);
-	//qDebug()<<"fileindex";
+	if(!idx.isValid())
+		return QModelIndex();
 	return mapFromSource(idx);
 }
 
-bool ThumbnailsFileModel::isVisible(const QModelIndex& parent)const{
-	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
-	if(source->hasChildren(mapToSource(parent)) ){
-		//qDebug()<< source->rowCount(mapToSource(parent));
-		if(hasImages(parent))
-			return true;
-
-		qDebug()<<"isVisible";
-		QDir dir(fileInfo(parent).absoluteFilePath());
-		if(!(dir.dirName().compare(".") && dir.dirName().compare("..") && dir.dirName().length()))
-			return true;
-		auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
-		//qDebug()<<dirEntries.count();
-		for(auto& entry : dirEntries){
-			auto idx = fileIndex(entry.absoluteFilePath());
-			//qDebug()<<entry.absoluteFilePath();
-			//qDebug()<<"Idx is valid: "<<idx.isValid();
-			if(isVisible(idx)){
-				qDebug()<<entry.absolutePath();
-				return true;
-			}
-
-		}
-	}
-	return false;
-}
 
 
 bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
@@ -117,11 +94,21 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 
 
 bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
-						const QModelIndex &source_parent) const{
+						const QModelIndex &source) const{
 
+/*
+	if(!source.isValid())
+		qDebug()<<"Parsing an invalid parent " << source_row <<" "<< source;
+	else
+		qDebug()<<"Parsing a valid parent " << source_row <<" "<< source;
+
+	if(!source_parent.isValid())
+		qDebug()<<"Parsing an invalid parent " << source_row <<" "<< source_parent;
+	else
+		qDebug()<<"Parsing a valid parent " << source_row <<" "<< source_parent;*/
+	QPersistentModelIndex source_parent(source);
 	QFileSystemModel *sm = qobject_cast<QFileSystemModel*>(sourceModel());
-
-	auto pIdx = sm->index(source_row, 0, source_parent);
+	QPersistentModelIndex pIdx = sm->index(source_row, 0, source_parent);
 	QString path1 = sm->rootPath();
 	//qDebug()<<"acceptRow";
 	QString path2 = sm->fileInfo(pIdx).absolutePath();
@@ -129,20 +116,20 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 
 
 	if(qobject_cast<ImgListView*>(parent())){
+
 		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 
-		if( pt.isReadable() && path1.compare(path2)){
-			//qDebug()<<path1;
-			//qDebug()<<path2;
+		if( pt.isReadable() && path1.compare(path2))
 			return true;
-		}
 		if(sm->fileInfo(pIdx).isDir())
 			return false;
 		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 	}else{
+
+
 		if(!pt.isReadable() )
 			return false;
-		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);/*
+		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
 		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
 
 		bool res1 = treeMap.contains(dir.absolutePath());
@@ -154,7 +141,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 			return false;
 
 		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-		return hasPics(asd->index(path,0));//*/
+		return hasPics(asd->index(path,0));
 	}
 
 }

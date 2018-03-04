@@ -23,7 +23,7 @@ signals:
 public slots:
 
 private:
-	bool isVisible(const QModelIndex&parent) const;
+
 	bool hasPics(const QModelIndex&parent) const;
 	bool hasImages(const QModelIndex& dirIndex, bool isSource = false) const;
 	bool filterAcceptsRow(int source_row,

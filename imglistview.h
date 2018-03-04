@@ -10,6 +10,7 @@
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QProgressBar>
 #include "FileProgressDialog.hpp"
 #include "imgthumbnaildelegate.h"
 #include "thumbnailsfilemodel.h"
@@ -25,6 +26,12 @@ signals:
 	void numFiles(int total, int visible);
 	void setFileAction(QFileInfoList fileList, QString destination);
 	void callFullUpdate();
+
+	void progressSetVisible(bool flag);
+	void progressSetMaximum(int value);
+	void progressSetValue(int value);
+
+
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();
@@ -44,6 +51,7 @@ private:
 	QString filterText;
 	QHash<QString, QPixmap> thumbnailsCache;
 	ProgressDialog* copyDialog;
+	QProgressBar* dirLoadBar;
 };
 
 #endif // IMGLISTVIEW_H
