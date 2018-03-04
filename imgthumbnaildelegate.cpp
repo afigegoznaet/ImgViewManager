@@ -7,10 +7,10 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QPixmap> &cache, QObje
 }
 
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-							  const QModelIndex &ind) const{
+							  const QModelIndex &index) const{
 
-	if(ind.isValid()){
-		QPersistentModelIndex index(ind);
+	if(index.isValid()){
+
 		//qDebug()<<"Paint";
 		auto fileInfo = model->fileInfo(index);
 		//qDebug()<<"Got info";

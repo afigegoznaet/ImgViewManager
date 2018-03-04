@@ -15,7 +15,6 @@ public:
 	QDir rootDirectory() const;
 	void setNameFilters(const QStringList &filters);
 	QModelIndex setRootPath(const QString &newPath);
-	void init(QString& startDir);
 	~ThumbnailsFileModel(){treeMap.clear();}
 
 signals:

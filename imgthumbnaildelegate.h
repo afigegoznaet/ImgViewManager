@@ -8,12 +8,12 @@
 #include <QHash>
 #include <atomic>
 #include <QPixmapCache>
-#include "thumbnailsfilemodel.h"
+
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
 	explicit ImgThumbnailDelegate(QHash<QString, QPixmap>& cache, QObject *parent);
-	void setModel(ThumbnailsFileModel* model){this->model = model;}
+	void setModel(QFileSystemModel* model){this->model = model;}
 	void stopDrawing(){canDraw = false;}
 	void resumeDrawing(){canDraw = true;}
 
@@ -25,7 +25,7 @@ signals:
 
 
 private:
-	ThumbnailsFileModel* model;
+	QFileSystemModel* model;
 	QPixmapCache cache;
 	int flags;
 	QHash<QString, QPixmap>& currentCache;

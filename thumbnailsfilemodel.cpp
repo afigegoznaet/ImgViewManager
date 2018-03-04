@@ -1,5 +1,4 @@
 #include "thumbnailsfilemodel.h"
-#include "imglistview.h"
 #include "systemtreeview.h"
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
@@ -96,54 +95,23 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 						const QModelIndex &source) const{
 
-/*
-	if(!source.isValid())
-		qDebug()<<"Parsing an invalid parent " << source_row <<" "<< source;
-	else
-		qDebug()<<"Parsing a valid parent " << source_row <<" "<< source;
+	return QSortFilterProxyModel::filterAcceptsRow(source_row, source);
 
-	if(!source_parent.isValid())
-		qDebug()<<"Parsing an invalid parent " << source_row <<" "<< source_parent;
-	else
-		qDebug()<<"Parsing a valid parent " << source_row <<" "<< source_parent;*/
-	QPersistentModelIndex source_parent(source);
-	QFileSystemModel *sm = qobject_cast<QFileSystemModel*>(sourceModel());
-	QPersistentModelIndex pIdx = sm->index(source_row, 0, source_parent);
-	QString path1 = sm->rootPath();
-	//qDebug()<<"acceptRow";
-	QString path2 = sm->fileInfo(pIdx).absolutePath();
-	QDir pt(path2);
 
-	if(!pt.isReadable() )
+	QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
+	QDir dir(fileInfo(source, true).absoluteFilePath());
+
+	bool res1 = treeMap.contains(dir.absolutePath());
+	if(res1)
+		return treeMap[dir.absolutePath()];
+
+	QString path = dir.absolutePath();
+	if(path.startsWith("/proc"))
 		return false;
 
-	if(qobject_cast<ImgListView*>(parent())){
 
-		//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
+	return hasPics(asd->index(path,0));
 
-		if( path1.compare(path2))
-			return true;
-		if(sm->fileInfo(pIdx).isDir())
-			return false;
-		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
-	}else{
-
-
-
-		return QSortFilterProxyModel::filterAcceptsRow(source_row, source_parent);
-		QDir dir(sm->fileInfo(pIdx).absoluteFilePath());
-
-		bool res1 = treeMap.contains(dir.absolutePath());
-		if(res1)
-			return treeMap[dir.absolutePath()];
-
-		QString path = dir.absolutePath();
-		if(path.startsWith("/proc"))
-			return false;
-
-		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-		return hasPics(asd->index(path,0));
-	}
 
 }
 
@@ -161,10 +129,5 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath){
 	QFileSystemModel *sm = qobject_cast<QFileSystemModel*>(sourceModel());
 	return sm->setRootPath(newPath);
 
-}
-
-void ThumbnailsFileModel::init(QString& startDir){
-	QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-	hasPics(asd->index(startDir,0));
 }
 

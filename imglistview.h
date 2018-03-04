@@ -13,7 +13,6 @@
 #include <QProgressBar>
 #include "FileProgressDialog.hpp"
 #include "imgthumbnaildelegate.h"
-#include "thumbnailsfilemodel.h"
 
 class ImgListView : public QListView{
 	Q_OBJECT
@@ -35,15 +34,15 @@ signals:
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();
-	void applyFilter(QString namedFilters);
+	void applyFilter(QString inFilter);
 	void exportImages();
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
 
 
-	//QFileSystemModel* fsModel;
-	ThumbnailsFileModel* proxyModel;
+	QFileSystemModel* fsModel;
+	//QFileSystemModel* proxyModel;
 	ImgThumbnailDelegate* thumbnailPainter;
 	QStringList namedFilters;
 	QFuture<void> prefetchProc;

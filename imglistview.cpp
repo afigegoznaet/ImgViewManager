@@ -1,7 +1,7 @@
 #include "imglistview.h"
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
-	QFileSystemModel *fsModel = new QFileSystemModel(this);
+	fsModel = new QFileSystemModel(this);
 	fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
@@ -10,20 +10,18 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	namedFilters << "*.jpeg";
 	namedFilters << "*.jpg";
 
-	filterText = "";
-
 	fsModel->setNameFilters(namedFilters);
 	fsModel->setNameFilterDisables(false);
-	proxyModel= new ThumbnailsFileModel(this);
-	proxyModel->setSourceModel(fsModel);
-	proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
+	//proxyModel= new ThumbnailsFileModel(this);
+	//proxyModel->setSourceModel(fsModel);
+	//proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
-	setModel(proxyModel);
+	setModel(fsModel);
 
 
 	applyFilter("");
 	thumbnailPainter = new ImgThumbnailDelegate(thumbnailsCache, this);
-	thumbnailPainter->setModel(proxyModel);
+	thumbnailPainter->setModel(fsModel);
 	setItemDelegate(thumbnailPainter);
 
 	//setModel(fsModel);
@@ -49,12 +47,12 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this,SIGNAL(doubleClicked(QModelIndex)),
 			this,SLOT(onDoubleClicked()));
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
-	selectionModel()->setModel(proxyModel);
+	selectionModel()->setModel(fsModel);
 	setMovement(Movement::Static);
 	connect(fsModel, &QFileSystemModel::directoryLoaded, [&](){
 		emit numFiles(
-					proxyModel->rootDirectory().entryInfoList().count(),
-					proxyModel->rowCount(rootIndex())
+					fsModel->rootDirectory().entryInfoList().count(),
+					fsModel->rowCount(rootIndex())
 					);
 	} );
 
@@ -96,9 +94,9 @@ void ImgListView::changeDir(QString dir){
 
 	//qDebug()<<"Changing dir";
 	//qDebug()<<dir;
-	proxyModel->setRootPath(dir);
+	fsModel->setRootPath(dir);
 	//applyFilter("");
-	setRootIndex(proxyModel->fileIndex(dir));
+	setRootIndex(fsModel->index(dir));
 
 	//prefetchProc.cancel();
 	prefetchProc.waitForFinished();
@@ -113,7 +111,7 @@ void ImgListView::changeDir(QString dir){
 
 void ImgListView::prefetchThumbnails(){
 
-	QString fileName = proxyModel->rootDirectory().absolutePath();
+	QString fileName = fsModel->rootDirectory().absolutePath();
 	fileName +="/.kthumbnails";
 	QFile thumbnailsFile(fileName);
 
@@ -124,7 +122,7 @@ void ImgListView::prefetchThumbnails(){
 	thumbnailsFile.close();
 	int countAtStart = thumbnailsCache.count();
 
-	auto dirEntries = proxyModel->rootDirectory().entryInfoList(namedFilters);
+	auto dirEntries = fsModel->rootDirectory().entryInfoList(namedFilters);
 
 	emit progressSetVisible(true);
 	emit progressSetMaximum(dirEntries.count());
@@ -150,12 +148,12 @@ void ImgListView::prefetchThumbnails(){
 			reader.setScaledSize(iconSize);
 			reader.setAutoTransform(true);
 			reader.setQuality(15);
-			thumbnailPainter->stopDrawing();
+			//thumbnailPainter->stopDrawing();
 			thumbnailsCache.insert(currentFileName, QPixmap::fromImageReader(&reader));
-			thumbnailPainter->resumeDrawing();
+			//thumbnailPainter->resumeDrawing();
 		}
 
-		QPersistentModelIndex idx = proxyModel->fileIndex(fileInfo.absoluteFilePath());
+		QPersistentModelIndex idx = fsModel->index(fileInfo.absoluteFilePath());
 		emit callUpdate(idx);
 	}
 
@@ -191,7 +189,7 @@ void ImgListView::keyPressEvent(QKeyEvent *event){
 void ImgListView::onDoubleClicked(){
 	auto selectedThumbnails = selectionModel()->selectedIndexes();
 	for(auto &index : selectedThumbnails){
-		QFileInfo info=proxyModel->fileInfo(index);
+		QFileInfo info=fsModel->fileInfo(index);
 		QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath()));
 	}
 
@@ -203,18 +201,24 @@ void ImgListView::prepareExit(){
 	prefetchProc.waitForFinished();
 }
 
-void ImgListView::applyFilter(QString filter){
-	if(filter.length()<1)
-		proxyModel->setFilterWildcard("*.*");
+void ImgListView::applyFilter(QString inFilter){
 
-	filterText = filter;
-	proxyModel->setFilterRegExp(QRegExp(filter, Qt::CaseInsensitive,
-												QRegExp::FixedString));
-
+	QString newFilter="*"+inFilter;
+	QStringList newFilters;
+	filterText = inFilter;
+	for(auto &filter : namedFilters){
+		newFilters<<newFilter+filter;
+	}
 	emit numFiles(
-				proxyModel->rootDirectory().entryInfoList(namedFilters).count(),
-				proxyModel->rowCount(rootIndex())
+				fsModel->rootDirectory().entryInfoList(namedFilters).count(),
+				fsModel->rootDirectory().entryInfoList(newFilters).count()
 				);
+
+
+	fsModel->nameFilters().clear();
+	fsModel->setNameFilters(newFilters);
+
+
 }
 
 
@@ -232,7 +236,7 @@ void ImgListView::exportImages(){
 		return;
 	}
 	QFileDialog selector(this,"Select output folder",
-						 proxyModel->rootDirectory().absolutePath());
+						 fsModel->rootDirectory().absolutePath());
 	selector.setFileMode(QFileDialog::DirectoryOnly);
 	if (!selector.exec())
 		return;
@@ -241,7 +245,7 @@ void ImgListView::exportImages(){
 
 	QString expDir = selector.selectedFiles().first();
 
-	if(0 == expDir.compare(proxyModel->rootDirectory().absolutePath())){
+	if(0 == expDir.compare(fsModel->rootDirectory().absolutePath())){
 		QMessageBox msgBox;
 		msgBox.setIcon(QMessageBox::Warning);
 		msgBox.setWindowTitle("Wrong directory");
@@ -255,6 +259,6 @@ void ImgListView::exportImages(){
 	QFileInfoList fileList;
 	for(auto &index : selections)
 		if( 0 == index.column() )
-			fileList << proxyModel->fileInfo(index);
+			fileList << fsModel->fileInfo(index);
 	emit setFileAction(fileList, expDir);
 }
