@@ -5,8 +5,8 @@
 
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
-	QCoreApplication::setOrganizationName("Custom Customer");
-	QCoreApplication::setApplicationName("Clipart Viewer");
+    QCoreApplication::setOrganizationName("Olympia Corp.");
+    QCoreApplication::setApplicationName("Olympia Clipart Collection");
 
 	QPixmap pixmap(":/Images/splash.png");
 	qDebug()<<pixmap.height();
@@ -15,7 +15,7 @@ int main(int argc, char *argv[]){
 	splash.show();
 	qApp->processEvents();
 	MainWindow w;
-	w.setWindowTitle("Clipart Viewer");
+    w.setWindowTitle("Olympia Clipart Collection");
 	qApp->processEvents();
 
 	splash.finish(&w);

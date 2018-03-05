@@ -72,7 +72,7 @@ void MainWindow::showAbout(){
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
-	msgBox.setText("Incepted in 2018 in Chisinau, Moldova");
+    msgBox.setText("Olympia Clipart Collection by Olympia Corp. 2018");
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
