@@ -7,6 +7,8 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	filter << "*.jpeg";
 	filter << "*.jpg";
 
+	parentView = qobject_cast<SystemTreeView*>(parent);
+
 }
 
 
@@ -58,6 +60,15 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 	auto source = dynamic_cast<QFileSystemModel*>(sourceModel());
 	//qDebug()<<"hasPics";
 	QDir dir(source->fileInfo(parent).absoluteFilePath());
+
+
+	QString splashMessage = "Scanning:\n"+dir.absolutePath();
+
+	QtConcurrent::run([&,splashMessage](){
+		//qDebug()<<splashMessage;
+		parentView->splashText(splashMessage, Qt::AlignCenter, Qt::white);});
+
+
 	//qDebug()<<"Check if visible: "<<dir.absolutePath();
 	if(source->hasChildren(parent) ){
 		if(hasImages(parent, true)){
@@ -104,13 +115,15 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		//qDebug()<<newIndex;
 		QDir dir(fileInfo(newIndex, true).absoluteFilePath());
 
-		//qDebug()<<dir.absolutePath();
+
 		bool res1 = treeMap.contains(dir.absolutePath());
 		if(res1)
 			return treeMap[dir.absolutePath()];
 
 		QString path = dir.absolutePath();
 		if(path.startsWith("/proc"))
+			return false;
+		if(path.startsWith("C:/Symbols"))
 			return false;
 
 

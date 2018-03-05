@@ -5,23 +5,6 @@ MainWindow::MainWindow(QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow){
 
-	ui->setupUi(this);
-	connect(ui->imagesView, SIGNAL(numFiles(int,int)),
-			this, SLOT(setFileInfo(int,int)), Qt::QueuedConnection);
-	readSettings();
-	connect(ui->fileTree, SIGNAL(changeDir(QString)),
-			ui->imagesView, SLOT(changeDir(QString)));
-	ui->fileTree->init(startDir);
-	ui->infoBox->setEnabled(false);
-	connect(ui->filterBox, SIGNAL(textChanged(QString)),
-			ui->imagesView, SLOT(applyFilter(QString)));
-
-	ui->menuBar->addAction("About",this, SLOT(showAbout()));
-	connect(ui->actionExit, &QAction::triggered, [&](){
-		QApplication::quit();
-	});
-	connect(ui->actionExport_Images, SIGNAL(triggered(bool)),
-			ui->imagesView, SLOT(exportImages()));
 }
 
 MainWindow::~MainWindow(){
@@ -76,4 +59,32 @@ void MainWindow::showAbout(){
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
+}
+
+void MainWindow::init(){
+
+	ui->setupUi(this);
+	connect(ui->imagesView, SIGNAL(numFiles(int,int)),
+			this, SLOT(setFileInfo(int,int)), Qt::QueuedConnection);
+	readSettings();
+	connect(ui->fileTree, SIGNAL(changeDir(QString)),
+			ui->imagesView, SLOT(changeDir(QString)));
+
+	connect(ui->fileTree, &SystemTreeView::splashText,
+			[&](const QString& message, int alignment, const QColor &color){
+		emit splashText(message, alignment, color);
+	});
+
+	emit splashText("aaaa", 1, Qt::blue);
+	ui->fileTree->init(startDir);
+	ui->infoBox->setEnabled(false);
+	connect(ui->filterBox, SIGNAL(textChanged(QString)),
+			ui->imagesView, SLOT(applyFilter(QString)));
+
+	ui->menuBar->addAction("About",this, SLOT(showAbout()));
+	connect(ui->actionExit, &QAction::triggered, [&](){
+		QApplication::quit();
+	});
+	connect(ui->actionExport_Images, SIGNAL(triggered(bool)),
+			ui->imagesView, SLOT(exportImages()));
 }

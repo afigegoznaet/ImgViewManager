@@ -6,6 +6,9 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	model->setRootPath(QDir::rootPath());
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 
+	connect(fsModel, SIGNAL(splashText(QString,int,QColor)),
+			this, SIGNAL(splashText(QString,int,QColor)));
+
 	fsModel->setSourceModel(model);
 	setModel(fsModel);
 
@@ -28,6 +31,7 @@ void SystemTreeView::init(QString& startDir){
 		auto idx = fsModel->fileIndex(dir.absolutePath());
 		expand(idx);
 	}*/
+
 
 	auto idx = fsModel->fileIndex(startDir);
 	expand(idx);

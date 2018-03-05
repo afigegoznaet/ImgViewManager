@@ -14,6 +14,7 @@ public:
 
 signals:
 	void changeDir(QString dir);
+	void splashText(const QString& message, int alignment, const QColor &color);
 public slots:
 private:
 	ThumbnailsFileModel* fsModel;

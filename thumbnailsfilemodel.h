@@ -7,6 +7,8 @@
 #include <QFuture>
 #include <QtConcurrent>
 
+class SystemTreeView;
+
 class ThumbnailsFileModel : public QSortFilterProxyModel{
 	Q_OBJECT
 public:
@@ -20,7 +22,7 @@ public:
 	QFuture<bool> scanTreeAsync(const QString& startDir = QDir::rootPath());
 
 signals:
-
+	void splashText(const QString& message, int alignment, const QColor &color);
 public slots:
 
 private:
@@ -32,6 +34,7 @@ private:
 
 	QStringList filter;
 	mutable QMap<QString,QAtomicInt> treeMap;
+	mutable SystemTreeView* parentView;
 };
 
 #endif // THUMBNAILSFILEMODEL_H

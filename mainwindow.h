@@ -12,9 +12,12 @@ namespace Ui { class MainWindow; }
 class MainWindow : public QMainWindow{
 	Q_OBJECT
 
+signals:
+	void splashText(const QString& message, int alignment, const QColor &color);
 public:
 	explicit MainWindow(QWidget *parent = 0);
 	~MainWindow();
+	void init();
 
 public slots:
 	void setFileInfo(int total, int visible);
