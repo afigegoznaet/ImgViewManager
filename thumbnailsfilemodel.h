@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QMutex>
 #include <QFuture>
+#include <QtConcurrent>
 
 class ThumbnailsFileModel : public QSortFilterProxyModel{
 	Q_OBJECT
@@ -16,6 +17,7 @@ public:
 	void setNameFilters(const QStringList &filters);
 	QModelIndex setRootPath(const QString &newPath);
 	~ThumbnailsFileModel(){treeMap.clear();}
+	QFuture<bool> scanTreeAsync(const QString& startDir = QDir::rootPath());
 
 signals:
 

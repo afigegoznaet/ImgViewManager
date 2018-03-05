@@ -93,24 +93,22 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 
 
 bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
-						const QModelIndex &source) const{
+						const QModelIndex &source_index) const{
 
-	return QSortFilterProxyModel::filterAcceptsRow(source_row, source);
+		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
+		auto newIndex = asd->index(source_row, 0, source_index);
+		QDir dir(fileInfo(newIndex, true).absoluteFilePath());
 
+		bool res1 = treeMap.contains(dir.absolutePath());
+		if(res1)
+			return treeMap[dir.absolutePath()];
 
-	QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
-	QDir dir(fileInfo(source, true).absoluteFilePath());
-
-	bool res1 = treeMap.contains(dir.absolutePath());
-	if(res1)
-		return treeMap[dir.absolutePath()];
-
-	QString path = dir.absolutePath();
-	if(path.startsWith("/proc"))
-		return false;
+		QString path = dir.absolutePath();
+		if(path.startsWith("/proc"))
+			return false;
 
 
-	return hasPics(asd->index(path,0));
+		return hasPics(asd->index(path,0));
 
 
 }
@@ -131,3 +129,13 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath){
 
 }
 
+QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
+	return QtConcurrent::run([&, startDir](){
+		QFileSystemModel *fsModel = qobject_cast<QFileSystemModel*>(sourceModel());
+		QPersistentModelIndex source_index = fsModel->index(startDir);
+		bool res = false;
+		for(int i=0;i<fsModel->rowCount(source_index);i++)
+			res |= filterAcceptsRow(i,	source_index);
+		return res;
+	});
+}
