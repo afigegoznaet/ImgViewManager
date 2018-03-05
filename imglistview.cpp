@@ -195,7 +195,6 @@ void ImgListView::onDoubleClicked(){
 		QFileInfo info=fsModel->fileInfo(index);
 		QDesktopServices::openUrl(QUrl::fromLocalFile(info.absoluteFilePath()));
 	}
-
 }
 
 void ImgListView::prepareExit(){

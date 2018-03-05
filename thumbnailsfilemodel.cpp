@@ -16,11 +16,13 @@ bool ThumbnailsFileModel::hasImages(const QModelIndex& dirIndex, bool isSource) 
 		return false;
 	auto info = fileInfo(dirIndex, isSource);
 
+	//qDebug()<<info.absolutePath();
 	if(!info.isDir())
 		return false;
 	QDir dir(info.absoluteFilePath());
-	dir.setNameFilters(filter);
-	uint cnt = dir.count();
+	//dir.setNameFilters(filter);
+	uint cnt = dir.entryInfoList(filter, QDir::Files | QDir::NoDotAndDotDot).count();
+	//qDebug()<<cnt;
 	//locker.unlock();
 	if(cnt)
 		return true;
@@ -95,10 +97,14 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 						const QModelIndex &source_index) const{
 
+	//return QSortFilterProxyModel::filterAcceptsRow(source_row, source_index);
 		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
 		auto newIndex = asd->index(source_row, 0, source_index);
+
+		//qDebug()<<newIndex;
 		QDir dir(fileInfo(newIndex, true).absoluteFilePath());
 
+		//qDebug()<<dir.absolutePath();
 		bool res1 = treeMap.contains(dir.absolutePath());
 		if(res1)
 			return treeMap[dir.absolutePath()];
@@ -134,8 +140,10 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 		QFileSystemModel *fsModel = qobject_cast<QFileSystemModel*>(sourceModel());
 		QPersistentModelIndex source_index = fsModel->index(startDir);
 		bool res = false;
+
 		for(int i=0;i<fsModel->rowCount(source_index);i++)
 			res |= filterAcceptsRow(i,	source_index);
+
 		return res;
 	});
 }

@@ -17,7 +17,7 @@ signals:
 public slots:
 private:
 	ThumbnailsFileModel* fsModel;
-
+	QFuture<bool> runner;
 };
 
 #endif // SYSTEMTREEVIEW_H
