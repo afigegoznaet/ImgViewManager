@@ -12,7 +12,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	fsModel->setSourceModel(model);
 	setModel(fsModel);
 
-	//runner = fsModel->scanTreeAsync();
+	runner = fsModel->scanTreeAsync();
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
 
@@ -32,7 +32,7 @@ void SystemTreeView::init(QString& startDir){
 		expand(idx);
 	}*/
 
-
+	runner.waitForFinished();
 	auto idx = fsModel->fileIndex(startDir);
 	expand(idx);
 	setCurrentIndex(idx);
@@ -40,8 +40,8 @@ void SystemTreeView::init(QString& startDir){
 
 
 	//runner.waitForFinished();
-	//runner = fsModel->scanTreeAsync(startDir);
-	//runner.waitForFinished();
+	runner = fsModel->scanTreeAsync(startDir);
+	runner.waitForFinished();
 	//qDebug()<<runner.resultCount();
 }
 
