@@ -5,21 +5,19 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	fsModel->setRootPath(QDir::rootPath());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
-
 	namedFilters << "*.png";
 	namedFilters << "*.jpeg";
 	namedFilters << "*.jpg";
 
 	fsModel->setNameFilters(namedFilters);
 	fsModel->setNameFilterDisables(false);
+
 	//proxyModel= new ThumbnailsFileModel(this);
 	//proxyModel->setSourceModel(fsModel);
 	//proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 	setModel(fsModel);
 
-
-	applyFilter("");
 	thumbnailPainter = new ImgThumbnailDelegate(thumbnailsCache, this);
 	thumbnailPainter->setModel(fsModel);
 	setItemDelegate(thumbnailPainter);
@@ -49,13 +47,14 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	selectionModel()->setModel(fsModel);
 	setMovement(Movement::Static);
+	/*
 	connect(fsModel, &QFileSystemModel::directoryLoaded, [&](){
 		emit numFiles(
 					fsModel->rootDirectory().entryInfoList().count(),
 					fsModel->rowCount(rootIndex())
 					);
 	} );
-
+*/
 	copyDialog = new ProgressDialog(this);
 
 	connect(this, SIGNAL(setFileAction(QFileInfoList,QString)),
@@ -92,20 +91,24 @@ void ImgListView::changeDir(QString dir){
 
 	stopPrefetching = true;
 
-	//qDebug()<<"Changing dir";
-	//qDebug()<<dir;
-	fsModel->setRootPath(dir);
-	//applyFilter("");
-	setRootIndex(fsModel->index(dir));
+	QDir parent(dir);
+	parent.cdUp();
+	//qDebug()<<dir<<"_"<<parent.absolutePath();
+	setRootIndex(fsModel->index(parent.absolutePath()));
 
-	//prefetchProc.cancel();
+	fsModel->setRootPath(dir);
+	applyFilter(filterText);
+
+	setRootIndex(fsModel->index(dir));
+	//applyFilter(filterText);
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
+	//applyFilter(filterText);
 	thumbnailPainter->stopDrawing();
 	thumbnailsCache.clear();
 	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
-	emit callFullUpdate();
+	//emit callFullUpdate();
 
 }
 
@@ -173,7 +176,7 @@ void ImgListView::prefetchThumbnails(){
 
 	emit progressSetVisible(false);
 	//qDebug()<<"Prefetch finished";
-	//emit callFullUpdate();
+	emit callFullUpdate();
 }
 
 void ImgListView::keyPressEvent(QKeyEvent *event){
@@ -209,9 +212,21 @@ void ImgListView::applyFilter(QString inFilter){
 	for(auto &filter : namedFilters){
 		newFilters<<newFilter+filter;
 	}
+
+	QDir dir1(fsModel->rootDirectory().absolutePath());
+	QDir dir2(fsModel->rootDirectory().absolutePath());
+/*
+	int cnt1 = dir1.entryInfoList(namedFilters, QDir::Files | QDir::NoDotAndDotDot).count();
+	int cnt2 = dir2.entryInfoList(newFilters, QDir::Files | QDir::NoDotAndDotDot).count();
+
+	qDebug()<<cnt1<<" "<<cnt2;
+	qDebug()<<dir1.entryInfoList(namedFilters, QDir::Files | QDir::NoDotAndDotDot)<<" "<<cnt1;
+	qDebug()<<dir2.entryInfoList(newFilters, QDir::Files | QDir::NoDotAndDotDot)<<" "<<cnt2;
+*/
+
 	emit numFiles(
-				fsModel->rootDirectory().entryInfoList(namedFilters).count(),
-				fsModel->rootDirectory().entryInfoList(newFilters).count()
+				dir1.entryInfoList(namedFilters, QDir::Files | QDir::NoDotAndDotDot).count(),
+				dir2.entryInfoList(newFilters, QDir::Files | QDir::NoDotAndDotDot).count()
 				);
 
 
