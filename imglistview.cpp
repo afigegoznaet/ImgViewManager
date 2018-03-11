@@ -1,8 +1,18 @@
 #include "imglistview.h"
+#include "mainwindow.h"
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	fsModel = new QFileSystemModel(this);
-	fsModel->setRootPath(QDir::rootPath());
+
+	auto parentWindow = qobject_cast<MainWindow*>(parent);
+	auto parentObject = parent->parent();
+	while(nullptr == parentWindow){
+		parentWindow = qobject_cast<MainWindow*>(parentObject);
+		parentObject = parentObject->parent();
+	}
+
+	qDebug()<<parentWindow->getRoot();
+	fsModel->setRootPath(parentWindow->getRoot());
 	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
 
 	namedFilters << "*.png";

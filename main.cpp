@@ -17,14 +17,23 @@ int main(int argc, char *argv[]){
 	splash.setFont(font);
 	splash.show();
 	qApp->processEvents();
-	MainWindow w;
+
+	qDebug()<<argc;
+	for(int i=0; i<argc; i++)
+		qDebug()<<argv[i];
+
+	QString params = "";
+	if(argc>1)
+		params = QString(argv[1]);
+	MainWindow w(params);
 	QMutex locker;
+#if !defined(QT_DEBUG) || !defined(_WIN32)
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int alignment, const QColor &color){
 		locker.lock();
 		splash.showMessage(message, alignment, color);
 		locker.unlock();
 	});
-
+#endif
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
 	qApp->processEvents();

@@ -1,9 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
-	QMainWindow(parent),
-	ui(new Ui::MainWindow){
+
+MainWindow::MainWindow(QString argv, QWidget *parent) :
+	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
+
 
 }
 
@@ -15,31 +16,15 @@ MainWindow::~MainWindow(){
 	qDebug()<<"ui deleted";
 }
 
-void MainWindow::readSettings(){
-
-	QSettings settings;
-
-	settings.beginGroup("MainWindow");
-
-	resize(settings.value("size", QSize(400, 400)).toSize());
-	move(settings.value("pos", QPoint(200, 200)).toPoint());
-	startDir = settings.value("StartDir",QDir::rootPath()).toString();
-	qDebug()<<"Read: "<<startDir;
-	if(!ui->splitter->restoreState(settings.value("splitterSizes").toByteArray()))
-		ui->splitter->setSizes({200,200});
-	settings.endGroup();
-
-}
-
 void MainWindow::saveSettings(){
 	QSettings settings;
+	startDir = ui->fileTree->getCurrentDir();
+	qDebug()<<"Save: "<<startDir;
+	settings.setValue("StartDir", startDir);
 	settings.beginGroup("MainWindow");
 	settings.setValue("size", size());
 	settings.setValue("pos", pos());
 	settings.setValue("TreeWidth", ui->fileTree->width());
-	startDir = ui->fileTree->getCurrentDir();
-	qDebug()<<"Save: "<<startDir;
-	settings.setValue("StartDir", startDir);
 	settings.setValue("splitterSizes", ui->splitter->saveState());
 	settings.endGroup();
 }
@@ -62,11 +47,51 @@ void MainWindow::showAbout(){
 }
 
 void MainWindow::init(){
+	/***
+	 * Read folders
+	 * */
+	QSettings settings;
+	startDir = settings.value("StartDir",QDir::rootPath()).toString();
+	qDebug()<<"Read: "<<startDir;
 
+	rootDir = settings.value("RootDir",QDir::rootPath()).toString();
+
+	if(args.length()){
+		if(0 == args.trimmed().compare("--filesystem"))
+			rootDir = QDir::rootPath();
+		else{
+			QStringList argList = args.split("=");
+			QDir dir(argList.last());
+			if( 1 < argList.length() && 0 == argList.first().compare("--setrootfolder") && dir.exists())
+				rootDir = dir.absolutePath();
+			qDebug()<<QDir::rootPath();
+			qDebug()<<argList.last();
+			qDebug()<<"Root: "<<rootDir;
+			settings.setValue("RootDir", rootDir);
+		}
+	}
+	qDebug()<<"Root: "<<rootDir;
+	/***
+	 * End read folders
+	 * */
 	ui->setupUi(this);
+	/***
+	 * Restore UI
+	 * */
+	settings.beginGroup("MainWindow");
+	resize(settings.value("size", QSize(400, 400)).toSize());
+	move(settings.value("pos", QPoint(200, 200)).toPoint());
+	splitterSizes = settings.value("splitterSizes").toByteArray();
+	settings.endGroup();
+
+	/***
+	 * End restore UI
+	 * */
+	if(!ui->splitter->restoreState(splitterSizes))
+		ui->splitter->setSizes({200,200});
 	connect(ui->imagesView, SIGNAL(numFiles(int,int)),
 			this, SLOT(setFileInfo(int,int)), Qt::QueuedConnection);
-	readSettings();
+
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),
 			ui->imagesView, SLOT(changeDir(QString)));
 

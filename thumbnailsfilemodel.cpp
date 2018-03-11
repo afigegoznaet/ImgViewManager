@@ -116,9 +116,9 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		QDir dir(fileInfo(newIndex, true).absoluteFilePath());
 
 
-		bool res1 = treeMap.contains(dir.absolutePath());
-		if(res1)
-			return treeMap[dir.absolutePath()];
+		auto res1 = treeMap.constFind(dir.absolutePath());
+		if(res1 != treeMap.constEnd())
+			return *res1;
 
 		QString path = dir.absolutePath();
 		if(path.startsWith("/proc"))

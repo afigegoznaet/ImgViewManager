@@ -1,9 +1,19 @@
 #include "systemtreeview.h"
+#include "mainwindow.h"
 
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	fsModel = new ThumbnailsFileModel(this);
 	auto model = new QFileSystemModel(this);
-	model->setRootPath(QDir::rootPath());
+
+	auto parentWindow = qobject_cast<MainWindow*>(parent);
+	auto parentObject = parent->parent();
+	while(nullptr == parentWindow){
+		parentWindow = qobject_cast<MainWindow*>(parentObject);
+		parentObject = parentObject->parent();
+	}
+
+	qDebug()<<parentWindow->getRoot();
+	model->setRootPath(parentWindow->getRoot());
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 
 	connect(fsModel, SIGNAL(splashText(QString,int,QColor)),
@@ -11,8 +21,9 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 
 	fsModel->setSourceModel(model);
 	setModel(fsModel);
+	setRootIndex(fsModel->fileIndex(parentWindow->getRoot()));
 
-	runner = fsModel->scanTreeAsync();
+	runner = fsModel->scanTreeAsync(parentWindow->getRoot());
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
 
@@ -25,24 +36,17 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 
 void SystemTreeView::init(QString& startDir){
 
-	//fsModel->init(startDir);
-	/*QDir dir(startDir);
-	while(dir.cdUp()){
-		auto idx = fsModel->fileIndex(dir.absolutePath());
-		expand(idx);
-	}*/
-
 	runner.waitForFinished();
 	auto idx = fsModel->fileIndex(startDir);
 	expand(idx);
 	setCurrentIndex(idx);
+	qDebug()<<idx.isValid();
+
 	scrollTo(idx);
 
-
-	//runner.waitForFinished();
 	runner = fsModel->scanTreeAsync(startDir);
 	runner.waitForFinished();
-	//qDebug()<<runner.resultCount();
+
 }
 
 QString SystemTreeView::getCurrentDir(){
