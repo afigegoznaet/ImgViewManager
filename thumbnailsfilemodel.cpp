@@ -157,6 +157,14 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 		for(int i=0;i<fsModel->rowCount(source_index);i++)
 			res |= filterAcceptsRow(i,	source_index);
 
+		QDir dir(startDir);
+		while(dir.cdUp()){
+			QPersistentModelIndex source_index = fsModel->index(dir.absolutePath());
+
+			for(int i=0;i<fsModel->rowCount(source_index);i++)
+				filterAcceptsRow(i,	source_index);
+
+		}
 		return res;
 	});
 }

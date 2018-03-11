@@ -10,14 +10,14 @@ int main(int argc, char *argv[]){
 
 	QPixmap pixmap(":/Images/splash.png");
 	qDebug()<<pixmap.height();
+//#if !defined(QT_DEBUG) || !defined(_WIN32)
 	QSplashScreen splash(pixmap);
 	QFont font = QApplication::font("QMenu");
 	font.setStyleHint(QFont::Monospace);
-	//font.setPointSize(font.pointSize()*2);
 	splash.setFont(font);
 	splash.show();
 	qApp->processEvents();
-
+//#endif
 	qDebug()<<argc;
 	for(int i=0; i<argc; i++)
 		qDebug()<<argv[i];
@@ -36,9 +36,10 @@ int main(int argc, char *argv[]){
 #endif
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
+//#if !defined(QT_DEBUG) || !defined(_WIN32)
 	qApp->processEvents();
-
 	splash.finish(&w);
+//#endif
 	w.show();
 	return a.exec();
 }
