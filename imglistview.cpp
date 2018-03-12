@@ -22,10 +22,6 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	fsModel->setNameFilters(namedFilters);
 	fsModel->setNameFilterDisables(false);
 
-	//proxyModel= new ThumbnailsFileModel(this);
-	//proxyModel->setSourceModel(fsModel);
-	//proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
-
 	setModel(fsModel);
 
 	thumbnailPainter = new ImgThumbnailDelegate(thumbnailsCache, this);
@@ -57,14 +53,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	selectionModel()->setModel(fsModel);
 	setMovement(Movement::Static);
-	/*
-	connect(fsModel, &QFileSystemModel::directoryLoaded, [&](){
-		emit numFiles(
-					fsModel->rootDirectory().entryInfoList().count(),
-					fsModel->rowCount(rootIndex())
-					);
-	} );
-*/
+
 	copyDialog = new ProgressDialog(this);
 
 	connect(this, SIGNAL(setFileAction(QFileInfoList,QString)),
@@ -86,11 +75,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
 
-	/*
-	void progressSetMaximum(int value);
-	void progressSetValue(int value);
-	void progressSetPosition(QPoint pos);*/
-
+	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, QString("I"));
 }
 
 void ImgListView::changeDir(QString dir){
@@ -285,4 +270,17 @@ void ImgListView::exportImages(){
 		if( 0 == index.column() )
 			fileList << fsModel->fileInfo(index);
 	emit setFileAction(fileList, expDir);
+}
+
+void ImgListView::mousePressEvent(QMouseEvent *event){
+	if(event->button() == Qt::RightButton){
+		qDebug()<<"Index at: "<<indexAt(event->pos());
+		auto selections = selectionModel()->selection();
+		qDebug()<<"selections: "<<selections;
+		if(selections.indexes().count())
+			m_menu.exec(QCursor::pos());
+		return;
+	}
+
+	QListView::mousePressEvent(event);
 }

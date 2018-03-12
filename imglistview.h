@@ -13,6 +13,7 @@
 #include <QProgressBar>
 #include "FileProgressDialog.hpp"
 #include "imgthumbnaildelegate.h"
+#include <QMenu>
 
 class ImgListView : public QListView{
 	Q_OBJECT
@@ -39,7 +40,7 @@ public slots:
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
-
+	void mousePressEvent(QMouseEvent *event) override;
 
 	QFileSystemModel* fsModel;
 	//QFileSystemModel* proxyModel;
@@ -51,6 +52,8 @@ private:
 	QHash<QString, QPixmap> thumbnailsCache;
 	ProgressDialog* copyDialog;
 	QProgressBar* dirLoadBar;
+	QMenu m_menu;
+	QAction* exportAction;
 };
 
 #endif // IMGLISTVIEW_H
