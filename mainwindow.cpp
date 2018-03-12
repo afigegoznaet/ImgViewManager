@@ -112,4 +112,7 @@ void MainWindow::init(){
 	});
 	connect(ui->actionExport_Images, SIGNAL(triggered(bool)),
 			ui->imagesView, SLOT(exportImages()));
+
+	ui->actionExit->setShortcut(QKeySequence::Quit);
+	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
 }

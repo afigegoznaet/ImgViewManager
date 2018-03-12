@@ -76,7 +76,7 @@
      <x>0</x>
      <y>0</y>
      <width>740</width>
-     <height>19</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -99,7 +99,7 @@
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionExport_Images">
    <property name="text">
-    <string>Export Images</string>
+    <string>Export &amp;Images</string>
    </property>
   </action>
   <action name="actionExit">
