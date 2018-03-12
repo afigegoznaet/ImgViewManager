@@ -75,7 +75,11 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
 
-	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, QString("I"));
+	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
+	//exportAction->setParent(this);
+	exportAction->setShortcutContext(Qt::ApplicationShortcut);
+	qDebug()<<exportAction->shortcut();
+	addAction(exportAction);
 }
 
 void ImgListView::changeDir(QString dir){
@@ -232,6 +236,7 @@ void ImgListView::applyFilter(QString inFilter){
 
 
 void ImgListView::exportImages(){
+	qDebug()<<"export called";
 	auto selections = selectionModel()->selectedIndexes();
 	if( 0 == selections.count() ){
 		QMessageBox msgBox;
