@@ -168,3 +168,15 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 		return res;
 	});
 }
+
+bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
+
+	QDir dir = fileInfo(parent).absolutePath();
+	bool res = dir.entryList(QDir::NoDotAndDotDot | QDir::Dirs).count();
+	for (int i = 1; i< rowCount(parent); i++){
+		hasChildren(index(i,0,parent));
+		parentView->setExpanded(index(i,0,parent), parentView->isExpanded(index(i,0,parent)));
+		parentView->setExpanded(index(i,0,parent), parentView->isExpanded(index(i,0,parent)));
+	}
+	return res;
+}

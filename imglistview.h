@@ -55,6 +55,14 @@ private:
 	QProgressBar* dirLoadBar;
 	QMenu m_menu;
 	QAction* exportAction;
+	QAction* openAction;
+	QAction* fi_selectedFiles;
+	QAction* fi_fileFormat;
+	QAction* fi_bitDepth;
+	QAction* fi_grayScale;
+	QAction* fi_size;
+	QAction* fi_alpha;
+
 };
 
 #endif // IMGLISTVIEW_H

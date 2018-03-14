@@ -20,7 +20,7 @@ public:
 	QModelIndex setRootPath(const QString &newPath);
 	~ThumbnailsFileModel(){treeMap.clear();}
 	QFuture<bool> scanTreeAsync(const QString& startDir = QDir::rootPath());
-
+	bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
 signals:
 	void splashText(const QString& message, int alignment, const QColor &color);
 public slots:

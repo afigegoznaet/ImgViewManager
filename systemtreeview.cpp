@@ -69,3 +69,24 @@ QString SystemTreeView::getCurrentDir(){
 	qDebug()<<"currentDir";
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }
+
+void SystemTreeView::expand(const QModelIndex &index){
+	qDebug()<<"Expanding";
+
+	for (int i = 1; i< fsModel->rowCount(index); i++){
+		auto curIndex = fsModel->index(i,0,index);
+		fsModel->hasChildren(curIndex);
+		for (int j = 1; i< fsModel->rowCount(curIndex); i++){
+			auto recIndex = fsModel->index(j,0,curIndex);
+			fsModel->hasChildren(recIndex);
+			QTreeView::expand(recIndex);
+			update(recIndex);
+		}
+		fsModel->hasChildren(curIndex);
+		QTreeView::expand(curIndex);
+		update(curIndex);
+	}
+	fsModel->hasChildren(index);
+	QTreeView::expand(index);
+	update(index);
+}

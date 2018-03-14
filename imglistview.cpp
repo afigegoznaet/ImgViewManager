@@ -75,11 +75,26 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
 
+	openAction = m_menu.addAction("&Open image",[&](){
+		QDesktopServices::openUrl(QUrl::fromLocalFile(fsModel->filePath(indexAt(mapFromGlobal(QCursor::pos())))));
+	}, Qt::Key_O);
 	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
+	m_menu.addSeparator();
+	m_menu.addSection("File info");
+
+	fi_selectedFiles = m_menu.addAction("Selected files: 0");
+	fi_fileFormat = m_menu.addAction("File format: n\a");
+	fi_bitDepth = m_menu.addAction("Color depth: n\a");
+	fi_grayScale = m_menu.addAction("Grayscale: n\a");
+	fi_size = m_menu.addAction("Image size: n\a");
+	fi_alpha = m_menu.addAction("Transparency: n\a");
+
 	//exportAction->setParent(this);
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 	qDebug()<<exportAction->shortcut();
 	addAction(exportAction);
+	addAction(openAction);
+
 }
 
 void ImgListView::changeDir(QString dir){
@@ -146,8 +161,9 @@ void ImgListView::prefetchThumbnails(){
 					iconSize.setWidth(iconSize.width()/coef);
 				else
 					iconSize.setHeight(iconSize.height()*coef);
+				reader.setScaledSize(iconSize);
 			}
-			reader.setScaledSize(iconSize);
+
 			reader.setAutoTransform(true);
 			reader.setQuality(15);
 			//thumbnailPainter->stopDrawing();
@@ -279,11 +295,59 @@ void ImgListView::exportImages(){
 
 void ImgListView::mousePressEvent(QMouseEvent *event){
 	if(event->button() == Qt::RightButton){
-		qDebug()<<"Index at: "<<indexAt(event->pos());
-		auto selections = selectionModel()->selection();
-		qDebug()<<"selections: "<<selections;
-		if(selections.indexes().count())
+		auto pointedIndex = indexAt(event->pos());
+		if(!pointedIndex.isValid())
+			openAction->setDisabled(true);
+
+		auto selectionsCount = selectionModel()->selection().indexes().count();
+		//qDebug()<<"selections: "<<selectionsCount;
+		if(selectionsCount < 1)
+			exportAction->setDisabled(true);
+
+		if(pointedIndex.isValid() || selectionsCount > 0){
+			QString text = "";
+			if(selectionsCount > 1 ){
+				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
+				fi_fileFormat->setText("File format: \tn\\a");
+				fi_bitDepth->setText("Color depth: \tn\\a");
+				fi_grayScale->setText("Grayscale: \tn\\a");
+				fi_size->setText("Image size: \tn\\a");
+				fi_alpha->setText("Transparency: \tn\\a");
+			}else{
+				if(!pointedIndex.isValid())
+					pointedIndex = selectionModel()->selection().indexes().first();
+				QImageReader reader(fsModel->fileInfo(pointedIndex).absoluteFilePath());
+				reader.setDecideFormatFromContent(true);
+
+				QImage img = reader.read();
+				qDebug()<<"****************************";
+				qDebug()<<QImageReader::imageFormat(fsModel->fileInfo(pointedIndex).absoluteFilePath());
+				qDebug()<<img.format();
+				qDebug()<<"Format: "<<reader.format();
+				qDebug()<<reader.imageFormat();
+				qDebug()<<img.allGray();
+				qDebug()<<reader.subType();
+				qDebug()<<img.depth();
+				qDebug()<<img.byteCount();
+				qDebug()<<img.colorCount();
+				//qDebug()<<reader.colorTable();
+				qDebug()<<img.hasAlphaChannel();
+				qDebug()<<img.height();
+				qDebug()<<img.width();
+				qDebug()<<img.textKeys();
+				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
+				fi_fileFormat->setText("File format: \t"
+									   + QImageReader::imageFormat(fsModel->fileInfo(pointedIndex).absoluteFilePath()));
+				fi_bitDepth->setText("Color depth: \t"+QString::number(img.depth())+"bpp");
+				fi_grayScale->setText("Grayscale: \t"+QString(img.allGray()?"true":"false"));
+				fi_size->setText("Image size: \t"+QString::number(img.width())+"x"+QString::number(img.height()));
+				fi_alpha->setText("Transparency: \t"+QString(img.hasAlphaChannel()?"true":"false"));
+			}
+
 			m_menu.exec(QCursor::pos());
+		}
+		openAction->setEnabled(true);
+		exportAction->setEnabled(true);
 		return;
 	}
 
