@@ -80,7 +80,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	}, Qt::Key_O);
 	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
 	m_menu.addSeparator();
-	m_menu.addSection("File info");
+	//m_menu.addSection("File info");
 
 	fi_selectedFiles = m_menu.addAction("Selected files: 0");
 	fi_fileFormat = m_menu.addAction("File format: n\a");
@@ -308,24 +308,25 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 			QString text = "";
 			if(selectionsCount > 1 ){
 				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
-				fi_fileFormat->setText("File format: \tn\\a");
-				fi_bitDepth->setText("Color depth: \tn\\a");
-				fi_grayScale->setText("Grayscale: \tn\\a");
-				fi_size->setText("Image size: \tn\\a");
-				fi_alpha->setText("Transparency: \tn\\a");
+				fi_fileFormat->setText("");
+				fi_bitDepth->setText("");
+				fi_grayScale->setText("");
+				fi_size->setText("");
+				fi_alpha->setText("");
 			}else{
 				if(!pointedIndex.isValid())
 					pointedIndex = selectionModel()->selection().indexes().first();
-				QImageReader reader(fsModel->fileInfo(pointedIndex).absoluteFilePath());
+				auto fileName = fsModel->fileInfo(pointedIndex).absoluteFilePath();
+				QImageReader reader(fileName);
 				reader.setDecideFormatFromContent(true);
 
 				QImage img = reader.read();
 				qDebug()<<"****************************";
-				qDebug()<<QImageReader::imageFormat(fsModel->fileInfo(pointedIndex).absoluteFilePath());
+				qDebug()<<QImageReader::imageFormat(fileName);
 				qDebug()<<img.format();
 				qDebug()<<"Format: "<<reader.format();
 				qDebug()<<reader.imageFormat();
-				qDebug()<<img.allGray();
+				qDebug()<<img.bits();
 				qDebug()<<reader.subType();
 				qDebug()<<img.depth();
 				qDebug()<<img.byteCount();
@@ -335,7 +336,23 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 				qDebug()<<img.height();
 				qDebug()<<img.width();
 				qDebug()<<img.textKeys();
-				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
+				qint64 size = QFile(fileName).size();
+				qDebug()<<"File size: "<<size;
+				float gb=0, mb=0, kb=0;
+				gb = size / 1000000000.0;
+				mb = size / 1000000.0;
+				kb = size / 1000.0;
+				QString text;
+				if(gb>.5){
+					text = "File size: \t"+QString::number(gb)+" Gb";
+				}else if(mb>.5){
+					text = "File size: \t"+QString::number(mb)+" Mb";
+				}else if(kb>.5){
+					text = "File size: \t"+QString::number(kb)+" Kb";
+				}else{
+					text = "File size: \t"+QString::number(size)+" b";
+				}
+				fi_selectedFiles->setText(text);
 				fi_fileFormat->setText("File format: \t"
 									   + QImageReader::imageFormat(fsModel->fileInfo(pointedIndex).absoluteFilePath()));
 				fi_bitDepth->setText("Color depth: \t"+QString::number(img.depth())+"bpp");

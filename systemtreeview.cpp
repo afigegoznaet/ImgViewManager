@@ -2,6 +2,9 @@
 #include "mainwindow.h"
 
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
+
+
+
 	fsModel = new ThumbnailsFileModel(this);
 	auto model = new QFileSystemModel(this);
 
@@ -23,6 +26,9 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	setModel(fsModel);
 	setRootIndex(fsModel->fileIndex(parentWindow->getRoot()));
 
+	//setModel(model);
+	//setRootIndex(model->index(parentWindow->getRoot()));
+
 	runner = fsModel->scanTreeAsync(parentWindow->getRoot());
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
@@ -39,6 +45,13 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 		startDir = QDir::rootPath();
 	init(startDir);
 	runner.waitForFinished();
+
+	setStyleSheet("\
+				  QTreeView::branch:!has-children  {\
+						  image: none;\
+				  } ");
+
+	connect(this, SIGNAL(expanded(QModelIndex)), this, SLOT(expanSionSlot(QModelIndex)));
 }
 
 void SystemTreeView::init(QString& startDir){
@@ -70,23 +83,21 @@ QString SystemTreeView::getCurrentDir(){
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }
 
-void SystemTreeView::expand(const QModelIndex &index){
-	qDebug()<<"Expanding";
-
-	for (int i = 1; i< fsModel->rowCount(index); i++){
-		auto curIndex = fsModel->index(i,0,index);
-		fsModel->hasChildren(curIndex);
-		for (int j = 1; i< fsModel->rowCount(curIndex); i++){
-			auto recIndex = fsModel->index(j,0,curIndex);
-			fsModel->hasChildren(recIndex);
-			QTreeView::expand(recIndex);
-			update(recIndex);
+void SystemTreeView::expanSionSlot(const QModelIndex &index){
+	int rows = fsModel->rowCount(index);
+	qDebug()<<"Parent rows: "<<rows;
+	for(int i = 0;i<rows;i++){
+		auto childIndex = fsModel->index(i, 0, index);
+		if(!fsModel->hasChildren(childIndex)){
+			expand(childIndex);
+		}else
+		for(int j = 0; j < fsModel->rowCount(childIndex); j++){
+			auto recChild = fsModel->index(j, 0, childIndex);
+			if(!fsModel->hasChildren(recChild)){
+				expand(recChild);
+			}
 		}
-		fsModel->hasChildren(curIndex);
-		QTreeView::expand(curIndex);
-		update(curIndex);
+
 	}
-	fsModel->hasChildren(index);
-	QTreeView::expand(index);
-	update(index);
 }
+
