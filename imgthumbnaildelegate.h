@@ -12,7 +12,7 @@
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
-	explicit ImgThumbnailDelegate(QHash<QString, QPixmap>& cache, QObject *parent);
+	explicit ImgThumbnailDelegate(QHash<QString, QImage>& cache, QObject *parent);
 	void setModel(QFileSystemModel* model){this->model = model;}
 	void stopDrawing(){canDraw = false;}
 	void resumeDrawing(){canDraw = true;}
@@ -28,7 +28,7 @@ private:
 	QFileSystemModel* model;
 	QPixmapCache cache;
 	int flags;
-	QHash<QString, QPixmap>& currentCache;
+	QHash<QString, QImage>& currentCache;
 	std::atomic_bool canDraw;
 };
 

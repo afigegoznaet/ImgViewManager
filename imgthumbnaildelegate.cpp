@@ -1,8 +1,8 @@
 #include "imgthumbnaildelegate.h"
 #include "imglistview.h"
-ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QPixmap> &cache, QObject* parent)
+ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QImage> &cache, QObject* parent)
 	: QItemDelegate(parent), currentCache(cache), canDraw(true){
-	QPixmapCache::setCacheLimit(100*QPixmapCache::cacheLimit());
+
 	flags = Qt::AlignHCenter | Qt::AlignBottom;
 }
 
@@ -38,7 +38,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		if(index.isValid() && canDraw ){
 
 			if(pixIt != currentCache.constEnd()){
-				QPixmap pm = *pixIt;
+				QPixmap pm = QPixmap::fromImage( *pixIt );
 				int hDelta(0), vDelta(0);
 				//qDebug()<<"pm size: "<<pm.size();
 				//qDebug()<<"rect size: "<<option.rect;

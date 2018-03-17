@@ -75,9 +75,12 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
 
+	m_menu.setStyleSheet(" { padding-left: -20 } ");
+
 	openAction = m_menu.addAction("&Open image",[&](){
 		QDesktopServices::openUrl(QUrl::fromLocalFile(fsModel->filePath(indexAt(mapFromGlobal(QCursor::pos())))));
 	}, Qt::Key_O);
+	openAction->setIconVisibleInMenu(false);
 	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
 	m_menu.addSeparator();
 	//m_menu.addSection("File info");
@@ -166,8 +169,10 @@ void ImgListView::prefetchThumbnails(){
 
 			reader.setAutoTransform(true);
 			reader.setQuality(15);
+			auto img = reader.read();
 			//thumbnailPainter->stopDrawing();
-			thumbnailsCache.insert(currentFileName, QPixmap::fromImageReader(&reader));
+			thumbnailsCache.insert(currentFileName,
+				img.convertToFormat(QImage::Format_RGB444,Qt::DiffuseDither));
 			//thumbnailPainter->resumeDrawing();
 		}
 

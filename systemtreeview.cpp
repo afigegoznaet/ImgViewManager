@@ -39,13 +39,13 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 			});
 
 	runner.waitForFinished();
-	QSettings settings;
+	/*QSettings settings;
 	auto startDir = settings.value("StartDir",QDir::rootPath()).toString();
 	if(startDir.length()<1)
 		startDir = QDir::rootPath();
-	init(startDir);
-	//runner.waitForFinished();
-
+	//init(startDir);
+	runner.waitForFinished();
+*/
 }
 
 void SystemTreeView::init(QString& startDir){
@@ -76,3 +76,4 @@ QString SystemTreeView::getCurrentDir(){
 	qDebug()<<"currentDir";
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }
+

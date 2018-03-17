@@ -33,6 +33,12 @@ int main(int argc, char *argv[]){
 		splash.showMessage(message, alignment, color);
 		locker.unlock();
 	});
+#else
+	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int alignment, const QColor &color){
+		locker.lock();
+		qDebug()<<message;
+		locker.unlock();
+	});
 #endif
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
