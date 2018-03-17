@@ -171,9 +171,7 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 
 bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
 
-	QDir dir = fileInfo(parent).absolutePath();
-	for(auto fi : dir.entryList(QDir::NoDotAndDotDot | QDir::Dirs))
-		qDebug()<<fi;
+	QDir dir = fileInfo(parent).absoluteFilePath();
 
 	return dir.entryList(QDir::NoDotAndDotDot | QDir::Dirs).count();
 }

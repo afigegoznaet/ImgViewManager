@@ -16,7 +16,7 @@ signals:
 	void changeDir(QString dir);
 	void splashText(const QString& message, int alignment, const QColor &color);
 public slots:
-	void expanSionSlot(const QModelIndex &index);
+
 private:
 	ThumbnailsFileModel* fsModel;
 	QFuture<bool> runner;
