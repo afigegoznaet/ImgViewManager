@@ -54,10 +54,17 @@ void SystemTreeView::init(QString& startDir){
 	runner.waitForFinished();
 
 
+	QDir dir(startDir);
+	dir.cdUp();
+	auto idx = fsModel->fileIndex(dir.absolutePath());
+	setCurrentIndex(idx);
+	expand(idx);
+	scrollTo(idx);
+
 	runner = fsModel->scanTreeAsync(startDir);
 	runner.waitForFinished();
 
-	auto idx = fsModel->fileIndex(startDir);
+	idx = fsModel->fileIndex(startDir);
 	setCurrentIndex(idx);
 	expand(idx);
 	scrollTo(idx);
