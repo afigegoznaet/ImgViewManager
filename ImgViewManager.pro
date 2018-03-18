@@ -16,7 +16,7 @@ TEMPLATE = app
 #QMAKE_CFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
 #QMAKE_LFLAGS+="-fsanitize=thread -shared"
 #QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
-#QMAKE_LFLAGS+="-fsanitize=address"
+#QMAKE_LFLAGS+="-lasan -fsanitize=address"
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings

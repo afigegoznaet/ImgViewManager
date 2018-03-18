@@ -43,7 +43,7 @@ int main(int argc, char *argv[]){
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
 //#if !defined(QT_DEBUG) || !defined(_WIN32)
-	qApp->processEvents();
+	//qApp->processEvents();
 	splash.finish(&w);
 //#endif
 	w.show();
