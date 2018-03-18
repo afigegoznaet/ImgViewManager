@@ -51,22 +51,38 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 
 void SystemTreeView::init(QString& startDir){
 
+	qDebug()<<"startDir: "<<startDir;
 	runner.waitForFinished();
-
-
-	QDir dir(startDir);
-	dir.cdUp();
-	auto idx = fsModel->fileIndex(dir.absolutePath());
-	setCurrentIndex(idx);
-	expand(idx);
-	scrollTo(idx);
 
 	runner = fsModel->scanTreeAsync(startDir);
 	runner.waitForFinished();
 
-	idx = fsModel->fileIndex(startDir);
+	expand( fsModel->fileIndex(startDir));
+
+	QDir dir(startDir);
+	QStringList dirs;
+	dirs << startDir;
+	while(dir.cdUp())
+		dirs<<dir.absolutePath();
+
+
+	for(auto dir = dirs.rbegin() ; dir!= dirs.rend(); ++dir){
+
+		runner = fsModel->scanTreeAsync(*dir);
+		runner.waitForFinished();
+		auto idx = fsModel->fileIndex(*dir);
+		qDebug()<<"idx: "<<idx.isValid();
+		expand(idx);
+		//setCurrentIndex(idx);
+		//scrollTo(idx);
+
+	}
+
+
+	auto idx = fsModel->fileIndex(startDir);
+	qDebug()<<"idx: "<<idx.isValid();
 	setCurrentIndex(idx);
-	expand(idx);
+	//expand(idx);
 	scrollTo(idx);
 
 

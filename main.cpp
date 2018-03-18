@@ -16,7 +16,7 @@ int main(int argc, char *argv[]){
 	font.setStyleHint(QFont::Monospace);
 	splash.setFont(font);
 	splash.show();
-	qApp->processEvents();
+	//qApp->processEvents();
 //#endif
 	qDebug()<<argc;
 	for(int i=0; i<argc; i++)
@@ -45,6 +45,7 @@ int main(int argc, char *argv[]){
 //#if !defined(QT_DEBUG) || !defined(_WIN32)
 	//qApp->processEvents();
 	splash.finish(&w);
+
 //#endif
 	w.show();
 	return a.exec();
