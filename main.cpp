@@ -34,7 +34,7 @@ int main(int argc, char *argv[]){
 		locker.unlock();
 	});
 #else
-	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int alignment, const QColor &color){
+	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int , const QColor &){
 		locker.lock();
 		qDebug()<<message;
 		locker.unlock();

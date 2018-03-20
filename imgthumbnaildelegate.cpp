@@ -9,12 +9,14 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QImage> &cache, QObjec
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 							  const QModelIndex &index) const{
 
+	QItemDelegate::paint(painter, option, index);
+	return;
 	if(index.isValid()){
 
 		//qDebug()<<"Paint";
-		auto fileInfo = model->fileInfo(index);
+		auto fileInfo = model->data(index);
 		//qDebug()<<"Got info";
-		auto fileName = fileInfo.fileName();
+		auto fileName = fileInfo.toString();
 		//qDebug()<<"Got name";
 		QFontMetrics fm(option.font);
 		auto boundingRect = fm.boundingRect(option.rect,flags,fileName);
@@ -34,9 +36,9 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		}else
 			painter->setPen(option.palette.text().color());
 
-		auto pixIt = currentCache.constFind(fileName);
-		if(index.isValid() && canDraw ){
 
+		if(index.isValid() && canDraw ){
+			auto pixIt = currentCache.constFind(fileName);
 			if(pixIt != currentCache.constEnd()){
 				QPixmap pm = QPixmap::fromImage( *pixIt );
 				int hDelta(0), vDelta(0);
@@ -88,7 +90,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 		}
 
-		auto newText = fm.elidedText(fileInfo.baseName(),Qt::ElideRight,boundingRect.width());
+		auto newText = fm.elidedText(fileInfo.toString().split('/').last(),Qt::ElideRight,boundingRect.width());
 		painter->drawText(option.rect, flags, newText);
 		//qDebug()<<"Painted";
 	}

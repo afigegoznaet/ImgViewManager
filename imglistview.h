@@ -11,9 +11,11 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QProgressBar>
+#include <QFileSystemModel>
 #include "FileProgressDialog.hpp"
 #include "imgthumbnaildelegate.h"
 #include <QMenu>
+#include <memory>
 
 class ImgListView : public QListView{
 	Q_OBJECT
@@ -44,7 +46,7 @@ private:
 	void mousePressEvent(QMouseEvent *event) override;
 
 	QFileSystemModel* fsModel;
-	//QFileSystemModel* proxyModel;
+	QStandardItemModel *recursiveModel;
 	ImgThumbnailDelegate* thumbnailPainter;
 	QStringList namedFilters;
 	QFuture<void> prefetchProc;

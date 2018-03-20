@@ -2,18 +2,18 @@
 #define IMGTHUMBNAILDELEGATE_H
 #include <QItemDelegate>
 #include <QPainter>
-#include <QFileSystemModel>
 #include <QImageReader>
 #include <QDebug>
 #include <QHash>
 #include <atomic>
 #include <QPixmapCache>
+#include <QStandardItemModel>
 
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
 	explicit ImgThumbnailDelegate(QHash<QString, QImage>& cache, QObject *parent);
-	void setModel(QFileSystemModel* model){this->model = model;}
+	void setModel(QStandardItemModel* model){this->model = model;}
 	void stopDrawing(){canDraw = false;}
 	void resumeDrawing(){canDraw = true;}
 
@@ -25,7 +25,7 @@ signals:
 
 
 private:
-	QFileSystemModel* model;
+	QStandardItemModel* model;
 	QPixmapCache cache;
 	int flags;
 	QHash<QString, QImage>& currentCache;
