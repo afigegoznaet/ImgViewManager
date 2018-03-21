@@ -100,6 +100,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	addAction(exportAction);
 	addAction(openAction);
 
+    thumbnailPainter->setGridSize(iconSize());
 
 //	recursiveModel->setHeaderData()
 }
@@ -153,19 +154,25 @@ void ImgListView::prefetchThumbnails(){
 	emit progressSetMaximum(dirEntries.count());
 	int counter = 0 ;
 
+    for(auto& fileInfo : dirEntries ){
+        auto item = new QStandardItem();
+        item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
+        item->setData(fileInfo.absoluteFilePath(), Qt::DisplayRole);
+        recursiveModel->appendRow(item);
+    }
+
+
 	for(auto& fileInfo : dirEntries ){
-		auto item = new QStandardItem();
-		//
-		item->setData(QIcon(fileInfo.absoluteFilePath()), Qt::DecorationRole);
-		item->setData(fileInfo.absoluteFilePath(), Qt::DisplayRole);
-		recursiveModel->appendRow(item);
+
+        auto item = recursiveModel->findItems(fileInfo.absoluteFilePath()).first();
 		emit progressSetValue(counter++);
 		if(stopPrefetching)
 			break;
 		auto currentFileName = fileInfo.absoluteFilePath();
-		if(!thumbnailsCache.contains(currentFileName)) {
+        auto tcEntry = thumbnailsCache.constFind(currentFileName);
+        if(tcEntry == thumbnailsCache.constEnd()) {
 			QSize iconSize = this->iconSize();
-			QImageReader reader(fileInfo.absoluteFilePath());
+            QImageReader reader(currentFileName);
 			auto picSize = reader.size();
 			if(picSize.width()>iconSize.width() || picSize.height()>iconSize.height()){
 				auto picSize = reader.size();
@@ -185,7 +192,9 @@ void ImgListView::prefetchThumbnails(){
 			thumbnailsCache.insert(currentFileName,
 				img.convertToFormat(QImage::Format_RGB444,Qt::DiffuseDither));
 			//thumbnailPainter->resumeDrawing();
-		}
+        }else{
+            item->setIcon(QPixmap::fromImage(*tcEntry));
+        }
 
 		//QPersistentModelIndex idx = fsModel->index(fileInfo.absoluteFilePath());
 		emit callUpdate(recursiveModel->indexFromItem(item));
@@ -347,7 +356,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 				qDebug()<<img.bits();
 				qDebug()<<reader.subType();
 				qDebug()<<img.depth();
-				qDebug()<<img.byteCount();
+                qDebug()<<img.sizeInBytes();
 				qDebug()<<img.colorCount();
 				//qDebug()<<reader.colorTable();
 				qDebug()<<img.hasAlphaChannel();

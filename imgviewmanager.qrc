@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/Images">
         <file alias="splash.png">Resources/Splash.png</file>
+        <file alias="spinner.svg">Resources/Spinner.svg</file>
     </qresource>
 </RCC>

@@ -9,8 +9,7 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QImage> &cache, QObjec
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 							  const QModelIndex &index) const{
 
-	QItemDelegate::paint(painter, option, index);
-	return;
+
 	if(index.isValid()){
 
 		//qDebug()<<"Paint";
