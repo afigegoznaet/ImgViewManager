@@ -9,8 +9,9 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QImage> &cache, QObjec
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 							  const QModelIndex &index) const{
 
-
-	QItemDelegate::paint(painter, option, index);
+	QStyleOptionViewItem newOpt(option);
+	newOpt.text = option.text.split('/').last();
+	QItemDelegate::paint(painter, newOpt, index);
 	return;
 	if(index.isValid()){
 

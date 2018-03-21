@@ -163,9 +163,11 @@ void ImgListView::prefetchThumbnails(){
 		if(stopPrefetching)
 			break;
 
-		auto item = new QStandardItem();
+		auto item = new QStandardItem(fileName);
 		item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
 		item->setData(fileName, Qt::DisplayRole);
+		item->setData(fileName, Qt::ToolTipRole);
+
 
 		recursiveModel->setItem(i++, item);
 		qDebug()<<"F!: "<<fileName;
@@ -199,7 +201,12 @@ void ImgListView::prefetchThumbnails(){
 				break;
 			if(fileInfo.isDir())
 				continue;
-			auto item = recursiveModel->findItems(fileInfo.absoluteFilePath()).first();
+			qDebug()<<"File to find: "<<fileInfo.absoluteFilePath();
+			qDebug()<<"File list: "<<fileList;
+
+			qDebug()<<"Found list: "<<recursiveModel->findItems(fileInfo.absoluteFilePath());
+			auto item = recursiveModel->findItems(fileInfo.absoluteFilePath(),
+												  Qt::MatchFixedString).first();
 
 			emit progressSetValue(counter++);
 
