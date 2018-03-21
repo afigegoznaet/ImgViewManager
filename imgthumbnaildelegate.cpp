@@ -10,6 +10,8 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 							  const QModelIndex &index) const{
 
 
+	QItemDelegate::paint(painter, option, index);
+	return;
 	if(index.isValid()){
 
 		//qDebug()<<"Paint";

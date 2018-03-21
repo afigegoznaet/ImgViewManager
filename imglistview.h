@@ -44,6 +44,7 @@ private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
 	void mousePressEvent(QMouseEvent *event) override;
+	void getDirs(QString &rootDir, QStringList& dirList);
 
 	QFileSystemModel* fsModel;
 	QStandardItemModel *recursiveModel;

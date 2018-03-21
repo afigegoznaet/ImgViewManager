@@ -57,32 +57,33 @@ void SystemTreeView::init(QString& startDir){
 	runner = fsModel->scanTreeAsync(startDir);
 	runner.waitForFinished();
 
-	expand( fsModel->fileIndex(startDir));
+
+	auto idx = fsModel->fileIndex(startDir);
+	//qDebug()<<"idx: "<<idx.isValid();
+	setCurrentIndex(idx);
+	expand(idx);
+	scrollTo(idx);
 
 	QDir dir(startDir);
-	QStringList dirs;
-	dirs << startDir;
-	while(dir.cdUp())
-		dirs<<dir.absolutePath();
 
+	while(dir.cdUp()){
 
-	for(auto dir = dirs.rbegin() ; dir!= dirs.rend(); ++dir){
-
-		runner = fsModel->scanTreeAsync(*dir);
+		runner = fsModel->scanTreeAsync(dir.absolutePath());
 		runner.waitForFinished();
-		auto idx = fsModel->fileIndex(*dir);
-		qDebug()<<"idx: "<<idx.isValid();
+		auto idx = fsModel->fileIndex(dir.absolutePath());
+		//setCurrentIndex(idx);
+		//qDebug()<<"idx: "<<idx.isValid();
 		expand(idx);
 		//setCurrentIndex(idx);
-		//scrollTo(idx);
+		scrollTo(idx);
 
 	}
 
 
-	auto idx = fsModel->fileIndex(startDir);
-	qDebug()<<"idx: "<<idx.isValid();
+	idx = fsModel->fileIndex(startDir);
+	//qDebug()<<"idx: "<<idx.isValid();
 	setCurrentIndex(idx);
-	//expand(idx);
+	expand(idx);
 	scrollTo(idx);
 
 

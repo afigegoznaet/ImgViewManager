@@ -14,7 +14,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	qDebug()<<parentWindow->getRoot();
 	fsModel->setRootPath(parentWindow->getRoot());
-	fsModel->setFilter(QDir::Files | QDir::NoDotAndDotDot);
+	fsModel->setFilter(QDir::NoDotAndDotDot);
 
 	namedFilters << "*.png";
 	namedFilters << "*.jpeg";
@@ -100,7 +100,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	addAction(exportAction);
 	addAction(openAction);
 
-    thumbnailPainter->setGridSize(iconSize());
+	thumbnailPainter->setGridSize(gridSize());
 
 //	recursiveModel->setHeaderData()
 }
@@ -137,82 +137,99 @@ void ImgListView::changeDir(QString dir){
 
 void ImgListView::prefetchThumbnails(){
 
-	QString fileName = fsModel->rootDirectory().absolutePath();
-	fileName +="/.kthumbnails";
-	QFile thumbnailsFile(fileName);
+	QStringList dirs;
+	dirs << fsModel->rootDirectory().absolutePath();
+	getDirs(dirs.first(), dirs);
 
-	QDataStream in (&thumbnailsFile);
-	in.setVersion(QDataStream::Qt_5_7);
-	if(thumbnailsFile.open(QIODevice::ReadOnly))
-		in>> thumbnailsCache;
-	thumbnailsFile.close();
-	int countAtStart = thumbnailsCache.count();
+	for(auto dirEntry : dirs){
+		QDir dir(dirEntry);
 
-	auto dirEntries = fsModel->rootDirectory().entryInfoList(namedFilters);
+		QString fileName = dir.absolutePath();
+		fileName +="/.kthumbnails";
+		QFile thumbnailsFile(fileName);
 
-	emit progressSetVisible(true);
-	emit progressSetMaximum(dirEntries.count());
-	int counter = 0 ;
+		QDataStream in (&thumbnailsFile);
+		in.setVersion(QDataStream::Qt_5_7);
+		if(thumbnailsFile.open(QIODevice::ReadOnly))
+			in>> thumbnailsCache;
+		thumbnailsFile.close();
+		int countAtStart = thumbnailsCache.count();
 
-    for(auto& fileInfo : dirEntries ){
-        auto item = new QStandardItem();
-        item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
-        item->setData(fileInfo.absoluteFilePath(), Qt::DisplayRole);
-        recursiveModel->appendRow(item);
-    }
+		auto dirEntries = dir.entryInfoList(namedFilters);
+
+		emit progressSetVisible(true);
+		emit progressSetMaximum(dirEntries.count());
+		int counter = 0 ;
 
 
-	for(auto& fileInfo : dirEntries ){
-
-        auto item = recursiveModel->findItems(fileInfo.absoluteFilePath()).first();
-		emit progressSetValue(counter++);
-		if(stopPrefetching)
-			break;
-		auto currentFileName = fileInfo.absoluteFilePath();
-        auto tcEntry = thumbnailsCache.constFind(currentFileName);
-        if(tcEntry == thumbnailsCache.constEnd()) {
-			QSize iconSize = this->iconSize();
-            QImageReader reader(currentFileName);
-			auto picSize = reader.size();
-			if(picSize.width()>iconSize.width() || picSize.height()>iconSize.height()){
-				auto picSize = reader.size();
-				double coef = picSize.height()*1.0/picSize.width();
-				if(coef>1)
-					iconSize.setWidth(iconSize.width()/coef);
-				else
-					iconSize.setHeight(iconSize.height()*coef);
-				reader.setScaledSize(iconSize);
-			}
-
-			reader.setAutoTransform(true);
-			reader.setQuality(15);
-			auto img = reader.read();
-			//thumbnailPainter->stopDrawing();
-			item->setIcon(QPixmap::fromImage(img));
-			thumbnailsCache.insert(currentFileName,
-				img.convertToFormat(QImage::Format_RGB444,Qt::DiffuseDither));
-			//thumbnailPainter->resumeDrawing();
-        }else{
-            item->setIcon(QPixmap::fromImage(*tcEntry));
-        }
-
-		//QPersistentModelIndex idx = fsModel->index(fileInfo.absoluteFilePath());
-		emit callUpdate(recursiveModel->indexFromItem(item));
-	}
-
-	if(countAtStart != thumbnailsCache.count()){
-		//qDebug()<<"Saving cache to file";
-		if(thumbnailsFile.open(QIODevice::WriteOnly)){
-			thumbnailsFile.resize(0);
-			QDataStream out (&thumbnailsFile);
-			out.setVersion(QDataStream::Qt_5_7);
-			out<<thumbnailsCache;
-			thumbnailsFile.flush();
-			thumbnailsFile.close();
+		for(auto& fileInfo : dirEntries ){
+			if(fileInfo.isDir())
+				continue;
+			auto item = new QStandardItem();
+			item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
+			item->setData(fileInfo.absoluteFilePath(), Qt::DisplayRole);
+			recursiveModel->appendRow(item);
 		}
 
 
+		for(auto& fileInfo : dirEntries ){
+			if(fileInfo.isDir())
+				continue;
+			auto item = recursiveModel->findItems(fileInfo.absoluteFilePath()).first();
+
+			emit progressSetValue(counter++);
+			if(stopPrefetching)
+				break;
+			auto currentFileName = fileInfo.absoluteFilePath();
+			auto tcEntry = thumbnailsCache.constFind(currentFileName);
+			if(tcEntry == thumbnailsCache.constEnd()) {
+				QSize iconSize = this->iconSize();
+				QImageReader reader(currentFileName);
+				auto picSize = reader.size();
+				if(picSize.width()>iconSize.width() || picSize.height()>iconSize.height()){
+					auto picSize = reader.size();
+					double coef = picSize.height()*1.0/picSize.width();
+					if(coef>1)
+						iconSize.setWidth(iconSize.width()/coef);
+					else
+						iconSize.setHeight(iconSize.height()*coef);
+					reader.setScaledSize(iconSize);
+				}
+
+				reader.setAutoTransform(true);
+				reader.setQuality(15);
+				auto img = reader.read();
+				//thumbnailPainter->stopDrawing();
+				item->setIcon(QPixmap::fromImage(img));
+				thumbnailsCache.insert(currentFileName,
+					img.convertToFormat(QImage::Format_RGB444,Qt::DiffuseDither));
+				//thumbnailPainter->resumeDrawing();
+			}else
+				item->setIcon(QPixmap::fromImage(*tcEntry));
+
+
+			qDebug()<<"Item data: "<<item->data(Qt::DisplayRole);
+			qDebug()<<"Item icon: "<<item->data(Qt::DecorationRole);
+			//QPersistentModelIndex idx = fsModel->index(fileInfo.absoluteFilePath());
+			emit callUpdate(recursiveModel->indexFromItem(item));
+		}
+		if(countAtStart != thumbnailsCache.count()){
+			//qDebug()<<"Saving cache to file";
+			if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
+				thumbnailsFile.resize(0);
+				QDataStream out (&thumbnailsFile);
+				out.setVersion(QDataStream::Qt_5_7);
+				out<<thumbnailsCache;
+				thumbnailsFile.flush();
+				thumbnailsFile.close();
+			}
+
+
+		}
 	}
+
+
+
 
 	emit progressSetVisible(false);
 	//qDebug()<<"Prefetch finished";
@@ -348,21 +365,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 				reader.setDecideFormatFromContent(true);
 
 				QImage img = reader.read();
-				qDebug()<<"****************************";
-				qDebug()<<QImageReader::imageFormat(fileName);
-				qDebug()<<img.format();
-				qDebug()<<"Format: "<<reader.format();
-				qDebug()<<reader.imageFormat();
-				qDebug()<<img.bits();
-				qDebug()<<reader.subType();
-				qDebug()<<img.depth();
-                qDebug()<<img.sizeInBytes();
-				qDebug()<<img.colorCount();
-				//qDebug()<<reader.colorTable();
-				qDebug()<<img.hasAlphaChannel();
-				qDebug()<<img.height();
-				qDebug()<<img.width();
-				qDebug()<<img.textKeys();
+
 				qint64 size = QFile(fileName).size();
 				qDebug()<<"File size: "<<size;
 				float gb=0, mb=0, kb=0;
@@ -396,4 +399,16 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 	}
 
 	QListView::mousePressEvent(event);
+}
+
+void ImgListView::getDirs(QString& rootDir, QStringList &dirList){
+	QDir dir(rootDir);
+	auto currList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+
+	for(auto dirEntry : currList){
+
+		dirList << dirEntry.absoluteFilePath();
+		getDirs(dirEntry.absoluteFilePath(), dirList);
+	}
+
 }

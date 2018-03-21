@@ -16,10 +16,10 @@ public:
 	void setModel(QStandardItemModel* model){this->model = model;}
 	void stopDrawing(){canDraw = false;}
 	void resumeDrawing(){canDraw = true;}
-    void setGridSize(QSize gridSize){this->gridSize = gridSize;}
-    QSize sizeHint(const QStyleOptionViewItem & option, const QModelIndex & index) const override{
-        return gridSize;
-    }
+	void setGridSize(QSize gridSize){this->gridSize = gridSize;}
+	QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const override{
+		return gridSize;
+	}
 
 protected:
 	void paint(QPainter *painter, const QStyleOptionViewItem &option,
@@ -34,7 +34,7 @@ private:
 	int flags;
 	QHash<QString, QImage>& currentCache;
 	std::atomic_bool canDraw;
-    QSize gridSize;
+	QSize gridSize;
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H
