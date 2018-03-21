@@ -35,6 +35,7 @@ private:
 	QHash<QString, QImage>& currentCache;
 	std::atomic_bool canDraw;
 	QSize gridSize;
+
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H

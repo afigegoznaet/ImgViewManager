@@ -65,7 +65,7 @@ private:
 	QAction* fi_grayScale;
 	QAction* fi_size;
 	QAction* fi_alpha;
-
+	QList<QStandardItem*> items;
 };
 
 #endif // IMGLISTVIEW_H

@@ -44,9 +44,10 @@ int main(int argc, char *argv[]){
 	w.init();
 //#if !defined(QT_DEBUG) || !defined(_WIN32)
 	//qApp->processEvents();
-	splash.finish(&w);
 
-//#endif
+	splash.finish(&w);
 	w.show();
+//#endif
+
 	return a.exec();
 }
