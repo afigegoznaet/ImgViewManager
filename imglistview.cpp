@@ -431,7 +431,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 	QListView::mousePressEvent(event);
 }
 
-void ImgListView::getDirs(QString& rootDir, QStringList &dirList){
+void ImgListView::getDirs(const QString &rootDir, QStringList &dirList){
 	QDir dir(rootDir);
 	auto currList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
 
