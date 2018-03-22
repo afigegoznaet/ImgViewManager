@@ -27,7 +27,7 @@ public:
 signals:
 	void callUpdate(const QModelIndex &);
 	void numFiles(int total, int visible);
-	void setFileAction(QFileInfoList fileList, QString destination);
+	void setFileAction(QStringList fileList, QString destination);
 	void callFullUpdate();
 
 	void progressSetVisible(bool flag);

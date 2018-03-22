@@ -34,7 +34,7 @@ ProgressDialog::~ProgressDialog(){
 	delete progress;
 }
 
-void ProgressDialog::processFileAction(QFileInfoList fileList,
+void ProgressDialog::processFileAction(QStringList fileList,
 						QString destination){
 	if(isHidden())
 		show();
@@ -45,21 +45,21 @@ void ProgressDialog::processFileAction(QFileInfoList fileList,
 	int newRow = progress->tableWidget->rowCount();
 
 
-	foreach (auto fileInfo, fileList) {
+	foreach (auto fileName, fileList) {
 
-		if(!fileInfo.fileName().compare("..", Qt::CaseInsensitive)
-				|| !fileInfo.fileName().compare(".", Qt::CaseInsensitive)  )
+		if(!fileName.compare("..", Qt::CaseInsensitive)
+				|| !fileName.compare(".", Qt::CaseInsensitive)  )
 			continue;
 
 
-		qDebug()<<fileInfo.fileName();
+		qDebug()<<fileName;
 
-		QString item = "Move "+ fileInfo.fileName() + " to "+destination;
-		QString newName = destination+"/"+fileInfo.fileName();
+		QString item = "Move "+ fileName + " to "+destination;
+		QString newName = destination+"/"+fileName.split('/').last();
 
 		progress->tableWidget->insertRow( newRow );
 
-		progress->tableWidget->setItem(newRow,0,new QTableWidgetItem(fileInfo.absoluteFilePath()));
+		progress->tableWidget->setItem(newRow,0,new QTableWidgetItem(fileName));
 		progress->tableWidget->setItem(newRow,1,new QTableWidgetItem(destination));
 	}
 

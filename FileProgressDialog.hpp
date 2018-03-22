@@ -51,7 +51,7 @@ public slots:
 	void dirMovementResult(int);
 	void errorMsg(QString errorText);
 	void hideDialogSlot();
-	void processFileAction(QFileInfoList fileList, QString destination );
+	void processFileAction(QStringList fileList, QString destination );
 
 };
 

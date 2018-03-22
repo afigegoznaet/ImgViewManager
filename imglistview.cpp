@@ -63,8 +63,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	copyDialog = new ProgressDialog(this);
 
-	connect(this, SIGNAL(setFileAction(QFileInfoList,QString)),
-			copyDialog, SLOT(processFileAction(QFileInfoList,QString)));
+	connect(this, SIGNAL(setFileAction(QStringList,QString)),
+			copyDialog, SLOT(processFileAction(QStringList,QString)));
 	connect(this, SIGNAL(callFullUpdate()), this, SLOT(update()), Qt::QueuedConnection);
 
 
@@ -385,10 +385,10 @@ void ImgListView::exportImages(){
 		msgBox.exec();
 		return;
 	}
-	QFileInfoList fileList;
+	QStringList fileList;
 	for(auto &index : selections)
 		if( 0 == index.column() )
-			fileList << fsModel->fileInfo(index);
+			fileList << recursiveModel->itemFromIndex(index)->data(Qt::DisplayRole).toString();
 	emit setFileAction(fileList, expDir);
 }
 
@@ -400,7 +400,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 
 		QStringList selectedFiels;
 
-		for(auto index : selectionModel()->selection().indexes())
+		for(auto &index : selectionModel()->selection().indexes())
 			selectedFiels << recursiveModel->itemFromIndex(index)->data(Qt::DisplayRole).toString();
 
 		auto selectionsCount = selectedFiels.count();
