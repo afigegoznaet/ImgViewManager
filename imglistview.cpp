@@ -139,12 +139,13 @@ void ImgListView::changeDir(QString dir){
 	proxy->clear();
 	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
-	//emit callFullUpdate();
+    //recursiveModel->blockSignals(true);
 
 }
 
 void ImgListView::prefetchThumbnails(){
 
+    emit dirScan(currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
@@ -176,7 +177,7 @@ void ImgListView::prefetchThumbnails(){
 			//emit rowsAboutToBeInserted(QModelIndex(), firstRow, firstRow + fileList.count()-1);
 			//recursiveModel->blockSignals(true);
 		}
-
+        QList<QStandardItem*> items;
 		for(auto fileName : fileList){
 			if(stopPrefetching)
 				break;
@@ -186,8 +187,8 @@ void ImgListView::prefetchThumbnails(){
 			item->setData(fileName, Qt::DisplayRole);
 			item->setData(fileName, Qt::ToolTipRole);
 
-
-			recursiveModel->appendRow(item);
+            items << item;
+            recursiveModel->appendRow(item);
 			//qDebug()<<"F!: "<<fileName;
 			//emit callFullUpdate();
 		}
@@ -276,7 +277,7 @@ void ImgListView::prefetchThumbnails(){
 				//thumbnailPainter->stopDrawing();
 				item->setIcon(QPixmap::fromImage(img));
 				thumbnailsCache.insert(currentFileName,
-					img.convertToFormat(QImage::Format_RGB444,Qt::DiffuseDither));
+                    img.convertToFormat(QImage::Format_RGB16,Qt::DiffuseDither));
 				//thumbnailPainter->resumeDrawing();
 			}else
 				item->setIcon(QPixmap::fromImage(*tcEntry));
@@ -344,9 +345,8 @@ void ImgListView::applyFilter(QString inFilter){
 	qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
 	emit numFiles(
 				recursiveModel->rowCount(),
-                (proxy->rowCount() > 0) ? proxy->rowCount() -1 : 0
+                proxy->rowCount()
 				);
-
 
 }
 
