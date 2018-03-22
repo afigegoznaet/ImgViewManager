@@ -12,6 +12,7 @@
 #include <QFileDialog>
 #include <QProgressBar>
 #include <QFileSystemModel>
+#include <QSortFilterProxyModel>
 #include "FileProgressDialog.hpp"
 #include "imgthumbnaildelegate.h"
 #include <QMenu>
@@ -35,6 +36,7 @@ signals:
 	void progressSetValue(int value);
 	void newRowsInserted(const QModelIndex &parent, int first, int last);
 	void rowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
+	void filterSignal(QString inFilter);
 
 public slots:
 	void changeDir(QString dir);
@@ -48,7 +50,8 @@ private:
 	void getDirs(const QString &rootDir, QStringList& dirList);
 	QString getTotalSize(QStringList& files);
 
-	QFileSystemModel* fsModel;
+	//QFileSystemModel* fsModel;
+	QSortFilterProxyModel* proxy;
 	QStandardItemModel *recursiveModel;
 	ImgThumbnailDelegate* thumbnailPainter;
 	QStringList namedFilters;
@@ -59,6 +62,8 @@ private:
 	ProgressDialog* copyDialog;
 	QProgressBar* dirLoadBar;
 	QMenu m_menu;
+	QString currentDir;
+
 	QAction* exportAction;
 	QAction* openAction;
 	QAction* fi_selectedFiles;

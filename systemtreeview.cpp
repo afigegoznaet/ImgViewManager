@@ -60,7 +60,7 @@ void SystemTreeView::init(QString& startDir){
 
 	auto idx = fsModel->fileIndex(startDir);
 	//qDebug()<<"idx: "<<idx.isValid();
-	setCurrentIndex(idx);
+	//setCurrentIndex(idx);
 	expand(idx);
 	scrollTo(idx);
 
@@ -82,9 +82,10 @@ void SystemTreeView::init(QString& startDir){
 
 	idx = fsModel->fileIndex(startDir);
 	//qDebug()<<"idx: "<<idx.isValid();
-	setCurrentIndex(idx);
+
 	expand(idx);
 	scrollTo(idx);
+	setCurrentIndex(idx);
 
 
 }
@@ -95,3 +96,11 @@ QString SystemTreeView::getCurrentDir(){
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }
 
+void SystemTreeView::initDir(QString& startDir){
+	auto idx = fsModel->fileIndex(startDir);
+	//qDebug()<<"idx: "<<idx.isValid();
+	setCurrentIndex(idx);
+	expand(idx);
+	scrollTo(idx);
+
+}

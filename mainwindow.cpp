@@ -5,7 +5,7 @@
 MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
 
-
+	qRegisterMetaType<QVector<int> >("QVector<int>");
 }
 
 MainWindow::~MainWindow(){
@@ -115,4 +115,8 @@ void MainWindow::init(){
 
 	ui->actionExit->setShortcut(QKeySequence::Quit);
 	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
+}
+
+void MainWindow::initTree(){
+	ui->fileTree->init(startDir);
 }

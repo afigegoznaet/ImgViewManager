@@ -11,7 +11,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 	QStyleOptionViewItem newOpt(option);
 	newOpt.text = option.text.split('/').last();
-	QItemDelegate::paint(painter, newOpt, index);
+	QItemDelegate::paint(painter, option, index);
 	return;
 	if(index.isValid()){
 

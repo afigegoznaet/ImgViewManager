@@ -10,6 +10,7 @@ class SystemTreeView : public QTreeView{
 public:
 	explicit SystemTreeView(QWidget *parent = nullptr);
 	void init(QString& startDir);
+	void initDir(QString& startDir);
 	QString getCurrentDir();
 
 signals:

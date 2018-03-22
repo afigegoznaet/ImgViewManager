@@ -47,6 +47,7 @@ int main(int argc, char *argv[]){
 
 	splash.finish(&w);
 	w.show();
+	//w.initTree();
 //#endif
 
 	return a.exec();

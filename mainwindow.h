@@ -19,6 +19,7 @@ public:
 	explicit MainWindow(QString argv, QWidget *parent = 0);
 	~MainWindow();
 	void init();
+	void initTree();
 	QString getRoot(){return rootDir;}
 
 public slots:

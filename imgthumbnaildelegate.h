@@ -8,12 +8,13 @@
 #include <atomic>
 #include <QPixmapCache>
 #include <QStandardItemModel>
+#include <QAbstractItemModel>
 
 class ImgThumbnailDelegate : public QItemDelegate{
 	Q_OBJECT
 public:
 	explicit ImgThumbnailDelegate(QHash<QString, QImage>& cache, QObject *parent);
-	void setModel(QStandardItemModel* model){this->model = model;}
+	void setModel(QAbstractItemModel* model){this->model = model;}
 	void stopDrawing(){canDraw = false;}
 	void resumeDrawing(){canDraw = true;}
 	void setGridSize(QSize gridSize){this->gridSize = gridSize;}
@@ -29,7 +30,7 @@ signals:
 
 
 private:
-	QStandardItemModel* model;
+	QAbstractItemModel* model;
 	QPixmapCache cache;
 	int flags;
 	QHash<QString, QImage>& currentCache;
