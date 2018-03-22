@@ -46,6 +46,7 @@ private:
 	void prefetchThumbnails();
 	void mousePressEvent(QMouseEvent *event) override;
 	void getDirs(const QString &rootDir, QStringList& dirList);
+	QString getTotalSize(QStringList& files);
 
 	QFileSystemModel* fsModel;
 	QStandardItemModel *recursiveModel;

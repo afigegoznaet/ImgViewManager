@@ -186,11 +186,10 @@ void ImgListView::prefetchThumbnails(){
 			//emit callFullUpdate();
 		}
 
-		qDebug()<<"Parent: "<<recursiveModel->parent(recursiveModel->index(0,0));
 		int lastRow = recursiveModel->rowCount()-1;
 		recursiveModel->blockSignals(false);
 		if(lastRow>firstRow)
-			emit newRowsInserted(recursiveModel->parent(recursiveModel->index(0,0)), firstRow, lastRow);
+			emit newRowsInserted(QModelIndex(), firstRow, lastRow);
 		firstRow = recursiveModel->rowCount();
 
 	}
@@ -399,16 +398,19 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 		if(!pointedIndex.isValid())
 			openAction->setDisabled(true);
 
-		auto selectionsCount = selectionModel()->selection().indexes().count();
-		//qDebug()<<"selections: "<<selectionsCount;
+		QStringList selectedFiels;
+
+		for(auto index : selectionModel()->selection().indexes())
+			selectedFiels << recursiveModel->itemFromIndex(index)->data(Qt::DisplayRole).toString();
+
+		auto selectionsCount = selectedFiels.count();
 		if(selectionsCount < 1)
 			exportAction->setDisabled(true);
-
 		if(pointedIndex.isValid() || selectionsCount > 0){
 			QString text = "";
 			if(selectionsCount > 1 ){
 				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
-				fi_fileFormat->setText("");
+				fi_fileFormat->setText("Selected files size: \t"+getTotalSize(selectedFiels));
 				fi_bitDepth->setText("");
 				fi_grayScale->setText("");
 				fi_size->setText("");
@@ -416,31 +418,17 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 			}else{
 				if(!pointedIndex.isValid())
 					pointedIndex = selectionModel()->selection().indexes().first();
-				auto fileName = fsModel->fileInfo(pointedIndex).absoluteFilePath();
+				auto fileName = recursiveModel->itemFromIndex(pointedIndex)->data(Qt::DisplayRole).toString();
 				QImageReader reader(fileName);
 				reader.setDecideFormatFromContent(true);
 
 				QImage img = reader.read();
 
-				qint64 size = QFile(fileName).size();
-				qDebug()<<"File size: "<<size;
-				float gb=0, mb=0, kb=0;
-				gb = size / 1000000000.0;
-				mb = size / 1000000.0;
-				kb = size / 1000.0;
-				QString text;
-				if(gb>.5){
-					text = "File size: \t"+QString::number(gb)+" Gb";
-				}else if(mb>.5){
-					text = "File size: \t"+QString::number(mb)+" Mb";
-				}else if(kb>.5){
-					text = "File size: \t"+QString::number(kb)+" Kb";
-				}else{
-					text = "File size: \t"+QString::number(size)+" b";
-				}
-				fi_selectedFiles->setText(text);
+
+				QStringList tempList(fileName);
+				fi_selectedFiles->setText("File size: \t" + getTotalSize(tempList));
 				fi_fileFormat->setText("File format: \t"
-									   + QImageReader::imageFormat(fsModel->fileInfo(pointedIndex).absoluteFilePath()));
+									   + QImageReader::imageFormat(fileName));
 				fi_bitDepth->setText("Color depth: \t"+QString::number(img.depth())+"bpp");
 				fi_grayScale->setText("Grayscale: \t"+QString(img.allGray()?"true":"false"));
 				fi_size->setText("Image size: \t"+QString::number(img.width())+"x"+QString::number(img.height()));
@@ -467,4 +455,26 @@ void ImgListView::getDirs(const QString &rootDir, QStringList &dirList){
 		getDirs(dirEntry.absoluteFilePath(), dirList);
 	}
 
+}
+
+QString ImgListView::getTotalSize(QStringList& files){
+	qint64 totalSize = 0;
+	for(auto fileName : files)
+		totalSize += QFile(fileName).size();
+
+	float gb=0, mb=0, kb=0;
+	gb = totalSize / 1000000000.0;
+	mb = totalSize / 1000000.0;
+	kb = totalSize / 1000.0;
+	QString text;
+	if(gb>.5){
+		text = QString::number(gb)+" Gb";
+	}else if(mb>.5){
+		text = QString::number(mb)+" Mb";
+	}else if(kb>.5){
+		text = QString::number(kb)+" Kb";
+	}else{
+		text = QString::number(totalSize)+" b";
+	}
+	return text;
 }
