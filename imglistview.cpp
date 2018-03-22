@@ -26,6 +26,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	//setModel(fsModel);
 	setModel(recursiveModel);
 
+	connect(this, SIGNAL(rowsAboutToBeInserted(QModelIndex,int,int)), recursiveModel, SIGNAL(rowsAboutToBeInserted(QModelIndex,int,int)));
+	connect(this, SIGNAL(newRowsInserted(QModelIndex,int,int)), recursiveModel,SIGNAL(rowsInserted(QModelIndex,int,int)));
+
 	thumbnailPainter = new ImgThumbnailDelegate(thumbnailsCache, this);
 	//thumbnailPainter->setModel(fsModel);
 	thumbnailPainter->setModel(recursiveModel);
@@ -141,10 +144,18 @@ void ImgListView::prefetchThumbnails(){
 	dirs << fsModel->rootDirectory().absolutePath();
 	getDirs(dirs.first(), dirs);
 
-	QStringList fileList;
+	QStandardItem *prototype = new QStandardItem();
+	prototype->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
+	prototype->setData("prototype", Qt::DisplayRole);
+	prototype->setData("prototype", Qt::ToolTipRole);
+
+	int firstRow = 0;
+
 	for(auto dirEntry : dirs){
+		QStringList fileList;
 		if(stopPrefetching)
 			break;
+
 		QDir dir(dirEntry);
 		auto dirEntries = dir.entryInfoList(namedFilters);
 		for(auto& fileInfo : dirEntries ){
@@ -154,25 +165,43 @@ void ImgListView::prefetchThumbnails(){
 				continue;
 			fileList<<fileInfo.absoluteFilePath();
 		}
+
+		if(fileList.count()){
+			emit rowsAboutToBeInserted(QModelIndex(), firstRow, firstRow + fileList.count()-1);
+			recursiveModel->blockSignals(true);
+		}
+
+		for(auto fileName : fileList){
+			if(stopPrefetching)
+				break;
+
+			auto item = new QStandardItem(fileName);
+			item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
+			item->setData(fileName, Qt::DisplayRole);
+			item->setData(fileName, Qt::ToolTipRole);
+
+
+			recursiveModel->appendRow(item);
+			//qDebug()<<"F!: "<<fileName;
+			//emit callFullUpdate();
+		}
+
+		qDebug()<<"Parent: "<<recursiveModel->parent(recursiveModel->index(0,0));
+		int lastRow = recursiveModel->rowCount()-1;
+		recursiveModel->blockSignals(false);
+		if(lastRow>firstRow)
+			emit newRowsInserted(recursiveModel->parent(recursiveModel->index(0,0)), firstRow, lastRow);
+		firstRow = recursiveModel->rowCount();
+
 	}
 
-	recursiveModel->insertRows(0, fileList.count());
 
-	int i=0;
-	for(auto fileName : fileList){
-		if(stopPrefetching)
-			break;
+	int lastRow = recursiveModel->rowCount()-1;
 
-		auto item = new QStandardItem(fileName);
-		item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
-		item->setData(fileName, Qt::DisplayRole);
-		item->setData(fileName, Qt::ToolTipRole);
-
-
-		recursiveModel->setItem(i++, item);
-		qDebug()<<"F!: "<<fileName;
-		emit callFullUpdate();
-	}
+	recursiveModel->blockSignals(false);
+	if(lastRow>firstRow)
+		emit newRowsInserted(QModelIndex(), firstRow, lastRow);
+	firstRow = recursiveModel->rowCount();
 
 	for(auto dirEntry : dirs){
 		if(stopPrefetching)
@@ -201,10 +230,7 @@ void ImgListView::prefetchThumbnails(){
 				break;
 			if(fileInfo.isDir())
 				continue;
-			qDebug()<<"File to find: "<<fileInfo.absoluteFilePath();
-			qDebug()<<"File list: "<<fileList;
 
-			qDebug()<<"Found list: "<<recursiveModel->findItems(fileInfo.absoluteFilePath());
 			auto item = recursiveModel->findItems(fileInfo.absoluteFilePath(),
 												  Qt::MatchFixedString).first();
 

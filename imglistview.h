@@ -33,7 +33,8 @@ signals:
 	void progressSetVisible(bool flag);
 	void progressSetMaximum(int value);
 	void progressSetValue(int value);
-
+	void newRowsInserted(const QModelIndex &parent, int first, int last);
+	void rowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
 
 public slots:
 	void changeDir(QString dir);
