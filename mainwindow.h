@@ -24,6 +24,7 @@ public:
 
 public slots:
 	void setFileInfo(int total, int visible);
+    void setScanDirMsg(QString msg);
 	void showAbout();
 
 private:

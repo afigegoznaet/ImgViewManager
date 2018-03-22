@@ -161,6 +161,7 @@ void ImgListView::prefetchThumbnails(){
 		if(stopPrefetching)
 			break;
 
+        emit dirScan(dirEntry);
 		QDir dir(dirEntry);
 		auto dirEntries = dir.entryInfoList(namedFilters);
 		for(auto& fileInfo : dirEntries ){
@@ -343,7 +344,7 @@ void ImgListView::applyFilter(QString inFilter){
 	qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
 	emit numFiles(
 				recursiveModel->rowCount(),
-				proxy->rowCount()-1
+                (proxy->rowCount() > 0) ? proxy->rowCount() -1 : 0
 				);
 
 

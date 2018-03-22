@@ -36,6 +36,11 @@ void MainWindow::setFileInfo(int total, int visible){
 	ui->infoBox->setText(info);
 }
 
+void MainWindow::setScanDirMsg(QString msg){
+
+    ui->infoBox->setText(msg);
+}
+
 void MainWindow::showAbout(){
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
@@ -91,6 +96,9 @@ void MainWindow::init(){
 		ui->splitter->setSizes({200,200});
 	connect(ui->imagesView, SIGNAL(numFiles(int,int)),
 			this, SLOT(setFileInfo(int,int)), Qt::QueuedConnection);
+
+    connect(ui->imagesView, SIGNAL(dirScan(QString)),
+            this, SLOT(setScanDirMsg(QString)), Qt::QueuedConnection);
 
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),
 			ui->imagesView, SLOT(changeDir(QString)));

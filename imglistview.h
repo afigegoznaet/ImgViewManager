@@ -30,6 +30,7 @@ signals:
 	void numFiles(int total, int visible);
 	void setFileAction(QStringList fileList, QString destination);
 	void callFullUpdate();
+    void dirScan(QString dir);
 
 	void progressSetVisible(bool flag);
 	void progressSetMaximum(int value);
