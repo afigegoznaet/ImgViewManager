@@ -175,7 +175,7 @@ void ImgListView::prefetchThumbnails(){
 
 		if(fileList.count()){
 			//emit rowsAboutToBeInserted(QModelIndex(), firstRow, firstRow + fileList.count()-1);
-			//recursiveModel->blockSignals(true);
+			recursiveModel->blockSignals(true);
 		}
         QList<QStandardItem*> items;
 		for(auto fileName : fileList){
@@ -195,6 +195,7 @@ void ImgListView::prefetchThumbnails(){
 
 		int lastRow = recursiveModel->rowCount()-1;
 		//recursiveModel->blockSignals(false);
+
 		if(lastRow>firstRow){
 			qDebug()<<"Rows: "<<firstRow <<" "<<lastRow;
 			//proxy->insertRows(proxy->rowCount(), lastRow - firstRow+1);
@@ -204,10 +205,10 @@ void ImgListView::prefetchThumbnails(){
 
 	}
 
-
+	proxy->setSourceModel(recursiveModel);
 	int lastRow = recursiveModel->rowCount()-1;
 
-	//recursiveModel->blockSignals(false);
+	recursiveModel->blockSignals(false);
 
 	if(lastRow>firstRow){
 		qDebug()<<"Rows: "<<firstRow <<" "<<lastRow;
@@ -338,10 +339,11 @@ void ImgListView::prepareExit(){
 
 void ImgListView::applyFilter(QString inFilter){
 
+	filterText = inFilter;
 	QString newFilter="*"+inFilter;
 	proxy->setFilterWildcard(newFilter);
 
-
+	qDebug()<<newFilter;
 	qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
 	emit numFiles(
 				recursiveModel->rowCount(),

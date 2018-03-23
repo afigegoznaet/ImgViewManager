@@ -9,10 +9,10 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QHash<QString, QImage> &cache, QObjec
 void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
 							  const QModelIndex &index) const{
 
-    QStyleOptionViewItem newOpt(option);
-    newOpt.text = option.text.split('/').last();
-    QItemDelegate::paint(painter, option, index);
-    return;
+	QStyleOptionViewItem newOpt(option);
+	newOpt.text = option.text.split('/').last();
+	QItemDelegate::paint(painter, option, index);
+	return;
 	if(index.isValid()){
 
 		//qDebug()<<"Paint";
@@ -40,24 +40,17 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 
 		if(index.isValid() && canDraw ){
-			auto pixIt = currentCache.constFind(fileName);
-			if(pixIt != currentCache.constEnd()){
-				QPixmap pm = QPixmap::fromImage( *pixIt );
+			//auto pixIt = currentCache.constFind(fileName);
+			//if(pixIt != currentCache.constEnd()){
+			if(true){
+				QPixmap pm = option.icon.pixmap(option.rect.size());
 				int hDelta(0), vDelta(0);
-				//qDebug()<<"pm size: "<<pm.size();
-				//qDebug()<<"rect size: "<<option.rect;
-				//qDebug()<<"width: "<<pm.width()<<" "<<option.rect.width();
-				//qDebug()<<"height: "<<(pm.height()<option.rect.height());
 				if(pm.width()<option.rect.width())
 					hDelta = (option.rect.width() - pm.width())/2;
 
 				if(pm.height() +	boundingRect.height() < option.rect.height())
 					vDelta = (option.rect.height() -
 							  boundingRect.height() - pm.height())/2;
-
-
-				//qDebug()<<"hDelta: "<<hDelta;
-				//qDebug()<<"vDelta: "<<vDelta;
 				if(index.isValid()){
 					if(hDelta >0 && vDelta >0)
 					painter->drawPixmap(option.rect.left() + hDelta,
