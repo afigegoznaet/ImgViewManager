@@ -8,11 +8,11 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent)
 }
 
 
-void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
-							  const QModelIndex &index) const{
 
-	QStyleOptionViewItem newOpt(option);
-	newOpt.text = option.text.split('/').last();
-    QItemDelegate::paint(painter, newOpt, index);
+void ImgThumbnailDelegate::drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
+                 const QRect &rect, const QString &text) const{
+    QString shortText = text.split('/').last();
+    shortText.truncate(shortText.indexOf('.'));
+    //shortText.indexOf('.');
+    QItemDelegate::drawDisplay(painter, option, rect, shortText);
 }
-

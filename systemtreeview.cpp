@@ -22,23 +22,29 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	connect(fsModel, SIGNAL(splashText(QString,int,QColor)),
 			this, SIGNAL(splashText(QString,int,QColor)));
 
-	fsModel->setSourceModel(model);
-	setModel(fsModel);
-	setRootIndex(fsModel->fileIndex(parentWindow->getRoot()));
 
-	//setModel(model);
-	//setRootIndex(model->index(parentWindow->getRoot()));
-
-	runner = fsModel->scanTreeAsync(parentWindow->getRoot());
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
 
-	connect(selectionModel(), &QItemSelectionModel::currentChanged,
-			[&](QModelIndex current, QModelIndex){
-				emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
-			});
 
-	runner.waitForFinished();
+
+    fsModel->setSourceModel(model);
+    setModel(fsModel);
+    setRootIndex(fsModel->fileIndex(parentWindow->getRoot()));
+
+    //setModel(model);
+    //setRootIndex(model->index(parentWindow->getRoot()));
+
+    runner = fsModel->scanTreeAsync(parentWindow->getRoot());
+    runner.waitForFinished();
+
+    for (int i = 1; i < model->columnCount(); ++i)
+        hideColumn(i);
+
+    connect(selectionModel(), &QItemSelectionModel::currentChanged,
+            [&](QModelIndex current, QModelIndex){
+                emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
+            });
 	/*
 	QSettings settings;
 	auto startDir = settings.value("StartDir",QDir::rootPath()).toString();

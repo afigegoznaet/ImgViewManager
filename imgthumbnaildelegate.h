@@ -24,9 +24,8 @@ public:
 	}
 
 protected:
-	void paint(QPainter *painter, const QStyleOptionViewItem &option,
-					const QModelIndex &index) const override;
-
+    void drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
+                     const QRect &rect, const QString &text) const override;
 signals:
 
 

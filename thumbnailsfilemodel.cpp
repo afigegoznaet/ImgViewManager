@@ -152,24 +152,24 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath){
 QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 	return QtConcurrent::run([&, startDir](){
 		QFileSystemModel *fsModel = qobject_cast<QFileSystemModel*>(sourceModel());
-		QPersistentModelIndex source_index = fsModel->index(startDir);
+        QModelIndex source_index = fsModel->index(startDir);
 		bool res = false;
 
         for(int i=0;i<fsModel->rowCount(source_index);i++){
-            locker.lock();
+            //locker.lock();
             res |= filterAcceptsRow(i,	source_index);
-            locker.unlock();
+            //locker.unlock();
         }
 
 
 		QDir dir(startDir);
 		while(dir.cdUp()){
-			QPersistentModelIndex source_index = fsModel->index(dir.absolutePath());
+            QModelIndex source_index = fsModel->index(dir.absolutePath());
 
             for(int i=0;i<fsModel->rowCount(source_index);i++){
-                locker.lock();
+                //locker.lock();
 				filterAcceptsRow(i,	source_index);
-                locker.unlock();
+                //locker.unlock();
             }
 
 		}

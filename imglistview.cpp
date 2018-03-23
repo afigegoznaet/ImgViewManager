@@ -183,11 +183,12 @@ void ImgListView::prefetchThumbnails(){
 			if(stopPrefetching)
 				return;
 
-			auto item = new QStandardItem(fileName);
+            auto item = new QStandardItem();
 			item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
 			item->setData(fileName, Qt::DisplayRole);
 			item->setData(fileName, Qt::ToolTipRole);
 
+            //item->setText(fileName.split('/').last());
 			items << item;
 			recursiveModel->appendRow(item);
 			//qDebug()<<"F!: "<<fileName;
@@ -198,10 +199,12 @@ void ImgListView::prefetchThumbnails(){
 
 	if(stopPrefetching)
 		return;
+
+    recursiveModel->blockSignals(false);
 	proxy->setSourceModel(recursiveModel);
 
 
-	recursiveModel->blockSignals(false);
+
 
 
 	emit filterSignal(filterText);
@@ -291,6 +294,7 @@ void ImgListView::prefetchThumbnails(){
 				//thumbnailPainter->resumeDrawing();
 			}else
 				item->setIcon(tcEntry->scaled(this->iconSize()));
+            item->setText(fileInfo.absoluteFilePath());
 
 			if(stopPrefetching)
 				break;
