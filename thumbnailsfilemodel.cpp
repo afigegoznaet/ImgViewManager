@@ -126,7 +126,8 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 			return false;
 		if(path.startsWith("C:/Symbols"))
 			return false;
-
+        if(path.contains("Application Data"))
+            return false;
 
 		return hasPics(asd->index(path,0));
 
