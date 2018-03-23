@@ -47,6 +47,7 @@ QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
 				->index(path, 0);
 	if(!idx.isValid())
 		return QModelIndex();
+    qDebug()<<"Idx is valid";
 	return mapFromSource(idx);
 }
 
@@ -80,7 +81,7 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 
 		if(!(dir.dirName().compare(".") && dir.dirName().compare("..") && dir.dirName().length()))
 			return true;
-		auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
+        auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 		//qDebug()<<dirEntries.count();
 
 		for(auto& entry : dirEntries){
@@ -154,15 +155,22 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 		QPersistentModelIndex source_index = fsModel->index(startDir);
 		bool res = false;
 
-		for(int i=0;i<fsModel->rowCount(source_index);i++)
-			res |= filterAcceptsRow(i,	source_index);
+        for(int i=0;i<fsModel->rowCount(source_index);i++){
+            locker.lock();
+            res |= filterAcceptsRow(i,	source_index);
+            locker.unlock();
+        }
+
 
 		QDir dir(startDir);
 		while(dir.cdUp()){
 			QPersistentModelIndex source_index = fsModel->index(dir.absolutePath());
 
-			for(int i=0;i<fsModel->rowCount(source_index);i++)
+            for(int i=0;i<fsModel->rowCount(source_index);i++){
+                locker.lock();
 				filterAcceptsRow(i,	source_index);
+                locker.unlock();
+            }
 
 		}
 		return res;
@@ -173,5 +181,5 @@ bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
 
 	QDir dir = fileInfo(parent).absoluteFilePath();
 
-	return dir.entryList(QDir::NoDotAndDotDot | QDir::Dirs).count();
+    return dir.entryList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::NoSymLinks).count();
 }

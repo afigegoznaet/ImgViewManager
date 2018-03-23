@@ -35,6 +35,7 @@ private:
 	QStringList filter;
 	mutable QMap<QString,QAtomicInt> treeMap;
 	mutable SystemTreeView* parentView;
+    QMutex locker;
 };
 
 #endif // THUMBNAILSFILEMODEL_H

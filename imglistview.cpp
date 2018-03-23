@@ -351,6 +351,7 @@ void ImgListView::applyFilter(QString inFilter){
 	filterText = inFilter;
 	QString newFilter="*"+inFilter;
 	proxy->setFilterWildcard(newFilter);
+    proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 	//qDebug()<<newFilter;
 	//qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
