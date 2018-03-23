@@ -23,6 +23,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	proxy = new QSortFilterProxyModel(this);
 	recursiveModel->setColumnCount(1);
+    recursiveModel->blockSignals(true);
 	proxy->setSourceModel(recursiveModel);
 	qDebug()<<"Columns: "<<proxy->columnCount();
 	setModel(proxy);
@@ -139,7 +140,7 @@ void ImgListView::changeDir(QString dir){
 	proxy->clear();
 	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
-	//recursiveModel->blockSignals(true);
+    //
 
 }
 
@@ -293,7 +294,9 @@ void ImgListView::prefetchThumbnails(){
 
 			if(stopPrefetching)
 				break;
-			emit callUpdate(proxy->mapFromSource( recursiveModel->indexFromItem(item)));
+            auto idx = recursiveModel->indexFromItem(item);
+            if(idx.isValid())
+                emit callUpdate(proxy->mapFromSource( idx));
 
 		}
 		if(countAtStart != thumbnailsCache.count()){
