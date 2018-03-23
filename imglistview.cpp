@@ -32,7 +32,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(newRowsInserted(QModelIndex,int,int)),
 			recursiveModel,SIGNAL(rowsInserted(QModelIndex,int,int)), Qt::DirectConnection);
 */
-	thumbnailPainter = new ImgThumbnailDelegate(thumbnailsCache, this);
+	thumbnailPainter = new ImgThumbnailDelegate( this);
 	//thumbnailPainter->setModel(fsModel);
 	thumbnailPainter->setModel(proxy);
 	setItemDelegate(thumbnailPainter);
@@ -167,7 +167,7 @@ void ImgListView::prefetchThumbnails(){
 		auto dirEntries = dir.entryInfoList(namedFilters);
 		for(auto& fileInfo : dirEntries ){
 			if(stopPrefetching)
-				break;
+				return;
 			if(fileInfo.isDir())
 				continue;
 			fileList<<fileInfo.absoluteFilePath();
@@ -180,7 +180,7 @@ void ImgListView::prefetchThumbnails(){
 		QList<QStandardItem*> items;
 		for(auto fileName : fileList){
 			if(stopPrefetching)
-				break;
+				return;
 
 			auto item = new QStandardItem(fileName);
 			item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
@@ -193,10 +193,10 @@ void ImgListView::prefetchThumbnails(){
 			//emit callFullUpdate();
 		}
 
-
-
 	}
 
+	if(stopPrefetching)
+		return;
 	proxy->setSourceModel(recursiveModel);
 
 
@@ -277,32 +277,24 @@ void ImgListView::prefetchThumbnails(){
 					if(img.height() < iconSize.height())
 						vDelta = (iconSize.height() - img.height())/2;
 
-					qDebug()<<newImg.size();
 					painter.drawPixmap(hDelta, vDelta, img.width(), img.height(), QPixmap::fromImage(img));
-					qDebug()<<newImg.size();
 					painter.save();
-					qDebug()<<newImg.size();
 					painter.restore();
-					qDebug()<<newImg.size();
 				}
 
-
-
-
-
-				//thumbnailPainter->stopDrawing();
-				item->setIcon(QPixmap::fromImage(newImg));
-				thumbnailsCache.insert(currentFileName, newImg);
+				if(stopPrefetching)
+					break;
+				QPixmap newPixmap(QPixmap::fromImage(newImg));
+				item->setIcon(newPixmap.scaled(this->iconSize()));
+				thumbnailsCache.insert(currentFileName, newPixmap);
 				//thumbnailPainter->resumeDrawing();
 			}else
-				item->setIcon(QPixmap::fromImage(*tcEntry));
+				item->setIcon(tcEntry->scaled(this->iconSize()));
 
+			if(stopPrefetching)
+				break;
+			emit callUpdate(proxy->mapFromSource( recursiveModel->indexFromItem(item)));
 
-			//qDebug()<<"Item data: "<<item->data(Qt::DisplayRole);
-			//qDebug()<<"Item icon: "<<item->data(Qt::DecorationRole);
-			//QPersistentModelIndex idx = fsModel->index(fileInfo.absoluteFilePath());
-			if(!stopPrefetching)
-				emit callUpdate(proxy->mapFromSource( recursiveModel->indexFromItem(item)));
 		}
 		if(countAtStart != thumbnailsCache.count()){
 			//qDebug()<<"Saving cache to file";
@@ -357,8 +349,8 @@ void ImgListView::applyFilter(QString inFilter){
 	QString newFilter="*"+inFilter;
 	proxy->setFilterWildcard(newFilter);
 
-	qDebug()<<newFilter;
-	qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
+	//qDebug()<<newFilter;
+	//qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
 	emit numFiles(
 				recursiveModel->rowCount(),
 				proxy->rowCount()
