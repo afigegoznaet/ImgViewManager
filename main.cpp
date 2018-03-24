@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
 #endif
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
-    QThread::sleep(2000);
+    //QThread::sleep(2);
 //#if !defined(QT_DEBUG) || !defined(_WIN32)
 	//qApp->processEvents();
 
