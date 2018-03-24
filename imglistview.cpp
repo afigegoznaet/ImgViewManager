@@ -81,7 +81,15 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	dirLoadBar->move(600,600);
 	dirLoadBar->setVisible(false);
 
-	connect(this, &ImgListView::progressSetVisible, dirLoadBar, &QProgressBar::setVisible, Qt::QueuedConnection);
+    connect(this, &ImgListView::progressSetVisible, [&](bool visible){
+        if(!visible)
+            return dirLoadBar->setVisible(visible);
+
+        auto region = geometry();
+        dirLoadBar->move((QPoint(region.left()+(region.width() - dirLoadBar->width())/2,
+                         region.top()+(region.height() - dirLoadBar->height())/2)));
+        dirLoadBar->setVisible(visible);
+    });
 
 	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
@@ -115,9 +123,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 void ImgListView::changeDir(QString dir){
 
 	currentDir = dir;
-	auto region = geometry();
-	dirLoadBar->move((QPoint(region.left()+(region.width() - dirLoadBar->width())/2,
-					 region.top()+(region.height() - dirLoadBar->height())/2)));
+
 
 	stopPrefetching = true;
 
@@ -221,7 +227,7 @@ void ImgListView::prefetchThumbnails(){
 
 		auto dirEntries = dir.entryInfoList(namedFilters);
 
-		emit progressSetVisible(true);
+
 		emit progressSetMaximum(dirEntries.count());
 		int counter = 0 ;
 
@@ -240,6 +246,7 @@ void ImgListView::prefetchThumbnails(){
 			auto currentFileName = fileInfo.absoluteFilePath();
 			auto tcEntry = thumbnailsCache.constFind(currentFileName);
 			if(tcEntry == thumbnailsCache.constEnd()) {
+                emit progressSetVisible(true);
 				QSize iconSize(135,135);
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
@@ -298,6 +305,7 @@ void ImgListView::prefetchThumbnails(){
                 emit callUpdate(proxy->mapFromSource( idx));
 
 		}
+        emit progressSetVisible(false);
 		if(countAtStart != thumbnailsCache.count()){
 			//qDebug()<<"Saving cache to file";
 			if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
@@ -316,7 +324,7 @@ void ImgListView::prefetchThumbnails(){
 
 
 
-	emit progressSetVisible(false);
+
 	if(!stopPrefetching)
 		emit callFullUpdate();
 }
