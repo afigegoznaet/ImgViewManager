@@ -38,8 +38,7 @@ SOURCES += \
 	imgthumbnaildelegate.cpp \
 	thumbnailsfilemodel.cpp \
 	FileMoverDelegate.cpp \
-	FileProgressDialog.cpp \
-    customfiltermodel.cpp
+        FileProgressDialog.cpp
 
 HEADERS += \
 		mainwindow.h \
@@ -48,8 +47,7 @@ HEADERS += \
 	imgthumbnaildelegate.h \
 	thumbnailsfilemodel.h \
 	FileMoverDelegate.hpp \
-	FileProgressDialog.hpp \
-    customfiltermodel.h
+        FileProgressDialog.hpp
 
 FORMS += \
 		mainwindow.ui \
