@@ -174,10 +174,6 @@ void ImgListView::prefetchThumbnails(){
 			fileList<<fileInfo.absoluteFilePath();
 		}
 
-		if(fileList.count()){
-			//emit rowsAboutToBeInserted(QModelIndex(), firstRow, firstRow + fileList.count()-1);
-			recursiveModel->blockSignals(true);
-		}
 		QList<QStandardItem*> items;
 		for(auto fileName : fileList){
 			if(stopPrefetching)
@@ -200,7 +196,6 @@ void ImgListView::prefetchThumbnails(){
 	if(stopPrefetching)
 		return;
 
-    recursiveModel->blockSignals(false);
 	proxy->setSourceModel(recursiveModel);
 
 
