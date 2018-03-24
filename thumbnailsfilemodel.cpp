@@ -85,14 +85,8 @@ bool ThumbnailsFileModel::hasPics(const QModelIndex& idx)const{
 		//qDebug()<<dirEntries.count();
 
 		for(auto& entry : dirEntries){
-			//locker.lock();
 			auto idx = source->index(entry.absoluteFilePath());
-			//locker.unlock();
-			//qDebug()<<entry.absoluteFilePath();
-			//qDebug()<<"Idx is valid: "<<idx.isValid();
-
 			if(hasPics( idx )){
-				//qDebug()<<entry.absolutePath();
 				treeMap[dir.absolutePath()] = true;
 				return true;
 			}
@@ -113,7 +107,9 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		QFileSystemModel *asd = qobject_cast<QFileSystemModel*>(sourceModel());
 		auto newIndex = asd->index(source_row, 0, source_index);
 
-		//qDebug()<<newIndex;
+        //qDebug()<<newIndex;
+        if(fileInfo(newIndex, true).isSymLink())
+            return false;
 		QDir dir(fileInfo(newIndex, true).absoluteFilePath());
 
 
@@ -125,8 +121,6 @@ bool ThumbnailsFileModel::filterAcceptsRow(int source_row,
 		if(path.startsWith("/proc"))
 			return false;
 		if(path.startsWith("C:/Symbols"))
-			return false;
-        if(path.contains("Application Data"))
             return false;
 
 		return hasPics(asd->index(path,0));
@@ -156,31 +150,20 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
         QModelIndex source_index = fsModel->index(startDir);
 		bool res = false;
 
-        for(int i=0;i<fsModel->rowCount(source_index);i++){
-            //locker.lock();
+        for(int i=0;i<fsModel->rowCount(source_index);i++)
             res |= filterAcceptsRow(i,	source_index);
-            //locker.unlock();
-        }
-
 
 		QDir dir(startDir);
 		while(dir.cdUp()){
             QModelIndex source_index = fsModel->index(dir.absolutePath());
-
-            for(int i=0;i<fsModel->rowCount(source_index);i++){
-                //locker.lock();
+            for(int i=0;i<fsModel->rowCount(source_index);i++)
 				filterAcceptsRow(i,	source_index);
-                //locker.unlock();
-            }
-
 		}
 		return res;
 	});
 }
 
 bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
-
 	QDir dir = fileInfo(parent).absoluteFilePath();
-
     return dir.entryList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::NoSymLinks).count();
 }

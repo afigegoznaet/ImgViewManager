@@ -45,14 +45,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
             [&](QModelIndex current, QModelIndex){
                 emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
             });
-	/*
-	QSettings settings;
-	auto startDir = settings.value("StartDir",QDir::rootPath()).toString();
-	if(startDir.length()<1)
-		startDir = QDir::rootPath();
-	//init(startDir);
-	runner.waitForFinished();
-*/
+
 }
 
 void SystemTreeView::init(QString& startDir){
