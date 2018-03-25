@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
 #else
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int , const QColor &){
 		locker.lock();
-		qDebug()<<message;
+		//qDebug()<<message;
 		locker.unlock();
 	});
 #endif
@@ -46,8 +46,6 @@ int main(int argc, char *argv[]){
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});
 	timer->start(2000);
-
-
 
 
 	return a.exec();

@@ -6,7 +6,9 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
 
 	qRegisterMetaType<QVector<int> >("QVector<int>");
-    qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
+	qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
+	qRegisterMetaType<QAbstractItemModel::LayoutChangeHint >("QAbstractItemModel::LayoutChangeHint");
+
 
 }
 
@@ -32,15 +34,21 @@ void MainWindow::saveSettings(){
 }
 
 void MainWindow::setFileInfo(int total, int visible){
-	info = QString::number(visible);
-	info += " files visible of ";
-	info += QString::number(total);
+	if(visible < total){
+		info = QString::number(visible);
+		info += " files of ";
+		info += QString::number(total);
+		info += " visible";
+	}else{
+		info = QString::number(total) + " visible files";
+	}
+
 	ui->infoBox->setText(info);
 }
 
 void MainWindow::setScanDirMsg(QString msg){
 
-    ui->infoBox->setText(msg);
+	ui->infoBox->setText(msg);
 }
 
 void MainWindow::showAbout(){
@@ -99,8 +107,8 @@ void MainWindow::init(){
 	connect(ui->imagesView, SIGNAL(numFiles(int,int)),
 			this, SLOT(setFileInfo(int,int)), Qt::QueuedConnection);
 
-    connect(ui->imagesView, SIGNAL(dirScan(QString)),
-            this, SLOT(setScanDirMsg(QString)), Qt::QueuedConnection);
+	connect(ui->imagesView, SIGNAL(genericMessage(QString)),
+			this, SLOT(setScanDirMsg(QString)), Qt::QueuedConnection);
 
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),
 			ui->imagesView, SLOT(changeDir(QString)));
@@ -125,6 +133,8 @@ void MainWindow::init(){
 
 	ui->actionExit->setShortcut(QKeySequence::Quit);
 	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
+
+
 }
 
 void MainWindow::initTree(){

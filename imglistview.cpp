@@ -20,21 +20,15 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	namedFilters << "*.jpg";
 
 
-	//qDebug()<<"Columns: "<<recursiveModel->columnCount();
-
 	proxy0 = new QSortFilterProxyModel(this);
 	proxy1 = new QSortFilterProxyModel(this);
-	recursiveModel0->setColumnCount(1);
-	recursiveModel1->setColumnCount(1);
 
 	proxy0->setSourceModel(recursiveModel0);
 	proxy1->setSourceModel(recursiveModel1);
-	//qDebug()<<"Columns: "<<proxy->columnCount();
-	//setModel(proxy);
+
 
 	thumbnailPainter = new ImgThumbnailDelegate( this);
-	//thumbnailPainter->setModel(fsModel);
-	//thumbnailPainter->setModel(proxy);
+
 	setItemDelegate(thumbnailPainter);
 
 	//setModel(fsModel);
@@ -54,6 +48,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	qDebug()<<"Icon size: "<<iconSize();
 	qDebug()<<"Grid size: "<<gridSize();
 	setLayoutMode (QListView::Batched);
+
+
+
 	setUniformItemSizes(true);
 	connect(this, SIGNAL(callUpdate(const QModelIndex &)),
 			this, SLOT(update(const QModelIndex &)), Qt::QueuedConnection);
@@ -97,6 +94,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	openAction = m_menu.addAction("&Open image",[&](){
 		QDesktopServices::openUrl(QUrl::fromLocalFile( model()->data(indexAt(mapFromGlobal(QCursor::pos()))).toString()  ));
 	}, Qt::Key_O);
+
+	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(checkSelections(QItemSelection,QItemSelection)));
 	openAction->setIconVisibleInMenu(false);
 	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
 	m_menu.addSeparator();
@@ -116,6 +115,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	addAction(openAction);
 
 	thumbnailPainter->setGridSize(gridSize());
+
 
 //	recursiveModel->setHeaderData()
 }
@@ -142,6 +142,7 @@ void ImgListView::changeDir(QString dir){
 
 void ImgListView::prefetchThumbnails(){
 
+
 	if(recursiveModel0->rowCount()){
 		newProxy = proxy1;
 		newModel = recursiveModel1;
@@ -154,10 +155,11 @@ void ImgListView::prefetchThumbnails(){
 		oldModel = recursiveModel1;
 	}
 
+
 	newProxy->clear();
 	newModel->clear();
 
-	emit dirScan(currentDir);
+	emit genericMessage(currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
@@ -174,7 +176,7 @@ void ImgListView::prefetchThumbnails(){
 		if(stopPrefetching)
 			break;
 
-		emit dirScan(dirEntry);
+		emit genericMessage(dirEntry);
 		QDir dir(dirEntry);
 		auto dirEntries = dir.entryInfoList(namedFilters);
 		for(auto& fileInfo : dirEntries ){
@@ -200,6 +202,7 @@ void ImgListView::prefetchThumbnails(){
 			newModel->appendRow(item);
 			//qDebug()<<"F!: "<<fileName;
 			//emit callFullUpdate();
+
 		}
 
 	}
@@ -208,12 +211,17 @@ void ImgListView::prefetchThumbnails(){
 		return;
 
 	//proxy->setSourceModel(recursiveModel);
+
+	newProxy->setSourceModel(newModel);
+
 	setModel(newProxy);
 	thumbnailPainter->setModel(newProxy);
 	selectionModel()->setModel(newProxy);
+	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
 
 
-
+	setLayoutMode (QListView::Batched);
 
 	emit filterSignal(filterText);
 
@@ -371,12 +379,13 @@ void ImgListView::applyFilter(QString inFilter){
 	newProxy->setFilterWildcard(newFilter);
 	newProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
-	//qDebug()<<newFilter;
-	//qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
-	emit numFiles(
-				newModel->rowCount(),
-				newProxy->rowCount()
-				);
+	int totalCount = newModel->rowCount();
+	int visCount = newProxy->rowCount();
+
+	if(visCount > totalCount)
+		visCount = totalCount;
+
+	emit numFiles( totalCount, visCount );
 
 }
 
@@ -510,4 +519,13 @@ QString ImgListView::getTotalSize(QStringList& files){
 		text = QString::number(totalSize)+" b";
 	}
 	return text;
+}
+
+void ImgListView::checkSelections(QItemSelection, QItemSelection){
+
+	int selectedCount = selectionModel()->selectedIndexes().count();
+	if(selectedCount <1 )
+		return applyFilter(filterText);
+	QString info = QString::number(selectedCount) + " selected of "+QString::number(newModel->rowCount());
+	emit genericMessage(info);
 }

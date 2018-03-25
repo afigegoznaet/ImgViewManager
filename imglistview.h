@@ -30,7 +30,7 @@ signals:
 	void numFiles(int total, int visible);
 	void setFileAction(QStringList fileList, QString destination);
 	void callFullUpdate();
-	void dirScan(QString dir);
+	void genericMessage(QString dir);
 
 	void progressSetVisible(bool flag);
 	void progressSetMaximum(int value);
@@ -44,6 +44,7 @@ public slots:
 	void onDoubleClicked();
 	void applyFilter(QString inFilter);
 	void exportImages();
+	void checkSelections(QItemSelection, QItemSelection);
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
