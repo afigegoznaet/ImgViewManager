@@ -1,6 +1,8 @@
 #include "imglistview.h"
 #include "mainwindow.h"
 
+#define NO_FLICKERING
+
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	//fsModel = new QFileSystemModel(this);
 	recursiveModel = new QStandardItemModel(this);
@@ -23,7 +25,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	proxy = new QSortFilterProxyModel(this);
 	recursiveModel->setColumnCount(1);
+#ifdef NO_FLICKERING
     recursiveModel->blockSignals(true);
+#endif
 	proxy->setSourceModel(recursiveModel);
 	qDebug()<<"Columns: "<<proxy->columnCount();
 	setModel(proxy);
@@ -127,16 +131,6 @@ void ImgListView::changeDir(QString dir){
 
 	stopPrefetching = true;
 
-	QDir parent(dir);
-	parent.cdUp();
-	//qDebug()<<dir<<"_"<<parent.absolutePath();
-	//setRootIndex(fsModel->index(parent.absolutePath()));
-
-	//fsModel->setRootPath(dir);
-	//applyFilter(filterText);
-
-	//setRootIndex(fsModel->index(dir));
-	//applyFilter(filterText);
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 	//applyFilter(filterText);
@@ -202,8 +196,9 @@ void ImgListView::prefetchThumbnails(){
 	if(stopPrefetching)
 		return;
 
-	proxy->setSourceModel(recursiveModel);
-
+#ifdef NO_FLICKERING
+    proxy->setSourceModel(recursiveModel);
+#endif
 
 
 
