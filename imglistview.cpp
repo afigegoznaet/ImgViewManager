@@ -168,7 +168,9 @@ void ImgListView::prefetchThumbnails(){
 	oldProxy = proxy1;
 	oldModel = recursiveModel1;
 
+	oldModel->blockSignals(true);
 	newModel->blockSignals(true);
+	newProxy->setSourceModel(oldModel);
 
 #endif
 
@@ -178,7 +180,6 @@ void ImgListView::prefetchThumbnails(){
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
-
 
 	for(auto dirEntry : dirs){
 		QStringList fileList;
@@ -209,8 +210,6 @@ void ImgListView::prefetchThumbnails(){
 			//item->setText(fileName.split('/').last());
 			items << item;
 			newModel->appendRow(item);
-			//qDebug()<<"F!: "<<fileName;
-			//emit callFullUpdate();
 
 		}
 
