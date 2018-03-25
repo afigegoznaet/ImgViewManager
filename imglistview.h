@@ -38,6 +38,7 @@ signals:
 	void newRowsInserted(const QModelIndex &parent, int first, int last);
 	void rowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
 	void filterSignal(QString inFilter);
+	void resetViewSignal();
 
 public slots:
 	void changeDir(QString dir);
@@ -45,6 +46,7 @@ public slots:
 	void applyFilter(QString inFilter);
 	void exportImages();
 	void checkSelections(QItemSelection, QItemSelection);
+	void resetViewSlot();
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();

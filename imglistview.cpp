@@ -27,9 +27,17 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	proxy1->setSourceModel(recursiveModel1);
 
 
+
+
 	thumbnailPainter = new ImgThumbnailDelegate( this);
 
 	setItemDelegate(thumbnailPainter);
+
+#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR == 7
+	setModel(proxy0);
+	thumbnailPainter->setModel(proxy0);
+
+#endif
 
 	//setModel(fsModel);
 	setViewMode(IconMode);
@@ -95,7 +103,6 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 		QDesktopServices::openUrl(QUrl::fromLocalFile( model()->data(indexAt(mapFromGlobal(QCursor::pos()))).toString()  ));
 	}, Qt::Key_O);
 
-	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)), this, SLOT(checkSelections(QItemSelection,QItemSelection)));
 	openAction->setIconVisibleInMenu(false);
 	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
 	m_menu.addSeparator();
@@ -116,6 +123,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	thumbnailPainter->setGridSize(gridSize());
 
+	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()), Qt::BlockingQueuedConnection);
 
 //	recursiveModel->setHeaderData()
 }
@@ -131,10 +139,7 @@ void ImgListView::changeDir(QString dir){
 	stopPrefetching = false;
 	//applyFilter(filterText);
 	thumbnailPainter->stopDrawing();
-	thumbnailsCache.clear();
-	//recursiveModel->clear();
-	//proxy->clear();
-	thumbnailPainter->resumeDrawing();
+
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	//
 
@@ -142,6 +147,7 @@ void ImgListView::changeDir(QString dir){
 
 void ImgListView::prefetchThumbnails(){
 
+#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR > 7
 
 	if(recursiveModel0->rowCount()){
 		newProxy = proxy1;
@@ -155,20 +161,23 @@ void ImgListView::prefetchThumbnails(){
 		oldModel = recursiveModel1;
 	}
 
+#else
 
-	newProxy->clear();
+	newProxy = proxy0;
+	newModel = recursiveModel0;
+	oldProxy = proxy1;
+	oldModel = recursiveModel1;
+
+	newModel->blockSignals(true);
+
+#endif
+
 	newModel->clear();
-
+	newProxy->clear();
 	emit genericMessage(currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
-
-	QStandardItem *prototype = new QStandardItem();
-	prototype->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
-	prototype->setData("prototype", Qt::DisplayRole);
-	prototype->setData("prototype", Qt::ToolTipRole);
-
 
 
 	for(auto dirEntry : dirs){
@@ -211,17 +220,11 @@ void ImgListView::prefetchThumbnails(){
 		return;
 
 	//proxy->setSourceModel(recursiveModel);
+	emit resetViewSignal();
 
-	newProxy->setSourceModel(newModel);
 
-	setModel(newProxy);
-	thumbnailPainter->setModel(newProxy);
-	selectionModel()->setModel(newProxy);
 	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
 			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
-
-
-	setLayoutMode (QListView::Batched);
 
 	emit filterSignal(filterText);
 
@@ -510,13 +513,13 @@ QString ImgListView::getTotalSize(QStringList& files){
 	kb = totalSize / 1000.0;
 	QString text;
 	if(gb>.5){
-		text = QString::number(gb)+" Gb";
+		text = QString::number(gb)+" GB";
 	}else if(mb>.5){
-		text = QString::number(mb)+" Mb";
+		text = QString::number(mb)+" MB";
 	}else if(kb>.5){
-		text = QString::number(kb)+" Kb";
+		text = QString::number(kb)+" KB";
 	}else{
-		text = QString::number(totalSize)+" b";
+		text = QString::number(totalSize)+" B";
 	}
 	return text;
 }
@@ -528,4 +531,19 @@ void ImgListView::checkSelections(QItemSelection, QItemSelection){
 		return applyFilter(filterText);
 	QString info = QString::number(selectedCount) + " selected of "+QString::number(newModel->rowCount());
 	emit genericMessage(info);
+}
+
+void ImgListView::resetViewSlot(){
+	thumbnailsCache.clear();
+	//recursiveModel->clear();
+	//proxy->clear();
+
+
+	newProxy->setSourceModel(newModel);
+	thumbnailPainter->resumeDrawing();
+#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR > 7
+	setModel(newProxy);
+	thumbnailPainter->setModel(newProxy);
+	selectionModel()->setModel(newProxy);
+#endif
 }

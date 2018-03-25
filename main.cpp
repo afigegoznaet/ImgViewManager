@@ -47,6 +47,6 @@ int main(int argc, char *argv[]){
 	QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});
 	timer->start(2000);
 
-
+	qDebug() << "Qt version: " << QT_VERSION_STR;
 	return a.exec();
 }
