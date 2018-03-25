@@ -6,6 +6,8 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
 
 	qRegisterMetaType<QVector<int> >("QVector<int>");
+    qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
+
 }
 
 MainWindow::~MainWindow(){
