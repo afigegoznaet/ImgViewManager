@@ -453,6 +453,10 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 			if(selectionsCount > 1 ){
 				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
 				fi_fileFormat->setText("Selected files size: \t"+getTotalSize(selectedFiels));
+				m_menu.removeAction(fi_bitDepth);
+				m_menu.removeAction(fi_grayScale);
+				m_menu.removeAction(fi_size);
+				m_menu.removeAction(fi_alpha);
 				fi_bitDepth->setText("");
 				fi_grayScale->setText("");
 				fi_size->setText("");
@@ -466,6 +470,10 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 
 				QImage img = reader.read();
 
+				m_menu.addAction(fi_bitDepth);
+				m_menu.addAction(fi_grayScale);
+				m_menu.addAction(fi_size);
+				m_menu.addAction(fi_alpha);
 
 				QStringList tempList(fileName);
 				fi_selectedFiles->setText("File size: \t" + getTotalSize(tempList));
