@@ -42,9 +42,10 @@ int main(int argc, char *argv[]){
 #endif
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
-    QTimer *timer = new QTimer();
-    QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});
-    timer->start(2000);
+	w.show();
+	QTimer *timer = new QTimer();
+	QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});
+	timer->start(2000);
 
 
 

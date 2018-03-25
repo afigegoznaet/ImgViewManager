@@ -5,7 +5,8 @@
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	//fsModel = new QFileSystemModel(this);
-	recursiveModel = new QStandardItemModel(this);
+	recursiveModel0 = new QStandardItemModel(this);
+	recursiveModel1 = new QStandardItemModel(this);
 
 	auto parentWindow = qobject_cast<MainWindow*>(parent);
 	auto parentObject = parent->parent();
@@ -21,25 +22,23 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	namedFilters << "*.jpg";
 
 
-	qDebug()<<"Columns: "<<recursiveModel->columnCount();
+	//qDebug()<<"Columns: "<<recursiveModel->columnCount();
 
-	proxy = new QSortFilterProxyModel(this);
-	recursiveModel->setColumnCount(1);
+	proxy0 = new QSortFilterProxyModel(this);
+	proxy1 = new QSortFilterProxyModel(this);
+	recursiveModel0->setColumnCount(1);
+	recursiveModel1->setColumnCount(1);
 #ifdef NO_FLICKERING
-    recursiveModel->blockSignals(true);
+	//recursiveModel->blockSignals(true);
 #endif
-	proxy->setSourceModel(recursiveModel);
-	qDebug()<<"Columns: "<<proxy->columnCount();
-	setModel(proxy);
-/*
-	connect(this, SIGNAL(rowsAboutToBeInserted(QModelIndex,int,int)),
-			recursiveModel, SIGNAL(rowsAboutToBeInserted(QModelIndex,int,int)), Qt::DirectConnection);
-	connect(this, SIGNAL(newRowsInserted(QModelIndex,int,int)),
-			recursiveModel,SIGNAL(rowsInserted(QModelIndex,int,int)), Qt::DirectConnection);
-*/
+	proxy0->setSourceModel(recursiveModel0);
+	proxy1->setSourceModel(recursiveModel1);
+	//qDebug()<<"Columns: "<<proxy->columnCount();
+	//setModel(proxy);
+
 	thumbnailPainter = new ImgThumbnailDelegate( this);
 	//thumbnailPainter->setModel(fsModel);
-	thumbnailPainter->setModel(proxy);
+	//thumbnailPainter->setModel(proxy);
 	setItemDelegate(thumbnailPainter);
 
 	//setModel(fsModel);
@@ -66,7 +65,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 			this,SLOT(onDoubleClicked()));
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	//selectionModel()->setModel(fsModel);
-	selectionModel()->setModel(proxy);
+	//selectionModel()->setModel(proxy);
 	setMovement(Movement::Static);
 
 	copyDialog = new ProgressDialog(this);
@@ -85,21 +84,22 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	dirLoadBar->move(600,600);
 	dirLoadBar->setVisible(false);
 
-    connect(this, &ImgListView::progressSetVisible, [&](bool visible){
-        if(!visible)
-            return dirLoadBar->setVisible(visible);
+#if !defined(QT_DEBUG) || !defined(_WIN32)
+	connect(this, &ImgListView::progressSetVisible, [&](bool visible){
+		if(!visible)
+			return dirLoadBar->setVisible(visible);
 
-        auto region = geometry();
-        dirLoadBar->move((QPoint(region.left()+(region.width() - dirLoadBar->width())/2,
-                         region.top()+(region.height() - dirLoadBar->height())/2)));
-        dirLoadBar->setVisible(visible);
-    });
-
+		auto region = geometry();
+		dirLoadBar->move((QPoint(region.left()+(region.width() - dirLoadBar->width())/2,
+						 region.top()+(region.height() - dirLoadBar->height())/2)));
+		dirLoadBar->setVisible(visible);
+	});
+#endif
 	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
 
 	openAction = m_menu.addAction("&Open image",[&](){
-		QDesktopServices::openUrl(QUrl::fromLocalFile( proxy->data(indexAt(mapFromGlobal(QCursor::pos()))).toString()  ));
+		QDesktopServices::openUrl(QUrl::fromLocalFile( model()->data(indexAt(mapFromGlobal(QCursor::pos()))).toString()  ));
 	}, Qt::Key_O);
 	openAction->setIconVisibleInMenu(false);
 	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
@@ -136,15 +136,30 @@ void ImgListView::changeDir(QString dir){
 	//applyFilter(filterText);
 	thumbnailPainter->stopDrawing();
 	thumbnailsCache.clear();
-	recursiveModel->clear();
-	proxy->clear();
+	//recursiveModel->clear();
+	//proxy->clear();
 	thumbnailPainter->resumeDrawing();
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
-    //
+	//
 
 }
 
 void ImgListView::prefetchThumbnails(){
+
+	if(recursiveModel0->rowCount()){
+		newProxy = proxy1;
+		newModel = recursiveModel1;
+		oldProxy = proxy0;
+		oldModel = recursiveModel0;
+	}else{
+		newProxy = proxy0;
+		newModel = recursiveModel0;
+		oldProxy = proxy1;
+		oldModel = recursiveModel1;
+	}
+
+	newProxy->clear();
+	newModel->clear();
 
 	emit dirScan(currentDir);
 	QStringList dirs;
@@ -179,14 +194,14 @@ void ImgListView::prefetchThumbnails(){
 			if(stopPrefetching)
 				return;
 
-            auto item = new QStandardItem();
+			auto item = new QStandardItem();
 			item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
 			item->setData(fileName, Qt::DisplayRole);
 			item->setData(fileName, Qt::ToolTipRole);
 
-            //item->setText(fileName.split('/').last());
+			//item->setText(fileName.split('/').last());
 			items << item;
-			recursiveModel->appendRow(item);
+			newModel->appendRow(item);
 			//qDebug()<<"F!: "<<fileName;
 			//emit callFullUpdate();
 		}
@@ -197,7 +212,10 @@ void ImgListView::prefetchThumbnails(){
 		return;
 
 #ifdef NO_FLICKERING
-    proxy->setSourceModel(recursiveModel);
+	//proxy->setSourceModel(recursiveModel);
+	setModel(newProxy);
+	thumbnailPainter->setModel(newProxy);
+	selectionModel()->setModel(newProxy);
 #endif
 
 
@@ -210,7 +228,13 @@ void ImgListView::prefetchThumbnails(){
 			break;
 		QDir dir(dirEntry);
 		QString fileName = dir.absolutePath();
+#ifdef _WIN32
+		fileName +="/.kthumbnailsWIN";
+#else
 		fileName +="/.kthumbnails";
+#endif
+
+
 		QFile thumbnailsFile(fileName);
 
 		QDataStream in (&thumbnailsFile);
@@ -233,7 +257,7 @@ void ImgListView::prefetchThumbnails(){
 			if(fileInfo.isDir())
 				continue;
 
-			auto item = recursiveModel->findItems(fileInfo.absoluteFilePath(),
+			auto item = newModel->findItems(fileInfo.absoluteFilePath(),
 												  Qt::MatchFixedString).first();
 
 			emit progressSetValue(counter++);
@@ -241,7 +265,7 @@ void ImgListView::prefetchThumbnails(){
 			auto currentFileName = fileInfo.absoluteFilePath();
 			auto tcEntry = thumbnailsCache.constFind(currentFileName);
 			if(tcEntry == thumbnailsCache.constEnd()) {
-                emit progressSetVisible(true);
+				emit progressSetVisible(true);
 				QSize iconSize(135,135);
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
@@ -291,16 +315,16 @@ void ImgListView::prefetchThumbnails(){
 				//thumbnailPainter->resumeDrawing();
 			}else
 				item->setIcon(tcEntry->scaled(this->iconSize()));
-            item->setText(fileInfo.absoluteFilePath());
+			item->setText(fileInfo.absoluteFilePath());
 
 			if(stopPrefetching)
 				break;
-            auto idx = recursiveModel->indexFromItem(item);
-            if(idx.isValid())
-                emit callUpdate(proxy->mapFromSource( idx));
+			auto idx = newModel->indexFromItem(item);
+			if(idx.isValid())
+				emit callUpdate(newProxy->mapFromSource( idx));
 
 		}
-        emit progressSetVisible(false);
+		emit progressSetVisible(false);
 		if(countAtStart != thumbnailsCache.count()){
 			//qDebug()<<"Saving cache to file";
 			if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
@@ -311,14 +335,10 @@ void ImgListView::prefetchThumbnails(){
 				thumbnailsFile.flush();
 				thumbnailsFile.close();
 			}
-
-
 		}
 	}
-
-
-
-
+	oldModel->clear();
+	oldProxy->clear();
 
 	if(!stopPrefetching)
 		emit callFullUpdate();
@@ -338,13 +358,15 @@ void ImgListView::onDoubleClicked(){
 	auto selectedThumbnails = selectionModel()->selectedIndexes();
 	for(auto &index : selectedThumbnails){
 		//QFileInfo info=fsModel->fileInfo(index);
-		QDesktopServices::openUrl(QUrl::fromLocalFile(proxy->data(index).toString() ));
+		QDesktopServices::openUrl(QUrl::fromLocalFile(newProxy->data(index).toString() ));
 	}
 }
 
 void ImgListView::prepareExit(){
 	stopPrefetching = true;
 	thumbnailPainter->stopDrawing();
+	newProxy->clear();
+	newModel->clear();
 	prefetchProc.waitForFinished();
 }
 
@@ -352,14 +374,14 @@ void ImgListView::applyFilter(QString inFilter){
 
 	filterText = inFilter;
 	QString newFilter="*"+inFilter;
-	proxy->setFilterWildcard(newFilter);
-    proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
+	newProxy->setFilterWildcard(newFilter);
+	newProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 	//qDebug()<<newFilter;
 	//qDebug()<< "Rec: " <<recursiveModel->rowCount() << " | proxy: " << proxy->rowCount();
 	emit numFiles(
-				recursiveModel->rowCount(),
-				proxy->rowCount()
+				newModel->rowCount(),
+				newProxy->rowCount()
 				);
 
 }
@@ -403,7 +425,7 @@ void ImgListView::exportImages(){
 	QStringList fileList;
 	for(auto &index : selections)
 		if( 0 == index.column() )
-			fileList << recursiveModel->itemFromIndex(proxy->mapToSource(index))->data(Qt::DisplayRole).toString();
+			fileList << newModel->itemFromIndex(newProxy->mapToSource(index))->data(Qt::DisplayRole).toString();
 	emit setFileAction(fileList, expDir);
 }
 
@@ -416,7 +438,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 		QStringList selectedFiels;
 
 		for(auto &index : selectionModel()->selection().indexes())
-			selectedFiels << recursiveModel->itemFromIndex(proxy->mapToSource(index))->data(Qt::DisplayRole).toString();
+			selectedFiels << newModel->itemFromIndex(newProxy->mapToSource(index))->data(Qt::DisplayRole).toString();
 
 		auto selectionsCount = selectedFiels.count();
 		if(selectionsCount < 1)
@@ -433,7 +455,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 			}else{
 				if(!pointedIndex.isValid())
 					pointedIndex = selectionModel()->selection().indexes().first();
-				auto fileName = recursiveModel->itemFromIndex(proxy->mapToSource(pointedIndex))->data(Qt::DisplayRole).toString();
+				auto fileName = newModel->itemFromIndex(newProxy->mapToSource(pointedIndex))->data(Qt::DisplayRole).toString();
 				QImageReader reader(fileName);
 				reader.setDecideFormatFromContent(true);
 

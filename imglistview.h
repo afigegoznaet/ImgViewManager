@@ -52,8 +52,17 @@ private:
 	QString getTotalSize(QStringList& files);
 
 	//QFileSystemModel* fsModel;
-	QSortFilterProxyModel* proxy;
-	QStandardItemModel *recursiveModel;
+	//QSortFilterProxyModel* proxy;
+
+	QSortFilterProxyModel* newProxy;
+	QStandardItemModel *newModel;
+	QSortFilterProxyModel* oldProxy;
+	QStandardItemModel *oldModel;
+
+	QSortFilterProxyModel* proxy0;
+	QSortFilterProxyModel* proxy1;
+	QStandardItemModel *recursiveModel0;
+	QStandardItemModel *recursiveModel1;
 	ImgThumbnailDelegate* thumbnailPainter;
 	QStringList namedFilters;
 	QFuture<void> prefetchProc;
