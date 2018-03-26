@@ -60,8 +60,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 
 	setUniformItemSizes(true);
-	connect(this, SIGNAL(callUpdate(const QModelIndex &)),
-			this, SLOT(update(const QModelIndex &)), Qt::QueuedConnection);
+	connect(this, SIGNAL(callUpdate(const QString&)),
+			this, SLOT(synchronizedUpdate(const QString&)), Qt::QueuedConnection);
 	connect(this,SIGNAL(doubleClicked(QModelIndex)),
 			this,SLOT(onDoubleClicked()));
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -132,13 +132,12 @@ void ImgListView::changeDir(QString dir){
 
 	currentDir = dir;
 
-
 	stopPrefetching = true;
 
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
-	//applyFilter(filterText);
-	thumbnailPainter->stopDrawing();
+
+	//thumbnailPainter->stopDrawing();
 
 	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
 	//
@@ -325,9 +324,11 @@ void ImgListView::prefetchThumbnails(){
 
 			if(stopPrefetching)
 				break;
-			auto idx = newModel->indexFromItem(item);
-			if(idx.isValid())
-				emit callUpdate(newProxy->mapFromSource( idx));
+
+			//QMutex locker;
+			//locker.lock();
+			emit callUpdate( fileInfo.absoluteFilePath() );
+			//synchronizer.wait(&locker);
 
 		}
 		emit progressSetVisible(false);
@@ -343,8 +344,9 @@ void ImgListView::prefetchThumbnails(){
 			}
 		}
 	}
+	atomicMutex.lock();
 	oldModel->clear();
-	//oldProxy->clear();
+	atomicMutex.unlock();
 
 	if(!stopPrefetching)
 		emit callFullUpdate();
@@ -558,4 +560,22 @@ void ImgListView::resetViewSlot(){
 
 	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
 			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
+}
+
+void ImgListView::synchronizedUpdate(const QString &fileName){
+
+	atomicMutex.lock();
+
+
+	auto items = newModel->findItems(fileName, Qt::MatchFixedString);
+	if(items.count()){
+		auto item = items.first();
+		auto idx = newModel->indexFromItem(item);
+
+		if(newModel->rowCount() && idx.isValid())
+			repaint(visualRect( idx));
+	}
+
+
+	atomicMutex.unlock();
 }

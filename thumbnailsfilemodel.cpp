@@ -138,6 +138,8 @@ bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
 }
 
 void ThumbnailsFileModel::scanRoot(QString root){
+	if(stopPrefetching)
+		return;
 	QDir dir(root);
 
 	treeMap[root] = hasPics(root);

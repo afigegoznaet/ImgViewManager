@@ -12,6 +12,7 @@ public:
 	void init(QString& startDir);
 	void initDir(QString& startDir);
 	QString getCurrentDir();
+	void prepareExit(){fsModel->prepareExit();}
 
 signals:
 	void changeDir(QString dir);

@@ -12,6 +12,7 @@ class SystemTreeView;
 class ThumbnailsFileModel : public QSortFilterProxyModel{
 	Q_OBJECT
 public:
+	void prepareExit(){	stopPrefetching = true; }
 	explicit ThumbnailsFileModel(QObject *parent = Q_NULLPTR);
 	QFileInfo fileInfo(const QModelIndex &fileIndex, bool isSource = false) const;
 	QModelIndex fileIndex(const QString &path) const;
@@ -39,6 +40,7 @@ private:
 	QStringList filter;
 	mutable QMap<QString,QAtomicInt> treeMap;
 	mutable SystemTreeView* parentView;
+	bool stopPrefetching = false;
 };
 
 #endif // THUMBNAILSFILEMODEL_H

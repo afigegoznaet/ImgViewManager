@@ -15,6 +15,7 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 MainWindow::~MainWindow(){
 	qDebug()<<"exiting from main";
 	ui->imagesView->prepareExit();
+	ui->fileTree->prepareExit();
 	saveSettings();
 	delete ui;
 	qDebug()<<"ui deleted";

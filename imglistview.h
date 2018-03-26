@@ -26,7 +26,7 @@ public:
 	~ImgListView(){delete exportAction;}
 
 signals:
-	void callUpdate(const QModelIndex &);
+	void callUpdate(const QString&);
 	void numFiles(int total, int visible);
 	void setFileAction(QStringList fileList, QString destination);
 	void callFullUpdate();
@@ -47,6 +47,7 @@ public slots:
 	void exportImages();
 	void checkSelections(QItemSelection, QItemSelection);
 	void resetViewSlot();
+	void synchronizedUpdate(const QString &fileName);
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
@@ -71,7 +72,7 @@ private:
 	QFuture<void> prefetchProc;
 	std::atomic_bool stopPrefetching;
 	QString filterText;
-	QHash<QString, QPixmap> thumbnailsCache;
+	QMap<QString, QPixmap> thumbnailsCache;
 	ProgressDialog* copyDialog;
 	QProgressBar* dirLoadBar;
 	QMenu m_menu;
@@ -86,6 +87,9 @@ private:
 	QAction* fi_size;
 	QAction* fi_alpha;
 	QList<QStandardItem*> items;
+
+	QMutex atomicMutex;
+	QWaitCondition synchronizer;
 };
 
 #endif // IMGLISTVIEW_H
