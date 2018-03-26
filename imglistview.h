@@ -27,6 +27,7 @@ public:
 
 signals:
 	void callUpdate(const QString&);
+	void emitUpdate(const QModelIndex&);
 	void numFiles(int total, int visible);
 	void setFileAction(QStringList fileList, QString destination);
 	void callFullUpdate();

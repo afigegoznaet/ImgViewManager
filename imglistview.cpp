@@ -64,6 +64,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 			this, SLOT(synchronizedUpdate(const QString&)), Qt::QueuedConnection);
 	connect(this,SIGNAL(doubleClicked(QModelIndex)),
 			this,SLOT(onDoubleClicked()));
+
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
 	//selectionModel()->setModel(fsModel);
 	//selectionModel()->setModel(proxy);
@@ -573,7 +574,7 @@ void ImgListView::synchronizedUpdate(const QString &fileName){
 		auto idx = newModel->indexFromItem(item);
 
 		if(newModel->rowCount() && idx.isValid())
-			repaint(visualRect( idx));
+			emit dataChanged(newModel->index(0,0), newModel->index(newModel->rowCount()-1,0), {Qt::DecorationRole});
 	}
 
 
