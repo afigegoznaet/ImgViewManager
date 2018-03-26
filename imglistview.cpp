@@ -123,7 +123,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	thumbnailPainter->setGridSize(gridSize());
 
-	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()), Qt::BlockingQueuedConnection);
+	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()));
 
 //	recursiveModel->setHeaderData()
 }
@@ -149,7 +149,7 @@ void ImgListView::prefetchThumbnails(){
 
 #if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR > 7
 
-	if(recursiveModel0->rowCount()){
+	if(newProxy == proxy0){
 		newProxy = proxy1;
 		newModel = recursiveModel1;
 		oldProxy = proxy0;
@@ -160,6 +160,8 @@ void ImgListView::prefetchThumbnails(){
 		oldProxy = proxy1;
 		oldModel = recursiveModel1;
 	}
+
+	newModel->blockSignals(true);
 
 #else
 
@@ -175,8 +177,10 @@ void ImgListView::prefetchThumbnails(){
 #endif
 
 	newModel->clear();
-	newProxy->clear();
-	emit genericMessage(currentDir);
+	oldModel->clear();
+	//oldModel->clear();
+	//newProxy->clear();
+	emit genericMessage("Scanning "+currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
@@ -186,7 +190,7 @@ void ImgListView::prefetchThumbnails(){
 		if(stopPrefetching)
 			break;
 
-		emit genericMessage(dirEntry);
+		emit genericMessage("Scanning "+dirEntry);
 		QDir dir(dirEntry);
 		auto dirEntries = dir.entryInfoList(namedFilters);
 		for(auto& fileInfo : dirEntries ){
@@ -222,8 +226,6 @@ void ImgListView::prefetchThumbnails(){
 	emit resetViewSignal();
 
 
-	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
 
 	emit filterSignal(filterText);
 
@@ -342,7 +344,7 @@ void ImgListView::prefetchThumbnails(){
 		}
 	}
 	oldModel->clear();
-	oldProxy->clear();
+	//oldProxy->clear();
 
 	if(!stopPrefetching)
 		emit callFullUpdate();
@@ -553,4 +555,7 @@ void ImgListView::resetViewSlot(){
 	thumbnailPainter->setModel(newProxy);
 	selectionModel()->setModel(newProxy);
 #endif
+
+	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
 }

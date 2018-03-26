@@ -21,17 +21,17 @@ public:
 	~ThumbnailsFileModel(){treeMap.clear();}
 	QFuture<bool> scanTreeAsync(const QString& startDir = QDir::rootPath());
 	bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
-    void scanRoot(QString root);
+	void scanRoot(QString root);
 signals:
 	void splashText(const QString& message, int alignment, const QColor &color);
 public slots:
 
 private:
 
-	bool hasPics(const QModelIndex&parent) const;
-    bool hasPics(const QString& scDir)const;
-	bool hasImages(const QModelIndex& dirIndex, bool isSource = false) const;
-    bool hasImages(const QDir& dir) const;
+	//bool hasPics(const QModelIndex&parent) const;
+	bool hasPics(const QString& scDir)const;
+	//bool hasImages(const QModelIndex& dirIndex, bool isSource = false) const;
+	bool hasImages(const QDir& dir) const;
 	bool filterAcceptsRow(int source_row,
 						  const QModelIndex &source_parent) const override;
 
