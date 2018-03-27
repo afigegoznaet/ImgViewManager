@@ -242,13 +242,13 @@ void ImgListView::prefetchThumbnails(){
 
 
 		QFile thumbnailsFile(fileName);
-
+		QMap<QString, QPixmap> oldCache;
+		QMap<QString, QPixmap> newCache;
 		QDataStream in (&thumbnailsFile);
 		in.setVersion(QDataStream::Qt_5_7);
 		if(thumbnailsFile.open(QIODevice::ReadOnly))
-			in>> thumbnailsCache;
+			in>> oldCache;
 		thumbnailsFile.close();
-		int countAtStart = thumbnailsCache.count();
 
 		auto dirEntries = dir.entryInfoList(namedFilters);
 
@@ -269,8 +269,8 @@ void ImgListView::prefetchThumbnails(){
 			emit progressSetValue(counter++);
 
 			auto currentFileName = fileInfo.absoluteFilePath();
-			auto tcEntry = thumbnailsCache.constFind(currentFileName);
-			if(tcEntry == thumbnailsCache.constEnd()) {
+			auto tcEntry = oldCache.constFind(currentFileName);
+			if(tcEntry == oldCache.constEnd()) {
 				emit progressSetVisible(true);
 				QSize iconSize(135,135);
 				QSize imgSize(iconSize);
@@ -317,10 +317,13 @@ void ImgListView::prefetchThumbnails(){
 					break;
 				QPixmap newPixmap(QPixmap::fromImage(newImg));
 				item->setIcon(newPixmap.scaled(this->iconSize()));
-				thumbnailsCache.insert(currentFileName, newPixmap);
+				newCache.insert(currentFileName, newPixmap);
 				//thumbnailPainter->resumeDrawing();
-			}else
+			}else{
 				item->setIcon(tcEntry->scaled(this->iconSize()));
+				newCache.insert(currentFileName, *tcEntry);
+			}
+
 			item->setText(fileInfo.absoluteFilePath());
 
 			if(stopPrefetching)
@@ -333,13 +336,13 @@ void ImgListView::prefetchThumbnails(){
 
 		}
 		emit progressSetVisible(false);
-		if(countAtStart != thumbnailsCache.count()){
+		if(newCache.count() != oldCache.count()){
 			//qDebug()<<"Saving cache to file";
 			if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
 				thumbnailsFile.resize(0);
 				QDataStream out (&thumbnailsFile);
 				out.setVersion(QDataStream::Qt_5_7);
-				out<<thumbnailsCache;
+				out<<newCache;
 				thumbnailsFile.flush();
 				thumbnailsFile.close();
 			}
@@ -546,10 +549,6 @@ void ImgListView::checkSelections(QItemSelection, QItemSelection){
 }
 
 void ImgListView::resetViewSlot(){
-	thumbnailsCache.clear();
-	//recursiveModel->clear();
-	//proxy->clear();
-
 
 	newProxy->setSourceModel(newModel);
 	thumbnailPainter->resumeDrawing();

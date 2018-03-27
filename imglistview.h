@@ -73,7 +73,7 @@ private:
 	QFuture<void> prefetchProc;
 	std::atomic_bool stopPrefetching;
 	QString filterText;
-	QMap<QString, QPixmap> thumbnailsCache;
+	//QMap<QString, QPixmap> thumbnailsCache;
 	ProgressDialog* copyDialog;
 	QProgressBar* dirLoadBar;
 	QMenu m_menu;
