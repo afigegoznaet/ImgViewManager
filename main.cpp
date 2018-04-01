@@ -10,14 +10,13 @@ int main(int argc, char *argv[]){
 
 	QPixmap pixmap(":/Images/splash.png");
 	qDebug()<<pixmap.height();
-//#if !defined(QT_DEBUG) || !defined(_WIN32)
+
 	QSplashScreen splash(pixmap);
 	QFont font = QApplication::font("QMenu");
 	font.setStyleHint(QFont::Monospace);
 	splash.setFont(font);
 	splash.show();
-	//qApp->processEvents();
-//#endif
+
 	qDebug()<<argc;
 	for(int i=0; i<argc; i++)
 		qDebug()<<argv[i];
@@ -26,6 +25,7 @@ int main(int argc, char *argv[]){
 	if(argc>1)
 		params = QString(argv[1]);
 	MainWindow w(params);
+	w.setWindowTitle("Image Browser");
 	QMutex locker;
 #if !defined(QT_DEBUG) || !defined(_WIN32)
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int alignment, const QColor &color){

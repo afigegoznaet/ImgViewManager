@@ -15,9 +15,16 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	qDebug()<<parentWindow->getRoot();
 
-	namedFilters << "*.png";
-	namedFilters << "*.jpeg";
-	namedFilters << "*.jpg";
+	namedFilters << "*.BMP";
+	namedFilters << "*.GIF";
+	namedFilters << "*.JPG";
+	namedFilters << "*.JPEG";
+	namedFilters << "*.PNG";
+	namedFilters << "*.PBM";
+	namedFilters << "*.PGM";
+	namedFilters << "*.PPM";
+	namedFilters << "*.XBM";
+	namedFilters << "*.XPM";
 
 
 	proxy0 = new QSortFilterProxyModel(this);

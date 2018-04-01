@@ -8,7 +8,7 @@ QT       += core gui concurrent
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = ImgViewManager
+TARGET = ivm
 TEMPLATE = app
 
 #QMAKE_CXXFLAGS+="-fsanitize=address"
@@ -59,4 +59,11 @@ RESOURCES += \
 win32-msvc* {
 	QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 	QMAKE_CXXFLAGS += /MP
+}
+
+linux {
+        target.path = /usr/local/bin
+        desktop.path = /usr/share/applications
+        desktop.files += yc.desktop
+        INSTALLS += target desktop
 }
