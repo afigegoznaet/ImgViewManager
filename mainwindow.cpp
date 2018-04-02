@@ -9,7 +9,6 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 	qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
 	qRegisterMetaType<QAbstractItemModel::LayoutChangeHint >("QAbstractItemModel::LayoutChangeHint");
 
-
 }
 
 MainWindow::~MainWindow(){
@@ -103,6 +102,9 @@ void MainWindow::init(){
 	/***
 	 * End restore UI
 	 * */
+
+	ui->filterBox->setPlaceholderText("insert search string");
+
 	if(!ui->splitter->restoreState(splitterSizes))
 		ui->splitter->setSizes({200,200});
 	connect(ui->imagesView, SIGNAL(numFiles(int,int)),
