@@ -49,12 +49,14 @@ public slots:
 	void checkSelections(QItemSelection, QItemSelection);
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
+
 private:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
 	void mousePressEvent(QMouseEvent *event) override;
 	void getDirs(const QString &rootDir, QStringList& dirList);
-	QString getTotalSize(QStringList& files);
+	QString getTotalSize(QStringList& files, int skipFirstNfiles=0);
+	void addHiddenFiles(QStringList& fileList);
 
 	//QFileSystemModel* fsModel;
 	//QSortFilterProxyModel* proxy;

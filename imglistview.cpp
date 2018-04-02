@@ -1,6 +1,8 @@
 #include "imglistview.h"
 #include "mainwindow.h"
 
+#define SHOWTOTAL
+
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	//fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
@@ -439,22 +441,12 @@ void ImgListView::exportImages(){
 		return;
 	}
 	QStringList fileList;
-	for(auto &index : selections){
-		if( 0 != index.column() )
-			continue;
-		auto filePath = newModel->itemFromIndex(newProxy->mapToSource(index))->data(Qt::DisplayRole).toString();
-		fileList << filePath;
-		QFileInfo inf(filePath);
+	for(auto &index : selections)
+		if( 0 == index.column() )
+			 fileList << newModel->itemFromIndex(newProxy->mapToSource(index))
+						 ->data(Qt::DisplayRole).toString();
 
-		for( auto newSuffix : sourceExtensons ){
-			QString newFile(filePath);
-			newFile.replace(
-					filePath.lastIndexOf(inf.completeSuffix()), 5, newSuffix);
-			if(QFile::exists(newFile))
-				fileList<<newFile;
-		}
-
-	}
+	addHiddenFiles(fileList);
 	emit setFileAction(fileList, expDir);
 }
 
@@ -477,14 +469,21 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 			if(selectionsCount > 1 ){
 				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
 				fi_fileFormat->setText("Selected files size: \t"+getTotalSize(selectedFiels));
-				m_menu.removeAction(fi_bitDepth);
-				m_menu.removeAction(fi_grayScale);
+
+				addHiddenFiles(selectedFiels);
+
+				fi_bitDepth->setText("hidden source files: \t"+QString::number(selectedFiels.count() - selectionsCount));
+				fi_grayScale->setText("hidden source files size: \t"+getTotalSize(selectedFiels, selectionsCount));
+#ifdef SHOWTOTAL
+				fi_size->setText("Total files: \t"+QString::number(selectedFiels.count()));
+				fi_alpha->setText("Total files size: \t"+getTotalSize(selectedFiels));
+#else
 				m_menu.removeAction(fi_size);
 				m_menu.removeAction(fi_alpha);
-				fi_bitDepth->setText("");
-				fi_grayScale->setText("");
+
 				fi_size->setText("");
 				fi_alpha->setText("");
+#endif
 			}else{
 				if(!pointedIndex.isValid())
 					pointedIndex = selectionModel()->selection().indexes().first();
@@ -494,11 +493,12 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 
 				QImage img = reader.read();
 
-				m_menu.addAction(fi_bitDepth);
-				m_menu.addAction(fi_grayScale);
+				//m_menu.addAction(fi_bitDepth);
+				//m_menu.addAction(fi_grayScale);
+#ifndef SHOWTOTAL
 				m_menu.addAction(fi_size);
 				m_menu.addAction(fi_alpha);
-
+#endif
 				QStringList tempList(fileName);
 				fi_selectedFiles->setText("File size: \t" + getTotalSize(tempList));
 				fi_fileFormat->setText("File format: \t"
@@ -533,10 +533,13 @@ void ImgListView::getDirs(const QString &rootDir, QStringList &dirList){
 
 }
 
-QString ImgListView::getTotalSize(QStringList& files){
+QString ImgListView::getTotalSize(QStringList& files, int skipFirstNfiles){
 	qint64 totalSize = 0;
 	for(auto fileName : files)
-		totalSize += QFile(fileName).size();
+		if(skipFirstNfiles--)
+			continue;
+		else
+			totalSize += QFile(fileName).size();
 
 	float gb=0, mb=0, kb=0;
 	gb = totalSize / 1000000000.0;
@@ -553,6 +556,21 @@ QString ImgListView::getTotalSize(QStringList& files){
 		text = QString::number(totalSize)+" B";
 	}
 	return text;
+}
+
+void ImgListView::addHiddenFiles(QStringList& fileList){
+	for(auto filePath : fileList){
+		QFileInfo inf(filePath);
+
+		for( auto newSuffix : sourceExtensons ){
+			QString newFile(filePath);
+			newFile.replace(
+					filePath.lastIndexOf(inf.completeSuffix()), 5, newSuffix);
+			if(QFile::exists(newFile))
+				fileList<<newFile;
+		}
+	}
+
 }
 
 void ImgListView::checkSelections(QItemSelection, QItemSelection){
