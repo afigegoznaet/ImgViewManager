@@ -20,6 +20,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	namedFilters << "*.jpg";
 
 
+	sourceExtensons << "psd";
+	sourceExtensons << "eps";
+
 	proxy0 = new QSortFilterProxyModel(this);
 	proxy1 = new QSortFilterProxyModel(this);
 
@@ -436,9 +439,22 @@ void ImgListView::exportImages(){
 		return;
 	}
 	QStringList fileList;
-	for(auto &index : selections)
-		if( 0 == index.column() )
-			fileList << newModel->itemFromIndex(newProxy->mapToSource(index))->data(Qt::DisplayRole).toString();
+	for(auto &index : selections){
+		if( 0 != index.column() )
+			continue;
+		auto filePath = newModel->itemFromIndex(newProxy->mapToSource(index))->data(Qt::DisplayRole).toString();
+		fileList << filePath;
+		QFileInfo inf(filePath);
+
+		for( auto newSuffix : sourceExtensons ){
+			QString newFile(filePath);
+			newFile.replace(
+					filePath.lastIndexOf(inf.completeSuffix()), 5, newSuffix);
+			if(QFile::exists(newFile))
+				fileList<<newFile;
+		}
+
+	}
 	emit setFileAction(fileList, expDir);
 }
 

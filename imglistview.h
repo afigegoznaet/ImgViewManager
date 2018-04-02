@@ -68,8 +68,11 @@ private:
 	QSortFilterProxyModel* proxy1;
 	QStandardItemModel *recursiveModel0;
 	QStandardItemModel *recursiveModel1;
+
+
 	ImgThumbnailDelegate* thumbnailPainter;
 	QStringList namedFilters;
+	QStringList sourceExtensons;
 	QFuture<void> prefetchProc;
 	std::atomic_bool stopPrefetching;
 	QString filterText;
