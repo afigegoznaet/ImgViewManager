@@ -160,13 +160,14 @@ void MainWindow::initActivation(){
 	QByteArray secret(secKey);
 
 	unsigned char *pk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(publ)).data());
+	unsigned char *enc = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(licenseKey)).data());
 	//unsigned char *sk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(secret)).data());
 
 
 	unsigned char decodedLicense[256] = {0};
 	unsigned long long decodedLicenseLength;
 	if (crypto_sign_open(decodedLicense, &decodedLicenseLength,
-						 (unsigned char*)licenseKey.data(), licenseKey.length(), pk) == 0)
+						 enc, (QByteArray::fromBase64(licenseKey)).length(), pk) == 0)
 		return;
 
 
@@ -196,7 +197,20 @@ void MainWindow::initActivation(){
 	activationDlg.setLayout(lt);
 
 
-	connect(buttonBox, &QDialogButtonBox::accepted, [&](){qDebug()<<m_lineEdit->text(); activationDlg.hide();});
+	connect(buttonBox, &QDialogButtonBox::accepted, [&](){
+		qDebug()<<m_lineEdit->text();
+		licenseKey = m_lineEdit->text().toLatin1();
+		unsigned char *enc = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(licenseKey)).data());
+		unsigned char *pk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(publ)).data());
+		if (crypto_sign_open(decodedLicense, &decodedLicenseLength,
+							 enc, (QByteArray::fromBase64(licenseKey)).length(), pk) != 0){
+			qlabel->setText("Entered license is incorrect");
+			return;
+		}
+		QSettings settings;
+		settings.setValue("licenseKey", licenseKey);
+		activationDlg.hide();
+	});
 	connect(buttonBox, &QDialogButtonBox::rejected, [&](){deleteLater();});
 
 	qDebug()<<activationDlg.exec();
