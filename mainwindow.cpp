@@ -2,6 +2,11 @@
 #include "ui_mainwindow.h"
 
 
+
+
+static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
+static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
+
 MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
 
@@ -86,6 +91,11 @@ void MainWindow::init(){
 		}
 	}
 	qDebug()<<"Root: "<<rootDir;
+
+	licenseKey = settings.value("licenseKey","1234").toByteArray();
+
+	initActivation();
+
 	/***
 	 * End read folders
 	 * */
@@ -121,7 +131,7 @@ void MainWindow::init(){
 		emit splashText(message, alignment, color);
 	});
 
-	emit splashText("aaaa", 1, Qt::blue);
+	//emit splashText("aaaa", 1, Qt::blue);
 	ui->fileTree->init(startDir);
 	ui->infoBox->setEnabled(false);
 	connect(ui->filterBox, SIGNAL(textChanged(QString)),
@@ -142,4 +152,53 @@ void MainWindow::init(){
 
 void MainWindow::initTree(){
 	ui->fileTree->init(startDir);
+}
+
+void MainWindow::initActivation(){
+
+	QByteArray publ(pubKey);
+	QByteArray secret(secKey);
+
+	unsigned char *pk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(publ)).data());
+	//unsigned char *sk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(secret)).data());
+
+
+	unsigned char decodedLicense[256] = {0};
+	unsigned long long decodedLicenseLength;
+	if (crypto_sign_open(decodedLicense, &decodedLicenseLength,
+						 (unsigned char*)licenseKey.data(), licenseKey.length(), pk) == 0)
+		return;
+
+
+	qDebug()<<"Unable to decode message 1\n";
+
+	QLabel *qlabel = new QLabel();
+	auto m_lineEdit = new QLineEdit();
+	m_lineEdit->setPlaceholderText("Enter license here");
+
+	QPushButton *createButton = new QPushButton(tr("Ok"));
+	createButton->setDefault(true);
+
+	QPushButton *cancelButton = new QPushButton(tr("Cancel"));
+
+	QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
+	buttonBox->addButton(createButton, QDialogButtonBox::AcceptRole);
+	buttonBox->addButton(cancelButton, QDialogButtonBox::RejectRole);
+
+
+	QVBoxLayout *lt = new QVBoxLayout;
+	qlabel->adjustSize();
+	lt->addWidget(qlabel);
+	lt->addWidget(m_lineEdit);
+	lt->addWidget(buttonBox);
+
+	QDialog activationDlg;
+	activationDlg.setLayout(lt);
+
+
+	connect(buttonBox, &QDialogButtonBox::accepted, [&](){qDebug()<<m_lineEdit->text(); activationDlg.hide();});
+	connect(buttonBox, &QDialogButtonBox::rejected, [&](){deleteLater();});
+
+	qDebug()<<activationDlg.exec();
+
 }

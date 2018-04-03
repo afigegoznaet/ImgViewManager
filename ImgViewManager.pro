@@ -56,6 +56,8 @@ FORMS += \
 RESOURCES += \
 	imgviewmanager.qrc
 
+LIBS += -lsodium
+
 win32-msvc* {
 	QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 	QMAKE_CXXFLAGS += /MP

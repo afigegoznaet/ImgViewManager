@@ -4,8 +4,12 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QFileDialog>
+#include <QLabel>
+#include <QTextEdit>
+#include <QDialogButtonBox>
 #include "imglistview.h"
 #include "systemtreeview.h"
+#include <sodium.h>
 
 namespace Ui { class MainWindow; }
 
@@ -29,6 +33,8 @@ public slots:
 
 private:
 	void saveSettings();
+	void initActivation();
+	QByteArray licenseKey;
 
 	Ui::MainWindow *ui;
 	QString startDir;

@@ -3,21 +3,29 @@
 #include <QSplashScreen>
 #include <QThread>
 
+
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
 	QCoreApplication::setOrganizationName("Custom Customer");
 	QCoreApplication::setApplicationName("Clipart Viewer");
 
 	QPixmap pixmap(":/Images/splash.png");
-	qDebug()<<pixmap.height();
+	//qDebug()<<pixmap.height();
 //#if !defined(QT_DEBUG) || !defined(_WIN32)
 	QSplashScreen splash(pixmap);
 	QFont font = QApplication::font("QMenu");
 	font.setStyleHint(QFont::Monospace);
 	splash.setFont(font);
 	splash.show();
+	if (sodium_init() < 0){
+		splash.showMessage("Unable to initialize libsodium", Qt::AlignCenter, Qt::red);
+		QTextStream err(stderr);
+		err << "Unable to initialize libsodium\n";
+		err.flush();
+		exit(-1);
+	}
 	//qApp->processEvents();
-//#endif
+//#endif;
 	qDebug()<<argc;
 	for(int i=0; i<argc; i++)
 		qDebug()<<argv[i];
@@ -42,7 +50,7 @@ int main(int argc, char *argv[]){
 #endif
 	w.setWindowTitle("Clipart Viewer");
 	w.init();
-	w.show();
+	//w.show();
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});
 	timer->start(2000);
