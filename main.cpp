@@ -53,7 +53,8 @@ int main(int argc, char *argv[]){
 	});
 #endif
 	w.setWindowTitle("Clipart Viewer");
-	w.init();
+	if(w.init()<0)
+		return -1;
 	//w.show();
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});

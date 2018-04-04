@@ -25,7 +25,7 @@ public:
 	//explicit MainWindow(QWidget *parent = 0);
 	explicit MainWindow(QString argv, QWidget *parent = 0);
 	~MainWindow();
-	void init();
+	int init();
 	void initTree();
 	QString getRoot(){return rootDir;}
 

@@ -4,7 +4,7 @@
 
 
 
-static char pubKey[] = "1uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
+static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
 static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
 static char licenseExample[] = "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent) :
@@ -68,7 +68,7 @@ void MainWindow::showAbout(){
 	msgBox.exec();
 }
 
-void MainWindow::init(){
+int MainWindow::init(){
 	/***
 	 * Read folders
 	 * */
@@ -104,10 +104,9 @@ void MainWindow::init(){
 	 * End read folders
 	 * */
 
-	if(!isActivated){
-		QApplication::quit();
-		return;
-	}
+	if(!isActivated)
+		return -1;
+
 
 	ui->setupUi(this);
 
@@ -157,7 +156,7 @@ void MainWindow::init(){
 
 	ui->actionExit->setShortcut(QKeySequence::Quit);
 	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
-
+	return 0;
 }
 
 void MainWindow::initTree(){
@@ -231,8 +230,11 @@ void MainWindow::initActivation(){
 		isActivated = true;
 		activationDlg.hide();
 	});
-	connect(buttonBox, &QDialogButtonBox::rejected, [&](){
-		QApplication::quit();
+	connect(buttonBox, &QDialogButtonBox::rejected, [](){
+		QTextStream err(stderr);
+		err << "Unable to validate key\n";
+		err.flush();
+		QApplication::exit();
 	});
 
 	qDebug()<<activationDlg.exec();
