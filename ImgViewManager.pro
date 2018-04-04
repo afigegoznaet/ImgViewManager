@@ -57,8 +57,7 @@ RESOURCES += \
 	imgviewmanager.qrc
 
 
-#DEFINES += NO_VALIDATION
-CONFIG += SODIUM
+#CONFIG += SODIUM
 
 
 win32-msvc* {
