@@ -13,15 +13,17 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 	qRegisterMetaType<QVector<int> >("QVector<int>");
 	qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
 	qRegisterMetaType<QAbstractItemModel::LayoutChangeHint >("QAbstractItemModel::LayoutChangeHint");
-
 }
 
 MainWindow::~MainWindow(){
 	qDebug()<<"exiting from main";
-	ui->imagesView->prepareExit();
-	ui->fileTree->prepareExit();
-	saveSettings();
-	delete ui;
+	if(isActivated){
+		ui->imagesView->prepareExit();
+		ui->fileTree->prepareExit();
+		saveSettings();
+		delete ui;
+	}
+
 	qDebug()<<"ui deleted";
 }
 
@@ -92,14 +94,21 @@ void MainWindow::init(){
 	}
 	qDebug()<<"Root: "<<rootDir;
 
-#ifndef NO_VALIDATION
+#ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey","1234").toByteArray();
 	initActivation();
 #endif
 	/***
 	 * End read folders
 	 * */
+
+	if(!isActivated){
+		QApplication::quit();
+		return;
+	}
+
 	ui->setupUi(this);
+
 	/***
 	 * Restore UI
 	 * */
@@ -147,7 +156,6 @@ void MainWindow::init(){
 	ui->actionExit->setShortcut(QKeySequence::Quit);
 	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
 
-
 }
 
 void MainWindow::initTree(){
@@ -155,6 +163,8 @@ void MainWindow::initTree(){
 }
 
 void MainWindow::initActivation(){
+#ifdef VALIDATE_LICENSE
+
 
 	QByteArray publ(pubKey);
 	QByteArray secret(secKey);
@@ -214,10 +224,13 @@ void MainWindow::initActivation(){
 		}
 		QSettings settings;
 		settings.setValue("licenseKey", licenseKey);
+		isActivated = true;
 		activationDlg.hide();
 	});
-	connect(buttonBox, &QDialogButtonBox::rejected, [&](){deleteLater();});
+	connect(buttonBox, &QDialogButtonBox::rejected, [&](){
+		QApplication::quit();
+	});
 
 	qDebug()<<activationDlg.exec();
-
+#endif
 }

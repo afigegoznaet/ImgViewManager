@@ -17,6 +17,8 @@ int main(int argc, char *argv[]){
 	font.setStyleHint(QFont::Monospace);
 	splash.setFont(font);
 	splash.show();
+#ifdef VALIDATE_LICENSE
+
 	if (sodium_init() < 0){
 		splash.showMessage("Unable to initialize libsodium", Qt::AlignCenter, Qt::red);
 		QTextStream err(stderr);
@@ -24,6 +26,8 @@ int main(int argc, char *argv[]){
 		err.flush();
 		exit(-1);
 	}
+
+#endif
 	//qApp->processEvents();
 //#endif;
 	qDebug()<<argc;

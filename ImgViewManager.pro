@@ -38,7 +38,7 @@ SOURCES += \
 	imgthumbnaildelegate.cpp \
 	thumbnailsfilemodel.cpp \
 	FileMoverDelegate.cpp \
-        FileProgressDialog.cpp
+		FileProgressDialog.cpp
 
 HEADERS += \
 		mainwindow.h \
@@ -47,7 +47,7 @@ HEADERS += \
 	imgthumbnaildelegate.h \
 	thumbnailsfilemodel.h \
 	FileMoverDelegate.hpp \
-        FileProgressDialog.hpp
+		FileProgressDialog.hpp
 
 FORMS += \
 		mainwindow.ui \
@@ -56,9 +56,26 @@ FORMS += \
 RESOURCES += \
 	imgviewmanager.qrc
 
-LIBS += -lsodium
-DEFINES += NO_VALIDATION
+
+#DEFINES += NO_VALIDATION
+CONFIG += SODIUM
+
+
 win32-msvc* {
+	INCLUDEPATH += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\include"
 	QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 	QMAKE_CXXFLAGS += /MP
+}
+SODIUM {
+	DEFINES += VALIDATE_LICENSE
+	unix:LIBS += -lsodium
+	win32:LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Release\\v140\\dynamic\\libsodium.lib"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\x64\\Release\\v140\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Release\\v140\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Debug\\v140\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\x64\\Debug\\v140\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\x64\\Release\\v141\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Release\\v141\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Debug\\v141\\dynamic"
+#LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\x64\\Debug\\v141\\dynamic"
 }

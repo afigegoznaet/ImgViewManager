@@ -9,7 +9,9 @@
 #include <QDialogButtonBox>
 #include "imglistview.h"
 #include "systemtreeview.h"
+#ifdef VALIDATE_LICENSE
 #include <sodium.h>
+#endif
 
 namespace Ui { class MainWindow; }
 
@@ -18,6 +20,7 @@ class MainWindow : public QMainWindow{
 
 signals:
 	void splashText(const QString& message, int alignment, const QColor &color);
+
 public:
 	//explicit MainWindow(QWidget *parent = 0);
 	explicit MainWindow(QString argv, QWidget *parent = 0);
@@ -28,7 +31,7 @@ public:
 
 public slots:
 	void setFileInfo(int total, int visible);
-    void setScanDirMsg(QString msg);
+	void setScanDirMsg(QString msg);
 	void showAbout();
 
 private:
@@ -36,6 +39,7 @@ private:
 	void initActivation();
 	QByteArray licenseKey;
 
+	bool isActivated = false;
 	Ui::MainWindow *ui;
 	QString startDir;
 	QString rootDir;
