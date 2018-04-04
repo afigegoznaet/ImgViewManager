@@ -5,7 +5,7 @@
 #include <QSettings>
 #include <QFileDialog>
 #include <QLabel>
-#include <QTextEdit>
+#include <QPlainTextEdit>
 #include <QDialogButtonBox>
 #include "imglistview.h"
 #include "systemtreeview.h"

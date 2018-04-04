@@ -6,7 +6,7 @@
 
 static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
 static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
-
+static char licenseExample[] = "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
 
@@ -92,10 +92,10 @@ void MainWindow::init(){
 	}
 	qDebug()<<"Root: "<<rootDir;
 
+#ifndef NO_VALIDATION
 	licenseKey = settings.value("licenseKey","1234").toByteArray();
-
 	initActivation();
-
+#endif
 	/***
 	 * End read folders
 	 * */
@@ -173,8 +173,11 @@ void MainWindow::initActivation(){
 
 	qDebug()<<"Unable to decode message 1\n";
 
+	/**
+	 * @brief Create dialog
+	 */
 	QLabel *qlabel = new QLabel();
-	auto m_lineEdit = new QLineEdit();
+	auto m_lineEdit = new QPlainTextEdit();
 	m_lineEdit->setPlaceholderText("Enter license here");
 
 	QPushButton *createButton = new QPushButton(tr("Ok"));
@@ -186,7 +189,6 @@ void MainWindow::initActivation(){
 	buttonBox->addButton(createButton, QDialogButtonBox::AcceptRole);
 	buttonBox->addButton(cancelButton, QDialogButtonBox::RejectRole);
 
-
 	QVBoxLayout *lt = new QVBoxLayout;
 	qlabel->adjustSize();
 	lt->addWidget(qlabel);
@@ -196,10 +198,13 @@ void MainWindow::initActivation(){
 	QDialog activationDlg;
 	activationDlg.setLayout(lt);
 
+	/**
+	 * Dialog created
+	 */
 
 	connect(buttonBox, &QDialogButtonBox::accepted, [&](){
-		qDebug()<<m_lineEdit->text();
-		licenseKey = m_lineEdit->text().toLatin1();
+		qDebug()<<m_lineEdit->toPlainText();
+		licenseKey = m_lineEdit->toPlainText().toLatin1();
 		unsigned char *enc = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(licenseKey)).data());
 		unsigned char *pk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(publ)).data());
 		if (crypto_sign_open(decodedLicense, &decodedLicenseLength,

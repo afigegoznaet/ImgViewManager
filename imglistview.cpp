@@ -24,6 +24,10 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	sourceExtensons << "psd";
 	sourceExtensons << "eps";
+#ifndef _WIN32
+	sourceExtensons << "PSD";
+	sourceExtensons << "EPS";
+#endif
 
 	proxy0 = new QSortFilterProxyModel(this);
 	proxy1 = new QSortFilterProxyModel(this);
