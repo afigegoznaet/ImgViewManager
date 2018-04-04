@@ -4,7 +4,7 @@
 
 
 
-static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
+static char pubKey[] = "1uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
 static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
 static char licenseExample[] = "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent) :
@@ -97,6 +97,8 @@ void MainWindow::init(){
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey","1234").toByteArray();
 	initActivation();
+#else
+	isActivated = true;
 #endif
 	/***
 	 * End read folders
@@ -177,8 +179,10 @@ void MainWindow::initActivation(){
 	unsigned char decodedLicense[256] = {0};
 	unsigned long long decodedLicenseLength;
 	if (crypto_sign_open(decodedLicense, &decodedLicenseLength,
-						 enc, (QByteArray::fromBase64(licenseKey)).length(), pk) == 0)
+						 enc, (QByteArray::fromBase64(licenseKey)).length(), pk) == 0){
+		isActivated = true;
 		return;
+	}
 
 
 	qDebug()<<"Unable to decode message 1\n";
