@@ -83,6 +83,7 @@ private:
 	QProgressBar* dirLoadBar;
 	QMenu m_menu;
 	QString currentDir;
+	QString exportDir;
 
 	QAction* exportAction;
 	QAction* openAction;

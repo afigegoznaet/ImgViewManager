@@ -423,17 +423,19 @@ void ImgListView::exportImages(){
 		msgBox.exec();
 		return;
 	}
+	if(exportDir.length() < 1)
+		exportDir = currentDir;
 	QFileDialog selector(this,"Select output folder",
-						 currentDir);
+						 exportDir);
 	selector.setFileMode(QFileDialog::DirectoryOnly);
 	if (!selector.exec())
 		return;
 	else
 		selector.selectedFiles();
 
-	QString expDir = selector.selectedFiles().first();
+	exportDir = selector.selectedFiles().first();
 
-	if(0 == expDir.compare(currentDir)){
+	if(0 == exportDir.compare(currentDir)){
 		QMessageBox msgBox;
 		msgBox.setIcon(QMessageBox::Warning);
 		msgBox.setWindowTitle("Wrong directory");
@@ -451,7 +453,7 @@ void ImgListView::exportImages(){
 						 ->data(Qt::DisplayRole).toString();
 
 	addHiddenFiles(fileList);
-	emit setFileAction(fileList, expDir);
+	emit setFileAction(fileList, exportDir);
 }
 
 void ImgListView::mousePressEvent(QMouseEvent *event){

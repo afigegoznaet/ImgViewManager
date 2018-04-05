@@ -3,11 +3,14 @@
 #include <QSplashScreen>
 #include <QThread>
 
+#define ORG_NAME "Custom Customer"
+#define APP_NAME "Clipart Viewer"
+#define WINDOW_TITLE "Clipart Viewer"
 
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
-	QCoreApplication::setOrganizationName("Custom Customer");
-	QCoreApplication::setApplicationName("Clipart Viewer");
+	QCoreApplication::setOrganizationName(ORG_NAME);
+	QCoreApplication::setApplicationName(APP_NAME);
 
 	QPixmap pixmap(":/Images/splash.png");
 	//qDebug()<<pixmap.height();
@@ -52,10 +55,9 @@ int main(int argc, char *argv[]){
 		locker.unlock();
 	});
 #endif
-	w.setWindowTitle("Clipart Viewer");
-	if(w.init()<0)
-		return -1;
-	//w.show();
+	w.setWindowTitle(WINDOW_TITLE);
+	w.init();
+
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){
 		locker.lock();

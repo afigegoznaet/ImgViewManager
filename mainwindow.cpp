@@ -17,12 +17,11 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 
 MainWindow::~MainWindow(){
 	qDebug()<<"exiting from main";
-	if(isActivated){
-		ui->imagesView->prepareExit();
-		ui->fileTree->prepareExit();
-		saveSettings();
-		delete ui;
-	}
+
+	ui->imagesView->prepareExit();
+	ui->fileTree->prepareExit();
+	saveSettings();
+	delete ui;
 
 	qDebug()<<"ui deleted";
 }
@@ -68,7 +67,7 @@ void MainWindow::showAbout(){
 	msgBox.exec();
 }
 
-int MainWindow::init(){
+void MainWindow::init(){
 	/***
 	 * Read folders
 	 * */
@@ -94,19 +93,9 @@ int MainWindow::init(){
 	}
 	qDebug()<<"Root: "<<rootDir;
 
-#ifdef VALIDATE_LICENSE
-	licenseKey = settings.value("licenseKey","1234").toByteArray();
-	initActivation();
-#else
-	isActivated = true;
-#endif
 	/***
 	 * End read folders
 	 * */
-
-	if(!isActivated)
-		return -1;
-
 
 	ui->setupUi(this);
 
@@ -156,7 +145,18 @@ int MainWindow::init(){
 
 	ui->actionExit->setShortcut(QKeySequence::Quit);
 	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
-	return 0;
+
+
+#ifdef VALIDATE_LICENSE
+	licenseKey = settings.value("licenseKey","1234").toByteArray();
+
+	QTimer *timer = new QTimer();
+	QObject::connect(timer, &QTimer::timeout, [&,timer](){
+		initActivation();
+		timer->deleteLater();
+	});
+	timer->start(10000);
+#endif
 }
 
 void MainWindow::initTree(){
@@ -179,9 +179,12 @@ void MainWindow::initActivation(){
 	unsigned long long decodedLicenseLength;
 	if (crypto_sign_open(decodedLicense, &decodedLicenseLength,
 						 enc, (QByteArray::fromBase64(licenseKey)).length(), pk) == 0){
-		isActivated = true;
+		QTextStream cout(stdout);
+		cout << "Key validated successfully\n";
+		cout.flush();
 		return;
 	}
+
 
 
 	qDebug()<<"Unable to decode message 1\n";
@@ -225,9 +228,11 @@ void MainWindow::initActivation(){
 			qlabel->setText("Entered license is incorrect");
 			return;
 		}
+		QTextStream cout(stdout);
+		cout << "Key validated successfully\n";
+		cout.flush();
 		QSettings settings;
 		settings.setValue("licenseKey", licenseKey);
-		isActivated = true;
 		activationDlg.hide();
 	});
 	connect(buttonBox, &QDialogButtonBox::rejected, [](){
@@ -237,6 +242,7 @@ void MainWindow::initActivation(){
 		QApplication::exit();
 	});
 
-	qDebug()<<activationDlg.exec();
+	activationDlg.setModal(true);
+	activationDlg.exec();
 #endif
 }

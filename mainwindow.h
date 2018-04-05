@@ -25,7 +25,7 @@ public:
 	//explicit MainWindow(QWidget *parent = 0);
 	explicit MainWindow(QString argv, QWidget *parent = 0);
 	~MainWindow();
-	int init();
+	void init();
 	void initTree();
 	QString getRoot(){return rootDir;}
 
@@ -39,7 +39,6 @@ private:
 	void initActivation();
 	QByteArray licenseKey;
 
-	bool isActivated = false;
 	Ui::MainWindow *ui;
 	QString startDir;
 	QString rootDir;
