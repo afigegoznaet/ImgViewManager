@@ -57,7 +57,7 @@ RESOURCES += \
 	imgviewmanager.qrc
 
 
-#CONFIG += SODIUM
+CONFIG += SODIUM
 
 
 win32-msvc* {

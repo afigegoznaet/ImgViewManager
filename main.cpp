@@ -57,7 +57,11 @@ int main(int argc, char *argv[]){
 		return -1;
 	//w.show();
 	QTimer *timer = new QTimer();
-	QObject::connect(timer, &QTimer::timeout, [&](){splash.finish(&w); w.show(); timer->deleteLater();});
+	QObject::connect(timer, &QTimer::timeout, [&](){
+		locker.lock();
+		splash.finish(&w); w.show(); timer->deleteLater();
+		locker.unlock();
+	});
 	timer->start(2000);
 
 	qDebug() << "Qt version: " << QT_VERSION_STR;
