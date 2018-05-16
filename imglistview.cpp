@@ -1,7 +1,11 @@
 #include "imglistview.h"
 #include "mainwindow.h"
+#include <algorithm>
 
 #define SHOWTOTAL
+
+#define MIN_ICON_SIZE 128
+#define PREVIEW_SIZE  256
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	//fsModel = new QFileSystemModel(this);
@@ -60,7 +64,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	int width = screenGeometry.width();
 	qDebug()<<height;
 	qDebug()<<width;
-    setIconSize(QSize(height/8,height/8));
+    int icon_size = std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE);
+    setIconSize(QSize(icon_size,icon_size));
 	setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
 	qDebug()<<"Icon size: "<<iconSize();
 	qDebug()<<"Grid size: "<<gridSize();
@@ -276,7 +281,7 @@ void ImgListView::prefetchThumbnails(){
 			auto tcEntry = oldCache.constFind(currentFileName);
 			if(tcEntry == oldCache.constEnd()) {
 				emit progressSetVisible(true);
-                QSize iconSize(256,256);
+                QSize iconSize(PREVIEW_SIZE,PREVIEW_SIZE);
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
 				auto picSize = reader.size();
