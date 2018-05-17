@@ -243,20 +243,24 @@ void ImgListView::prefetchThumbnails(){
 			break;
 		QDir dir(dirEntry);
 		QString fileName = dir.absolutePath();
-#ifdef _WIN32
-		fileName +="/.kthumbnailsWIN";
-#else
+
 		fileName +="/.kthumbnails";
-#endif
 
 
 		QFile thumbnailsFile(fileName);
+
 		QMap<QString, QPixmap> oldCache;
 		QMap<QString, QPixmap> newCache;
 		QDataStream in (&thumbnailsFile);
 		in.setVersion(QDataStream::Qt_5_7);
-		if(thumbnailsFile.open(QIODevice::ReadOnly))
-			in>> oldCache;
+		if(thumbnailsFile.open(QIODevice::ReadOnly)){
+			QMap<QString, QPixmap> cacheMap;
+			in>> cacheMap;
+			for(auto thumbName : cacheMap.keys())
+				oldCache.insert(dir.absolutePath()+"/"+thumbName,cacheMap[thumbName]);
+
+		}
+
 		thumbnailsFile.close();
 
 		auto dirEntries = dir.entryInfoList(namedFilters);
@@ -351,7 +355,10 @@ void ImgListView::prefetchThumbnails(){
 				thumbnailsFile.resize(0);
 				QDataStream out (&thumbnailsFile);
 				out.setVersion(QDataStream::Qt_5_7);
-				out<<newCache;
+				QMap<QString, QPixmap> cacheMap;
+				for(auto thumbName : newCache.keys())
+					cacheMap.insert(thumbName.section('/', -1),newCache[thumbName]);
+				out<<cacheMap;
 				thumbnailsFile.flush();
 				thumbnailsFile.close();
 			}
