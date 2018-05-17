@@ -112,6 +112,8 @@ void MainWindow::init(){
 	 * End restore UI
 	 * */
 
+	ui->imagesView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
 	ui->filterBox->setPlaceholderText("insert search string");
 
 	if(!ui->splitter->restoreState(splitterSizes))
