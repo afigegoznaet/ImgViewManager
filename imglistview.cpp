@@ -1,7 +1,11 @@
 #include "imglistview.h"
 #include "mainwindow.h"
+#include <algorithm>
 
 #define SHOWTOTAL
+
+#define MIN_ICON_SIZE 128
+#define PREVIEW_SIZE  256
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	//fsModel = new QFileSystemModel(this);
@@ -60,7 +64,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	int width = screenGeometry.width();
 	qDebug()<<height;
 	qDebug()<<width;
-	setIconSize(QSize(height/8,height/8));
+    int icon_size = std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE);
+    setIconSize(QSize(icon_size,icon_size));
 	setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
 	qDebug()<<"Icon size: "<<iconSize();
 	qDebug()<<"Grid size: "<<gridSize();
@@ -131,7 +136,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	addAction(exportAction);
 	addAction(openAction);
 
-	thumbnailPainter->setGridSize(gridSize());
+    thumbnailPainter->setGridSize(gridSize());
 
 	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()));
 
@@ -243,9 +248,7 @@ void ImgListView::prefetchThumbnails(){
 			break;
 		QDir dir(dirEntry);
 		QString fileName = dir.absolutePath();
-
 		fileName +="/.kthumbnails";
-
 
 		QFile thumbnailsFile(fileName);
 
@@ -285,7 +288,7 @@ void ImgListView::prefetchThumbnails(){
 			auto tcEntry = oldCache.constFind(currentFileName);
 			if(tcEntry == oldCache.constEnd()) {
 				emit progressSetVisible(true);
-				QSize iconSize(135,135);
+                QSize iconSize(PREVIEW_SIZE,PREVIEW_SIZE);
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
 				auto picSize = reader.size();
@@ -308,32 +311,34 @@ void ImgListView::prefetchThumbnails(){
 
 				auto img = reader.read();
 
-				QImage newImg(iconSize,QImage::Format_ARGB32);
-				newImg.fill(qRgba(0, 0, 0, 0));
-				QPainter painter(&newImg);
+                QImage newImg(iconSize,QImage::Format_ARGB32);
+                newImg.fill(qRgba(0, 0, 0, 0));
+                QPainter painter(&newImg);
 
-				if(true){
+                if(true){
 
-					int hDelta(0), vDelta(0);
+                    int hDelta(0), vDelta(0);
 
-					if(img.width()<iconSize.width())
-						hDelta = (iconSize.width() - img.width())/2;
-					if(img.height() < iconSize.height())
-						vDelta = (iconSize.height() - img.height())/2;
+                    if(img.width()<iconSize.width())
+                        hDelta = (iconSize.width() - img.width())/2;
+                    if(img.height() < iconSize.height())
+                        vDelta = (iconSize.height() - img.height())/2;
 
-					painter.drawPixmap(hDelta, vDelta, img.width(), img.height(), QPixmap::fromImage(img));
-					painter.save();
-					painter.restore();
-				}
+                    painter.setRenderHint(QPainter::Antialiasing, true);
+                    painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+                    painter.drawPixmap(hDelta, vDelta, img.width(), img.height(), QPixmap::fromImage(img));
+                    painter.save();
+                    painter.restore();
+                }
 
 				if(stopPrefetching)
 					break;
-				QPixmap newPixmap(QPixmap::fromImage(newImg));
-				item->setIcon(newPixmap.scaled(this->iconSize()));
-				newCache.insert(currentFileName, newPixmap);
+                QPixmap newPixmap(QPixmap::fromImage(newImg));
+                item->setIcon(newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                newCache.insert(currentFileName, newPixmap);
 				//thumbnailPainter->resumeDrawing();
 			}else{
-				item->setIcon(tcEntry->scaled(this->iconSize()));
+                item->setIcon(tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
 				newCache.insert(currentFileName, *tcEntry);
 			}
 

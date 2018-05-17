@@ -61,14 +61,19 @@ CONFIG += SODIUM
 
 
 win32-msvc* {
-	INCLUDEPATH += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\include"
-	QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
+        INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
+        QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 	QMAKE_CXXFLAGS += /MP
+        LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Debug\\v141\\dynamic\\libsodium.lib"
+}
+win32-g++ {
+        INCLUDEPATH += "..\\libsodium-win32\\include"
+        LIBS += "..\\libsodium-win32\\lib\\libsodium.dll.a"
 }
 SODIUM {
 	DEFINES += VALIDATE_LICENSE
 	unix:LIBS += -lsodium
-	win32:LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Release\\v140\\dynamic\\libsodium.lib"
+
 #LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\x64\\Release\\v140\\dynamic"
 #LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Release\\v140\\dynamic"
 #LIBS += "C:\\torrents\\Soft\\libsodium-1.0.16-msvc\\Win32\\Debug\\v140\\dynamic"
