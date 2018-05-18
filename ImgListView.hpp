@@ -14,7 +14,8 @@
 #include <QFileSystemModel>
 #include <QSortFilterProxyModel>
 #include "FileProgressDialog.hpp"
-#include "imgthumbnaildelegate.h"
+#include "ImgThumbnailDelegate.hpp"
+#include "ThumbnailsSorter.hpp"
 #include <QMenu>
 #include <memory>
 
@@ -40,6 +41,7 @@ signals:
 	void rowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
 	void filterSignal(QString inFilter);
 	void resetViewSignal();
+	void sortByPath(bool flag);
 
 public slots:
 	void changeDir(QString dir);
@@ -61,13 +63,13 @@ private:
 	//QFileSystemModel* fsModel;
 	//QSortFilterProxyModel* proxy;
 
-	QSortFilterProxyModel* newProxy;
+	ThumbnailsSorter* newProxy;
 	QStandardItemModel *newModel;
-	QSortFilterProxyModel* oldProxy;
+	ThumbnailsSorter* oldProxy;
 	QStandardItemModel *oldModel;
 
-	QSortFilterProxyModel* proxy0;
-	QSortFilterProxyModel* proxy1;
+	ThumbnailsSorter* proxy0;
+	ThumbnailsSorter* proxy1;
 	QStandardItemModel *recursiveModel0;
 	QStandardItemModel *recursiveModel1;
 

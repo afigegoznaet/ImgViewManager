@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "MainWindow.hpp"
 #include "ui_mainwindow.h"
 
 
@@ -31,6 +31,8 @@ void MainWindow::saveSettings(){
 	startDir = ui->fileTree->getCurrentDir();
 	qDebug()<<"Save: "<<startDir;
 	settings.setValue("StartDir", startDir);
+	settings.setValue("sortByPath", ui->actionSort_by_full_path->isChecked());
+	settings.setValue("sortByName", ui->actionSort_by_file_name->isChecked());
 	settings.beginGroup("MainWindow");
 	settings.setValue("size", size());
 	settings.setValue("pos", pos());
@@ -99,10 +101,19 @@ void MainWindow::init(){
 
 	ui->setupUi(this);
 
+	sortingGroup = new QActionGroup(this);
+	sortingGroup->addAction(ui->actionSort_by_full_path);
+	sortingGroup->addAction(ui->actionSort_by_file_name);
+	connect(ui->actionSort_by_full_path,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(sortByPath(bool)));
+	ui->actionSort_by_full_path->setChecked(settings.value("sortByPath", true).toBool());
+	ui->actionSort_by_file_name->setChecked(settings.value("sortByName", true).toBool());
+
+
 	/***
 	 * Restore UI
 	 * */
 	settings.beginGroup("MainWindow");
+
 	resize(settings.value("size", QSize(400, 400)).toSize());
 	move(settings.value("pos", QPoint(200, 200)).toPoint());
 	splitterSizes = settings.value("splitterSizes").toByteArray();

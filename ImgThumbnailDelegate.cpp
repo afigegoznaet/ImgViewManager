@@ -1,5 +1,5 @@
-#include "imgthumbnaildelegate.h"
-#include "imglistview.h"
+#include "ImgThumbnailDelegate.hpp"
+#include "ImgListView.hpp"
 
 ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent)
 	: QItemDelegate(parent), canDraw(true){

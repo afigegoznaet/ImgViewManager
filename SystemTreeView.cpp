@@ -1,5 +1,5 @@
-#include "systemtreeview.h"
-#include "mainwindow.h"
+#include "SystemTreeView.hpp"
+#include "MainWindow.hpp"
 
 
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){

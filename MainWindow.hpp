@@ -7,8 +7,8 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <QDialogButtonBox>
-#include "imglistview.h"
-#include "systemtreeview.h"
+#include "ImgListView.hpp"
+#include "SystemTreeView.hpp"
 #ifdef VALIDATE_LICENSE
 #include <sodium.h>
 #endif
@@ -38,7 +38,7 @@ private:
 	void saveSettings();
 	void initActivation();
 	QByteArray licenseKey;
-
+	QActionGroup* sortingGroup;
 	Ui::MainWindow *ui;
 	QString startDir;
 	QString rootDir;

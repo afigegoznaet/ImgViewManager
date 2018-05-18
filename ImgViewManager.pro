@@ -32,22 +32,24 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
 		main.cpp \
-		mainwindow.cpp \
-	systemtreeview.cpp \
-	imglistview.cpp \
-	imgthumbnaildelegate.cpp \
-	thumbnailsfilemodel.cpp \
 	FileMoverDelegate.cpp \
-		FileProgressDialog.cpp
+		FileProgressDialog.cpp \
+	ImgListView.cpp \
+	ImgThumbnailDelegate.cpp \
+	MainWindow.cpp \
+	SystemTreeView.cpp \
+	ThumbnailsFileModel.cpp \
+	ThumbnailsSorter.cpp
 
 HEADERS += \
-		mainwindow.h \
-	systemtreeview.h \
-	imglistview.h \
-	imgthumbnaildelegate.h \
-	thumbnailsfilemodel.h \
 	FileMoverDelegate.hpp \
-		FileProgressDialog.hpp
+		FileProgressDialog.hpp \
+	ImgListView.hpp \
+	ImgThumbnailDelegate.hpp \
+	MainWindow.hpp \
+	SystemTreeView.hpp \
+	ThumbnailsFileModel.hpp \
+	ThumbnailsSorter.hpp
 
 FORMS += \
 		mainwindow.ui \
@@ -61,14 +63,14 @@ CONFIG += SODIUM
 
 
 win32-msvc* {
-        INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
-        QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
+		INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
+		QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 	QMAKE_CXXFLAGS += /MP
-        LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Debug\\v141\\dynamic\\libsodium.lib"
+		LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Debug\\v141\\dynamic\\libsodium.lib"
 }
 win32-g++ {
-        INCLUDEPATH += "..\\libsodium-win32\\include"
-        LIBS += "..\\libsodium-win32\\lib\\libsodium.dll.a"
+		INCLUDEPATH += "..\\libsodium-win32\\include"
+		LIBS += "..\\libsodium-win32\\lib\\libsodium.dll.a"
 }
 SODIUM {
 	DEFINES += VALIDATE_LICENSE

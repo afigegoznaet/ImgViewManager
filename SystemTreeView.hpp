@@ -3,7 +3,7 @@
 
 #include <QTreeView>
 #include <QHeaderView>
-#include "thumbnailsfilemodel.h"
+#include "ThumbnailsFileModel.hpp"
 
 class SystemTreeView : public QTreeView{
 	Q_OBJECT

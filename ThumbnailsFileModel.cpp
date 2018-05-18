@@ -1,5 +1,5 @@
-#include "thumbnailsfilemodel.h"
-#include "systemtreeview.h"
+#include "ThumbnailsFileModel.hpp"
+#include "SystemTreeView.hpp"
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	: QSortFilterProxyModel(parent){
@@ -147,3 +147,5 @@ void ThumbnailsFileModel::scanRoot(QString root){
 		scanRoot(item.absoluteFilePath());
 
 }
+
+
