@@ -8,7 +8,7 @@ ThumbnailsSorter::ThumbnailsSorter(QObject *parent)
 
 
 void ThumbnailsSorter::sort(int column, Qt::SortOrder order){
-	qDebug()<<"sorting!";
+	//qDebug()<<"sorting!";
 	beginResetModel();
 	QSortFilterProxyModel::sort(column, order);
 	endResetModel();
@@ -18,7 +18,7 @@ void ThumbnailsSorter::sort(int column, Qt::SortOrder order){
 
 void ThumbnailsSorter::sortByPath(bool flag){
 	fullPathSorting = flag;
-	qDebug()<<"sorting flag:"<<flag;
+	//qDebug()<<"sorting flag:"<<flag;
 	sort();
 }
 

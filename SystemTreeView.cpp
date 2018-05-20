@@ -95,5 +95,5 @@ void SystemTreeView::initDir(QString& startDir){
 	setCurrentIndex(idx);
 	expand(idx);
 	scrollTo(idx);
-
+	setCurrentIndex(idx);
 }
