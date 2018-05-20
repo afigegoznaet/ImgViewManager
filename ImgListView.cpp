@@ -6,6 +6,9 @@
 
 #define MIN_ICON_SIZE 128
 #define PREVIEW_SIZE  256
+#define ZOOM_THRESHOLD 16
+#define MAX_ZOOM (ZOOM_THRESHOLD*5)
+
 
 ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
 	//fsModel = new QFileSystemModel(this);
@@ -64,8 +67,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	int width = screenGeometry.width();
 	qDebug()<<height;
 	qDebug()<<width;
-	int icon_size = std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE);
-	setIconSize(QSize(icon_size,icon_size));
+	default_icon_size = std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE);
+	setIconSize(QSize(default_icon_size,default_icon_size));
 	setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
 	qDebug()<<"Icon size: "<<iconSize();
 	qDebug()<<"Grid size: "<<gridSize();
@@ -644,4 +647,26 @@ void ImgListView::synchronizedUpdate(const QString &fileName){
 
 
 	atomicMutex.unlock();
+}
+
+void ImgListView::setZoom(int zoomDirection){
+	if(zoomDirection < 0){
+		auto icon_size = iconSize().width();
+		icon_size -= ZOOM_THRESHOLD;
+		if(icon_size < default_icon_size - MAX_ZOOM)
+			return;
+		setIconSize(QSize(icon_size,icon_size));
+		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
+	}else if(zoomDirection > 0){
+		auto icon_size = iconSize().width();
+		icon_size += ZOOM_THRESHOLD;
+		if(icon_size > default_icon_size + MAX_ZOOM)
+			return;
+		setIconSize(QSize(icon_size,icon_size));
+		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
+	}else{
+		setIconSize(QSize(default_icon_size,default_icon_size));
+		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
+	}
+	emit callFullUpdate();
 }

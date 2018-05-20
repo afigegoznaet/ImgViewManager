@@ -28,6 +28,7 @@ public:
 	void init();
 	void initTree();
 	QString getRoot(){return rootDir;}
+	bool eventFilter(QObject *watched, QEvent *event) override;
 
 public slots:
 	void setFileInfo(int total, int visible);

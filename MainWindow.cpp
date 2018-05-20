@@ -13,6 +13,7 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 	qRegisterMetaType<QVector<int> >("QVector<int>");
 	qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
 	qRegisterMetaType<QAbstractItemModel::LayoutChangeHint >("QAbstractItemModel::LayoutChangeHint");
+	qApp->installEventFilter(this);
 }
 
 MainWindow::~MainWindow(){
@@ -101,6 +102,9 @@ void MainWindow::init(){
 
 	ui->setupUi(this);
 
+	/***
+	 * Setup menu actions
+	 * */
 	sortingGroup = new QActionGroup(this);
 	sortingGroup->addAction(ui->actionSort_by_full_path);
 	sortingGroup->addAction(ui->actionSort_by_file_name);
@@ -108,6 +112,37 @@ void MainWindow::init(){
 	ui->actionSort_by_full_path->setChecked(settings.value("sortByPath", true).toBool());
 	ui->actionSort_by_file_name->setChecked(settings.value("sortByName", true).toBool());
 
+	connect(ui->actionZoom_In, &QAction::triggered, [&](){
+		ui->imagesView->setZoom(1);
+	});
+
+	connect(ui->actionZoom_Out, &QAction::triggered, [&](){
+		ui->imagesView->setZoom(-1);
+	});
+
+	connect(ui->actionReset_zoom, &QAction::triggered, [&](){
+		ui->imagesView->setZoom(0);
+	});
+
+	ui->menuBar->addAction("About",this, SLOT(showAbout()));
+	connect(ui->actionExit, &QAction::triggered, [&](){
+		QApplication::quit();
+	});
+	connect(ui->actionExport_Images, SIGNAL(triggered(bool)),
+			ui->imagesView, SLOT(exportImages()));
+
+	ui->actionExit->setShortcut(QKeySequence::Quit);
+	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
+
+	ui->actionZoom_In->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus));
+	ui->actionZoom_Out->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
+	ui->actionZoom_In->setShortcut(QKeySequence(Qt::CTRL + Qt::WheelFocus));
+	ui->actionZoom_Out->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
+	ui->actionReset_zoom->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash));
+
+	/***
+	 * End setup menu actions
+	 * */
 
 	/***
 	 * Restore UI
@@ -149,15 +184,7 @@ void MainWindow::init(){
 	connect(ui->filterBox, SIGNAL(textChanged(QString)),
 			ui->imagesView, SLOT(applyFilter(QString)));
 
-	ui->menuBar->addAction("About",this, SLOT(showAbout()));
-	connect(ui->actionExit, &QAction::triggered, [&](){
-		QApplication::quit();
-	});
-	connect(ui->actionExport_Images, SIGNAL(triggered(bool)),
-			ui->imagesView, SLOT(exportImages()));
 
-	ui->actionExit->setShortcut(QKeySequence::Quit);
-	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
 
 
 #ifdef VALIDATE_LICENSE
@@ -258,4 +285,18 @@ void MainWindow::initActivation(){
 	activationDlg.setModal(true);
 	activationDlg.exec();
 #endif
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event){
+	if(event->type() == QEvent::Wheel ){
+		QWheelEvent *wheel = static_cast<QWheelEvent*>(event);
+		qDebug()<<"Wheel: "<<wheel;
+		qDebug()<<wheel->modifiers();
+		qDebug()<<wheel->delta();
+		if( wheel->modifiers() == Qt::ControlModifier ){
+			ui->imagesView->setZoom(wheel->delta());
+			return true;
+		}
+	}
+	return QObject::eventFilter(obj, event);
 }

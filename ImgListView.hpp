@@ -51,6 +51,7 @@ public slots:
 	void checkSelections(QItemSelection, QItemSelection);
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
+	void setZoom(int zoomDirection);
 
 private:
 	void keyPressEvent(QKeyEvent *event) override;
@@ -99,6 +100,9 @@ private:
 
 	QMutex atomicMutex;
 	QWaitCondition synchronizer;
+
+	int default_icon_size;
+	int default_grid_spacing;
 };
 
 #endif // IMGLISTVIEW_H

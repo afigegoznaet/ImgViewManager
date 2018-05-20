@@ -76,7 +76,7 @@
      <x>0</x>
      <y>0</y>
      <width>740</width>
-     <height>26</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -92,6 +92,10 @@
     </property>
     <addaction name="actionSort_by_full_path"/>
     <addaction name="actionSort_by_file_name"/>
+    <addaction name="separator"/>
+    <addaction name="actionZoom_In"/>
+    <addaction name="actionZoom_Out"/>
+    <addaction name="actionReset_zoom"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -137,6 +141,21 @@
   <action name="actionGird_size">
    <property name="text">
     <string>Gird size</string>
+   </property>
+  </action>
+  <action name="actionZoom_In">
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+  </action>
+  <action name="actionZoom_Out">
+   <property name="text">
+    <string>Zoom Out</string>
+   </property>
+  </action>
+  <action name="actionReset_zoom">
+   <property name="text">
+    <string>Reset zoom</string>
    </property>
   </action>
  </widget>
