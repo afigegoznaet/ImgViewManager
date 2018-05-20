@@ -341,11 +341,18 @@ void ImgListView::prefetchThumbnails(){
 				if(stopPrefetching)
 					break;
 				QPixmap newPixmap(QPixmap::fromImage(newImg));
-				item->setIcon(newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+				QIcon icon;
+				icon.addPixmap(newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+				icon.addPixmap(newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation), QIcon::Selected);
+				item->setIcon(icon);
 				newCache.insert(currentFileName, newPixmap);
 				//thumbnailPainter->resumeDrawing();
 			}else{
-				item->setIcon(tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+				QIcon icon;
+				icon.addPixmap(tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+				icon.addPixmap(tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation), QIcon::Selected);
+				item->setIcon(icon);
+				//item->setIcon();
 				newCache.insert(currentFileName, *tcEntry);
 			}
 
