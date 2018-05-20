@@ -63,7 +63,7 @@ void MainWindow::showAbout(){
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
-	msgBox.setText("Incepted in 2018 in Chisinau, Moldova");
+    msgBox.setText("Marine and Beach 2018 Clipart Collection\n by Clipart Crew Inc, 2018");
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
