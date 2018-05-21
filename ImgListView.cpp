@@ -1,6 +1,7 @@
 #include "ImgListView.hpp"
 #include "MainWindow.hpp"
 #include <algorithm>
+#include <QStandardPaths>
 
 #define SHOWTOTAL
 
@@ -145,7 +146,15 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(sortByPath(bool)), proxy0, SLOT(sortByPath(bool)));
 	connect(this, SIGNAL(sortByPath(bool)), proxy1, SLOT(sortByPath(bool)));
 
-//	recursiveModel->setHeaderData()
+	QSettings settings;
+	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
+
+}
+
+ImgListView::~ImgListView(){
+
+	QSettings settings;
+	settings.setValue("LastDir", exportDir);
 }
 
 void ImgListView::changeDir(QString dir){

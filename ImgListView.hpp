@@ -24,7 +24,7 @@ class ImgListView : public QListView{
 public:
 	explicit ImgListView(QWidget *parent = nullptr);
 	void prepareExit();
-	~ImgListView(){delete exportAction;}
+	~ImgListView();
 
 signals:
 	void callUpdate(const QString&);
