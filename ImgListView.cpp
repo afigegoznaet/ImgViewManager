@@ -571,7 +571,7 @@ void ImgListView::getDirs(const QString &rootDir, QStringList &dirList){
 QString ImgListView::getTotalSize(QStringList& files, int skipFirstNfiles){
 	qint64 totalSize = 0;
 	for(auto fileName : files)
-		if(skipFirstNfiles--)
+		if( skipFirstNfiles > 0 && skipFirstNfiles--)
 			continue;
 		else
 			totalSize += QFile(fileName).size();
@@ -582,11 +582,11 @@ QString ImgListView::getTotalSize(QStringList& files, int skipFirstNfiles){
 	kb = totalSize / 1000.0;
 	QString text;
 	if(gb>.5){
-		text = QString::number(gb)+" GB";
+		text = QString::number(gb, 'f', 1)+" GB";
 	}else if(mb>.5){
-		text = QString::number(mb)+" MB";
+		text = QString::number(mb, 'f', 1)+" MB";
 	}else if(kb>.5){
-		text = QString::number(kb)+" KB";
+		text = QString::number(kb, 'f', 1)+" KB";
 	}else{
 		text = QString::number(totalSize)+" B";
 	}
