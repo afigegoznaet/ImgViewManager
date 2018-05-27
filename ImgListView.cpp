@@ -148,7 +148,15 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
-
+	setStyleSheet("QListView::item { \
+	color: black; \
+	background-color: transparent; \
+	border: 0px; } \
+	QListView::item:selected{ \
+	color: red; \
+	background-color: transparent; \
+	border: 0px; \
+	}");
 }
 
 ImgListView::~ImgListView(){
@@ -239,7 +247,7 @@ void ImgListView::prefetchThumbnails(){
 				return;
 
 			auto item = new QStandardItem();
-			item->setData(QIcon(":/Images/spinner.svg"), Qt::DecorationRole);
+			item->setData(QIcon(":/Images/spinner.png"), Qt::DecorationRole);
 			item->setData(fileName, Qt::DisplayRole);
 			item->setData(fileName, Qt::ToolTipRole);
 
@@ -310,6 +318,13 @@ void ImgListView::prefetchThumbnails(){
 				QSize iconSize(PREVIEW_SIZE,PREVIEW_SIZE);
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
+				if(!reader.canRead()){
+					qDebug()<<"can't Read";
+					item->setData(QIcon(":/Images/bad_img.png"), Qt::DecorationRole);
+					continue;
+					//item->setIcon(icon);
+				}
+
 				auto picSize = reader.size();
 				if(picSize.width()>iconSize.width() || picSize.height()>iconSize.height()){
 					auto picSize = reader.size();

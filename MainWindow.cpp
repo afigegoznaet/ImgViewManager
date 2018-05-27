@@ -64,7 +64,7 @@ void MainWindow::showAbout(){
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
-    msgBox.setText("Marine and Beach 2018 Clipart Collection\n by Clipart Crew Inc, 2018");
+	msgBox.setText("Marine and Beach 2018 Clipart Collection\n by Clipart Crew Inc, 2018");
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
@@ -184,8 +184,17 @@ void MainWindow::init(){
 	connect(ui->filterBox, SIGNAL(textChanged(QString)),
 			ui->imagesView, SLOT(applyFilter(QString)));
 
+	setWindowState(Qt::WindowMaximized);
 
-
+	ui->imagesView->setStyleSheet("QListView::item { \
+									  color: black; \
+									  background-color: transparent; \
+									  border: 0px; } \
+									  QListView::item:selected{ \
+									  color: red; \
+									  background-color: transparent; \
+									  border: 0px; \
+									  }");
 
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey","1234").toByteArray();
@@ -290,9 +299,9 @@ void MainWindow::initActivation(){
 bool MainWindow::eventFilter(QObject *obj, QEvent *event){
 	if(event->type() == QEvent::Wheel ){
 		QWheelEvent *wheel = static_cast<QWheelEvent*>(event);
-		qDebug()<<"Wheel: "<<wheel;
-		qDebug()<<wheel->modifiers();
-		qDebug()<<wheel->delta();
+		//qDebug()<<"Wheel: "<<wheel;
+		//qDebug()<<wheel->modifiers();
+		//qDebug()<<wheel->delta();
 		if( wheel->modifiers() == Qt::ControlModifier ){
 			ui->imagesView->setZoom(wheel->delta());
 			return true;
