@@ -68,6 +68,7 @@ private:
 	QStandardItemModel *newModel;
 	ThumbnailsSorter* oldProxy;
 	QStandardItemModel *oldModel;
+	QStandardItemModel *emptyModel;
 
 	ThumbnailsSorter* proxy0;
 	ThumbnailsSorter* proxy1;

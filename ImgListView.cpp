@@ -15,6 +15,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	//fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
 	recursiveModel1 = new QStandardItemModel(this);
+	emptyModel = new QStandardItemModel(this);
 
 	auto parentWindow = qobject_cast<MainWindow*>(parent);
 	auto parentObject = parent->parent();
@@ -211,13 +212,17 @@ void ImgListView::prefetchThumbnails(){
 	newProxy->setSourceModel(oldModel);
 
 #endif
+	//selectionModel()->clear();
 
-
-	newProxy->blockSignals(false);
-	oldProxy->blockSignals(true);
-
-	newModel->clear();
+	//setModel(emptyModel);
 	oldModel->clear();
+	newProxy->blockSignals(false);
+	//oldProxy->blockSignals(true);
+
+	//QtConcurrent::run([&](){oldModel->clear();});
+	newModel->clear();
+
+
 	//oldModel->clear();
 	//newProxy->clear();
 	emit genericMessage("Scanning "+currentDir);
@@ -314,6 +319,8 @@ void ImgListView::prefetchThumbnails(){
 			auto currentFileName = fileInfo.absoluteFilePath();
 			auto tcEntry = oldCache.constFind(currentFileName);
 			if(tcEntry == oldCache.constEnd()) {
+				if(stopPrefetching)
+					break;
 				emit progressSetVisible(true);
 				QSize iconSize(PREVIEW_SIZE,PREVIEW_SIZE);
 				QSize imgSize(iconSize);
@@ -397,17 +404,21 @@ void ImgListView::prefetchThumbnails(){
 		emit progressSetVisible(false);
 		if(newCache.count() != oldCache.count()){
 			//qDebug()<<"Saving cache to file";
-			if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
-				thumbnailsFile.resize(0);
-				QDataStream out (&thumbnailsFile);
-				out.setVersion(QDataStream::Qt_5_7);
-				QMap<QString, QPixmap> cacheMap;
-				for(auto thumbName : newCache.keys())
-					cacheMap.insert(thumbName.section('/', -1),newCache[thumbName]);
-				out<<cacheMap;
-				thumbnailsFile.flush();
-				thumbnailsFile.close();
-			}
+			QtConcurrent::run([&,fName=std::move(fileName), newCache=std::move(newCache) ](){
+				QFile thumbnailsFile(fName);
+				if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
+					thumbnailsFile.resize(0);
+					QDataStream out (&thumbnailsFile);
+					out.setVersion(QDataStream::Qt_5_7);
+					QMap<QString, QPixmap> cacheMap;
+					for(auto thumbName : newCache.keys())
+						cacheMap.insert(thumbName.section('/', -1),newCache[thumbName]);
+					out<<cacheMap;
+					thumbnailsFile.flush();
+					thumbnailsFile.close();
+				}
+			});
+
 		}
 	}
 	atomicMutex.lock();

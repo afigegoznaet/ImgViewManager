@@ -42,7 +42,7 @@ int main(int argc, char *argv[]){
 		params = QString(argv[1]);
 	MainWindow w(params);
 	QMutex locker;
-	/*
+
 #if !defined(QT_DEBUG) || !defined(_WIN32)
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int alignment, const QColor &color){
 		locker.lock();
@@ -50,13 +50,13 @@ int main(int argc, char *argv[]){
 		locker.unlock();
 	});
 #else
-	*/
+
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& , int , const QColor &){
 		locker.lock();
 		//qDebug()<<message;
 		locker.unlock();
 	});
-//#endif
+#endif
 	w.setWindowTitle(WINDOW_TITLE);
 	w.init();
 

@@ -63,8 +63,8 @@ bool ThumbnailsFileModel::hasPics(const QString& scDir)const{
 		}
 	}
 
-
-	treeMap.insert(scDir, false);
+	if(!stopPrefetching)
+		treeMap.insert(scDir, false);
 	return false;
 }
 
