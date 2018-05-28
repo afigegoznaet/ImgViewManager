@@ -9,6 +9,7 @@ QT       += core gui concurrent widgets
 TARGET = ImgViewManager
 TEMPLATE = app
 
+CONFIG += c++14
 #QMAKE_CXXFLAGS+="-fsanitize=address"
 #QMAKE_CXXFLAGS+="-fsanitize=thread"
 #QMAKE_CFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
