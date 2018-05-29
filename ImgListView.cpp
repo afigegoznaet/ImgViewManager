@@ -219,7 +219,7 @@ void ImgListView::prefetchThumbnails(){
 	//newProxy->blockSignals(false);
 	//oldProxy->blockSignals(true);
 
-	QtConcurrent::run([&](){oldModel->clear();});
+	cleanerProc = QtConcurrent::run([&](){oldModel->clear();});
 	newModel->clear();
 
 
@@ -453,6 +453,7 @@ void ImgListView::prepareExit(){
 	newProxy->clear();
 	newModel->clear();
 	prefetchProc.waitForFinished();
+	cleanerProc.waitForFinished();
 }
 
 void ImgListView::applyFilter(QString inFilter){

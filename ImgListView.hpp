@@ -80,6 +80,7 @@ private:
 	QStringList namedFilters;
 	QStringList sourceExtensons;
 	QFuture<void> prefetchProc;
+	QFuture<void> cleanerProc;
 	std::atomic_bool stopPrefetching;
 	QString filterText;
 	//QMap<QString, QPixmap> thumbnailsCache;

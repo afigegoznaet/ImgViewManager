@@ -41,7 +41,8 @@ QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
 
 bool ThumbnailsFileModel::hasPics(const QString& scDir)const{
 
-
+	if(stopPrefetching)
+		return false;
 	QDir dir(scDir);
 
 	QtConcurrent::run([&,scDir](){
