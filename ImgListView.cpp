@@ -214,12 +214,12 @@ void ImgListView::prefetchThumbnails(){
 #endif
 	//selectionModel()->clear();
 
-	//setModel(emptyModel);
-	oldModel->clear();
-	newProxy->blockSignals(false);
+	setModel(emptyModel);
+	//oldModel->clear();
+	//newProxy->blockSignals(false);
 	//oldProxy->blockSignals(true);
 
-	//QtConcurrent::run([&](){oldModel->clear();});
+	QtConcurrent::run([&](){oldModel->clear();});
 	newModel->clear();
 
 
