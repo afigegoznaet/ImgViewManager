@@ -24,8 +24,10 @@ public:
 	}
 
 protected:
-    void drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
-                     const QRect &rect, const QString &text) const override;
+	void drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
+					 const QRect &rect, const QString &text) const override;
+	void paint(QPainter *painter, const QStyleOptionViewItem &option,
+					const QModelIndex &index) const override;
 signals:
 
 
@@ -34,7 +36,8 @@ private:
 	int flags;
 	std::atomic_bool canDraw;
 	QSize gridSize;
-
+	const QBrush selectionBrush;
+	const QBrush hoverBrush;
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H

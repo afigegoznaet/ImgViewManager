@@ -149,15 +149,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
-	setStyleSheet("QListView::item { \
-	color: black; \
-	background-color: transparent; \
-	border: 0px; } \
-	QListView::item:selected{ \
-	color: red; \
-	background-color: transparent; \
-	border: 0px; \
-	}");
+
 }
 
 ImgListView::~ImgListView(){

@@ -214,8 +214,10 @@ void MainWindow::initTree(){
 
 void MainWindow::initActivation(){
 #ifdef VALIDATE_LICENSE
-	//return;
 
+#ifdef QT_DEBUG
+	return;
+#endif
 	QByteArray publ(pubKey);
 	QByteArray secret(secKey);
 
