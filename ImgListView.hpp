@@ -48,6 +48,7 @@ public slots:
 	void onDoubleClicked();
 	void applyFilter(QString inFilter);
 	void exportImages();
+	void openSource();
 	void checkSelections(QItemSelection, QItemSelection);
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
@@ -92,6 +93,7 @@ private:
 
 	QAction* exportAction;
 	QAction* openAction;
+	QAction* openSourceAction;
 	QAction* fi_selectedFiles;
 	QAction* fi_fileFormat;
 	QAction* fi_bitDepth;

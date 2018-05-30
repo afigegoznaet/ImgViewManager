@@ -33,13 +33,13 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	sourceExtensons << "psd";
 	sourceExtensons << "eps";
-    sourceExtensons << "ai";
-    sourceExtensons << "svg";
+	sourceExtensons << "ai";
+	sourceExtensons << "svg";
 #ifndef _WIN32
 	sourceExtensons << "PSD";
 	sourceExtensons << "EPS";
-    sourceExtensons << "AI";
-    sourceExtensons << "SVG";
+	sourceExtensons << "AI";
+	sourceExtensons << "SVG";
 #endif
 
 	proxy0 = new ThumbnailsSorter(this);
@@ -125,10 +125,17 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	openAction = m_menu.addAction("&Open image",[&](){
 		QDesktopServices::openUrl(QUrl::fromLocalFile( model()->data(indexAt(mapFromGlobal(QCursor::pos()))).toString()  ));
-	}, Qt::Key_O);
-
+	}, QKeySequence(Qt::CTRL + Qt::Key_O));
+	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
-	exportAction = m_menu.addAction("Export &Images",[&](){exportImages();}, Qt::Key_I);
+
+	exportAction = m_menu.addAction("Export &Images", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
+	exportAction->setShortcutContext(Qt::ApplicationShortcut);
+
+	openSourceAction = m_menu.addAction("&Open source", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
+	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
+	//openSourceAction->setDisabled(true);
+
 	m_menu.addSeparator();
 	//m_menu.addSection("File info");
 
@@ -144,6 +151,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	qDebug()<<exportAction->shortcut();
 	addAction(exportAction);
 	addAction(openAction);
+	addAction(openSourceAction);
 
 	thumbnailPainter->setGridSize(gridSize());
 
@@ -531,6 +539,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 		auto selectionsCount = selectedFiels.count();
 		if(selectionsCount < 1)
 			exportAction->setDisabled(true);
+
 		if(pointedIndex.isValid() || selectionsCount > 0){
 			QString text = "";
 			if(selectionsCount > 1 ){
@@ -552,9 +561,11 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 				fi_alpha->setText("");
 #endif
 			}else{
-				if(!pointedIndex.isValid())
+				if(!pointedIndex.isValid()){
 					pointedIndex = selectionModel()->selection().indexes().first();
+				}
 				auto fileName = newModel->itemFromIndex(newProxy->mapToSource(pointedIndex))->data(Qt::DisplayRole).toString();
+				addHiddenFiles(QStringList(fileName));
 				QImageReader reader(fileName);
 				reader.setDecideFormatFromContent(true);
 
@@ -580,6 +591,7 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 		}
 		openAction->setEnabled(true);
 		exportAction->setEnabled(true);
+		openSourceAction->setEnabled(true);
 		return;
 	}
 
@@ -626,6 +638,7 @@ QString ImgListView::getTotalSize(QStringList& files, int skipFirstNfiles){
 }
 
 void ImgListView::addHiddenFiles(QStringList& fileList){
+	auto initialCount = fileList.count();
 	for(auto filePath : fileList){
 		QFileInfo inf(filePath);
 
@@ -637,7 +650,8 @@ void ImgListView::addHiddenFiles(QStringList& fileList){
 				fileList<<newFile;
 		}
 	}
-
+	if(initialCount == fileList.count())
+		openSourceAction->setDisabled(true);
 }
 
 void ImgListView::checkSelections(QItemSelection, QItemSelection){
@@ -701,4 +715,26 @@ void ImgListView::setZoom(int zoomDirection){
 		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
 	}
 	emit callFullUpdate();
+}
+
+void ImgListView::openSource(){
+
+	auto selections = selectionModel()->selectedIndexes();
+	if(selections.size() == 0)
+		selections <<  indexAt(mapFromGlobal(QCursor::pos()));
+	for(auto &index : selections){
+		if( 0 == index.column() ){
+			QString fileName = newModel->itemFromIndex(newProxy->mapToSource(index))
+									 ->data(Qt::DisplayRole).toString();
+			QFileInfo inf(fileName);
+			for( auto newSuffix : sourceExtensons ){
+				QString newFile(fileName);
+				newFile.replace(
+						fileName.lastIndexOf(inf.completeSuffix()), 5, newSuffix);
+				if(QFile::exists(newFile))
+					QDesktopServices::openUrl(QUrl::fromLocalFile( newFile ));
+			}
+
+		}
+	}
 }
