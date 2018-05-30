@@ -204,6 +204,7 @@ void ImgListView::prefetchThumbnails(){
 
 	newModel->blockSignals(true);
 
+	setModel(emptyModel);
 #else
 
 	newProxy = proxy0;
@@ -218,7 +219,6 @@ void ImgListView::prefetchThumbnails(){
 #endif
 	//selectionModel()->clear();
 
-	setModel(emptyModel);
 	//oldModel->clear();
 	//newProxy->blockSignals(false);
 	//oldProxy->blockSignals(true);
@@ -565,7 +565,8 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 					pointedIndex = selectionModel()->selection().indexes().first();
 				}
 				auto fileName = newModel->itemFromIndex(newProxy->mapToSource(pointedIndex))->data(Qt::DisplayRole).toString();
-				addHiddenFiles(QStringList(fileName));
+				auto list = QStringList(fileName);
+				addHiddenFiles(list);
 				QImageReader reader(fileName);
 				reader.setDecideFormatFromContent(true);
 
