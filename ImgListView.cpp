@@ -33,9 +33,13 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	sourceExtensons << "psd";
 	sourceExtensons << "eps";
+    sourceExtensons << "ai";
+    sourceExtensons << "svg";
 #ifndef _WIN32
 	sourceExtensons << "PSD";
 	sourceExtensons << "EPS";
+    sourceExtensons << "AI";
+    sourceExtensons << "SVG";
 #endif
 
 	proxy0 = new ThumbnailsSorter(this);
