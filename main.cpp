@@ -3,9 +3,9 @@
 #include <QSplashScreen>
 #include <QThread>
 
-#define ORG_NAME "Clipart Crew Inc"
-#define APP_NAME "Marine and Beach 2018 Clipart Collection"
-#define WINDOW_TITLE "Marine and Beach 2018"
+#define ORG_NAME "Clipart Crew"
+#define APP_NAME "Beach Clipart 2018"
+#define WINDOW_TITLE "Beach Clipart 2018"
 
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
