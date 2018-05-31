@@ -57,8 +57,8 @@ int main(int argc, char *argv[]){
 		locker.unlock();
 	});
 #endif
-	w.setWindowTitle(WINDOW_TITLE);
 	w.init();
+    w.setWindowTitle(WINDOW_TITLE);
 
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){
