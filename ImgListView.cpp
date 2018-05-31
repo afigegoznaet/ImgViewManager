@@ -129,10 +129,10 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-	exportAction = m_menu.addAction("Export &Images", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
+    exportAction = m_menu.addAction("Export &image", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
-	openSourceAction = m_menu.addAction("&Open source", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
+    openSourceAction = m_menu.addAction("&Open source file", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
 	//openSourceAction->setDisabled(true);
 
