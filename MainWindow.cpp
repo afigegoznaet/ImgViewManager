@@ -1,12 +1,16 @@
 #include "MainWindow.hpp"
 #include "ui_mainwindow.h"
 
-
+static char aboutText[] = "Beach 2018 Collection\n"
+                          "For questions:\n"
+                          "support@clipartcrew.com\n\n"
+                          "Copyright 2018 Clipart Crew.\n"
+                          "Content rights belong to their respective owners.";
 
 
 static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
-static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
-static char licenseExample[] = "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
+//static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
+//static char licenseExample[] = "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
 
@@ -64,7 +68,7 @@ void MainWindow::showAbout(){
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
-	msgBox.setText("Marine and Beach 2018 Clipart Collection\n by Clipart Crew Inc, 2018");
+    msgBox.setText(aboutText);
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
@@ -219,7 +223,7 @@ void MainWindow::initActivation(){
 	return;
 #endif
 	QByteArray publ(pubKey);
-	QByteArray secret(secKey);
+//	QByteArray secret(secKey);
 
 	unsigned char *pk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(publ)).data());
 	unsigned char *enc = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(licenseKey)).data());
