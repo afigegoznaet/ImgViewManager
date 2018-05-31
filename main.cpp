@@ -4,8 +4,8 @@
 #include <QThread>
 
 #define ORG_NAME "Clipart Crew"
-#define APP_NAME "Beach Clipart 2018"
-#define WINDOW_TITLE "Beach Clipart 2018"
+#define APP_NAME "Tropical Clipart 2018"
+#define WINDOW_TITLE APP_NAME
 
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);

@@ -1,7 +1,7 @@
 #include "MainWindow.hpp"
 #include "ui_mainwindow.h"
 
-static char aboutText[] = "Beach 2018 Collection\n"
+static char aboutText[] = "Tropical 2018 Collection\n"
                           "For questions:\n"
                           "support@clipartcrew.com\n\n"
                           "Copyright 2018 Clipart Crew.\n"

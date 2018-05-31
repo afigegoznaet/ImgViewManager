@@ -61,7 +61,7 @@ RESOURCES += \
 CONFIG += SODIUM
 
 win32-* {
-    RC_ICONS = Resources\beach_icon_vOu_icon.ico
+    RC_ICONS = Resources\tropical_paradise_icon_meJ_icon.ico
 }
 
 
