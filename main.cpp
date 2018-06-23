@@ -3,9 +3,9 @@
 #include <QSplashScreen>
 #include <QThread>
 
-#define ORG_NAME "Clipart Crew Inc"
-#define APP_NAME "Marine and Beach 2018 Clipart Collection"
-#define WINDOW_TITLE "Marine and Beach 2018"
+#define ORG_NAME "Clipart Crew"
+#define APP_NAME "Tropical Clipart 2018"
+#define WINDOW_TITLE APP_NAME
 
 int main(int argc, char *argv[]){
 	QApplication a(argc, argv);
@@ -57,8 +57,8 @@ int main(int argc, char *argv[]){
 		locker.unlock();
 	});
 #endif
-	w.setWindowTitle(WINDOW_TITLE);
 	w.init();
+    w.setWindowTitle(WINDOW_TITLE);
 
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){

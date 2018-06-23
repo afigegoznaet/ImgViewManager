@@ -60,12 +60,16 @@ RESOURCES += \
 
 CONFIG += SODIUM
 
+win32-* {
+    RC_ICONS = Resources\tropical_paradise_icon_meJ_icon.ico
+}
+
 
 win32-msvc* {
-		INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
-		QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
-	QMAKE_CXXFLAGS += /MP
-		LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Release\\v141\\dynamic\\libsodium.lib"
+        INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
+        QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
+        QMAKE_CXXFLAGS += /MP
+        LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Release\\v141\\dynamic\\libsodium.lib"
 }
 win32-g++ {
 		INCLUDEPATH += "..\\libsodium-win32\\include"

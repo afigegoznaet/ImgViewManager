@@ -136,10 +136,10 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-	exportAction = m_menu.addAction("Export &Images", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
+    exportAction = m_menu.addAction("Export &image", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
-	openSourceAction = m_menu.addAction("&Open source", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
+    openSourceAction = m_menu.addAction("&Open source file", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
 	//openSourceAction->setDisabled(true);
 
@@ -210,6 +210,7 @@ void ImgListView::prefetchThumbnails(){
 
 	newModel->blockSignals(true);
 
+	setModel(emptyModel);
 #else
 
 	newProxy = proxy0;
@@ -224,7 +225,6 @@ void ImgListView::prefetchThumbnails(){
 #endif
 	//selectionModel()->clear();
 
-	setModel(emptyModel);
 
 	cleanerProc = QtConcurrent::run([&](){
 		oldModel->setRowCount(0);
@@ -587,7 +587,8 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 					pointedIndex = selectionModel()->selection().indexes().first();
 				}
 				auto fileName = newModel->itemFromIndex(newProxy->mapToSource(pointedIndex))->data(Qt::DisplayRole).toString();
-				addHiddenFiles(QStringList(fileName));
+				auto list = QStringList(fileName);
+				addHiddenFiles(list);
 				QImageReader reader(fileName);
 				reader.setDecideFormatFromContent(true);
 
