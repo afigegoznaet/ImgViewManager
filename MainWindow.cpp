@@ -201,6 +201,7 @@ void MainWindow::init(){
 
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&,timer](){
+		timer->moveToThread(timer->thread());
 		initActivation();
 		timer->deleteLater();
 	});

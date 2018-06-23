@@ -90,6 +90,8 @@ private:
 	QMenu m_menu;
 	QString currentDir;
 	QString exportDir;
+	QIcon spinner;
+	QMessageBox mb;
 
 	QAction* exportAction;
 	QAction* openAction;

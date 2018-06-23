@@ -11,7 +11,14 @@
 #define MAX_ZOOM (ZOOM_THRESHOLD*5)
 
 
-ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false){
+ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false),
+	spinner(":/Images/spinner.png"), mb("Out of memory",
+										"The application is unable to allocate anymore memory, try to display less pictures at once",
+										QMessageBox::Critical,
+										QMessageBox::Ok | QMessageBox::NoButton,
+										QMessageBox::NoButton | QMessageBox::NoButton,
+										QMessageBox::NoButton){
+
 	//fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
 	recursiveModel1 = new QStandardItemModel(this);
@@ -148,7 +155,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	//exportAction->setParent(this);
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
-	qDebug()<<exportAction->shortcut();
+	//qDebug()<<exportAction->shortcut();
 	addAction(exportAction);
 	addAction(openAction);
 	addAction(openSourceAction);
@@ -171,7 +178,6 @@ ImgListView::~ImgListView(){
 }
 
 void ImgListView::changeDir(QString dir){
-
 	currentDir = dir;
 
 	stopPrefetching = true;
@@ -219,13 +225,11 @@ void ImgListView::prefetchThumbnails(){
 	//selectionModel()->clear();
 
 	setModel(emptyModel);
-	//oldModel->clear();
-	//newProxy->blockSignals(false);
-	//oldProxy->blockSignals(true);
 
-	cleanerProc = QtConcurrent::run([&](){oldModel->clear();});
-	newModel->clear();
-
+	cleanerProc = QtConcurrent::run([&](){
+		oldModel->setRowCount(0);
+	});
+	newModel->setRowCount(0);
 
 	//oldModel->clear();
 	//newProxy->clear();
@@ -256,13 +260,12 @@ void ImgListView::prefetchThumbnails(){
 				return;
 
 			auto item = new QStandardItem();
-			item->setData(QIcon(":/Images/spinner.png"), Qt::DecorationRole);
+			item->setData(spinner, Qt::DecorationRole);
 			item->setData(fileName, Qt::DisplayRole);
 			item->setData(fileName, Qt::ToolTipRole);
-
-			//item->setText(fileName.split('/').last());
 			items << item;
 			newModel->appendRow(item);
+			//qDebug()<<item->data(Qt::DisplayRole);
 
 		}
 
@@ -322,7 +325,7 @@ void ImgListView::prefetchThumbnails(){
 
 			auto currentFileName = fileInfo.absoluteFilePath();
 			auto tcEntry = oldCache.constFind(currentFileName);
-			if(tcEntry == oldCache.constEnd()) {
+			if(tcEntry == oldCache.constEnd() || tcEntry.value().isNull()) {
 				if(stopPrefetching)
 					break;
 				emit progressSetVisible(true);
@@ -360,7 +363,7 @@ void ImgListView::prefetchThumbnails(){
 				newImg.fill(qRgba(0, 0, 0, 0));
 				QPainter painter(&newImg);
 
-				if(true){
+				if(!newImg.isNull()){
 
 					int hDelta(0), vDelta(0);
 
@@ -379,16 +382,35 @@ void ImgListView::prefetchThumbnails(){
 				if(stopPrefetching)
 					break;
 				QPixmap newPixmap(QPixmap::fromImage(newImg));
+				if(newPixmap.isNull()){
+					stopPrefetching = true;
+					newModel->setRowCount(item->row()-100);
+					newCache.clear();
+					oldCache.clear();
+					mb.exec();
+					break;
+				}
 				QIcon icon;
-				icon.addPixmap(newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-				icon.addPixmap(newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation), QIcon::Selected);
+				auto genPix = newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				//icon.addPixmap(genPix);
+				icon.addPixmap(genPix, QIcon::Selected);
 				item->setIcon(icon);
 				newCache.insert(currentFileName, newPixmap);
 				//thumbnailPainter->resumeDrawing();
 			}else{
 				QIcon icon;
-				icon.addPixmap(tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
-				icon.addPixmap(tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation), QIcon::Selected);
+				auto genPix = tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				if(genPix.isNull()){
+					stopPrefetching = true;
+					newModel->setRowCount(item->row()-100);
+					newProxy->invalidate();
+					newCache.clear();
+					oldCache.clear();
+					mb.exec();
+					break;
+				}
+				//icon.addPixmap();
+				icon.addPixmap(genPix, QIcon::Selected);
 				item->setIcon(icon);
 				//item->setIcon();
 				newCache.insert(currentFileName, *tcEntry);
@@ -426,7 +448,7 @@ void ImgListView::prefetchThumbnails(){
 		}
 	}
 	atomicMutex.lock();
-	oldModel->clear();
+	oldModel->setRowCount(0);
 	atomicMutex.unlock();
 
 	if(!stopPrefetching)
@@ -454,8 +476,8 @@ void ImgListView::onDoubleClicked(){
 void ImgListView::prepareExit(){
 	stopPrefetching = true;
 	thumbnailPainter->stopDrawing();
-	newProxy->clear();
-	newModel->clear();
+	newProxy->invalidate();
+	newModel->setRowCount(0);
 	prefetchProc.waitForFinished();
 	cleanerProc.waitForFinished();
 }
