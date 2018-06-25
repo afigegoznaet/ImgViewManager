@@ -42,6 +42,7 @@ signals:
 	void filterSignal(QString inFilter);
 	void resetViewSignal();
 	void sortByPath(bool flag);
+	void showError();
 
 public slots:
 	void changeDir(QString dir);

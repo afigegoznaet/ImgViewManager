@@ -106,6 +106,8 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 			copyDialog, SLOT(processFileAction(QStringList,QString)));
 	connect(this, SIGNAL(callFullUpdate()), this, SLOT(update()), Qt::QueuedConnection);
 	connect(this, SIGNAL(filterSignal(QString)), this, SLOT(applyFilter(QString)));
+	connect(this, &ImgListView::showError, this, [&](){ moveToThread(
+					this->thread()); mb.exec(); }, Qt::QueuedConnection);
 
 	dirLoadBar = new QProgressBar(this);
 	dirLoadBar->setMinimum(0);
@@ -385,10 +387,13 @@ void ImgListView::prefetchThumbnails(){
 				QPixmap newPixmap(QPixmap::fromImage(newImg));
 				if(newPixmap.isNull()){
 					stopPrefetching = true;
+					cleanerMutex.lock();
 					newModel->setRowCount(item->row()-100);
+					newProxy->invalidate();
 					newCache.clear();
 					oldCache.clear();
-					mb.exec();
+					cleanerMutex.unlock();
+					emit showError();
 					break;
 				}
 				QIcon icon;
@@ -403,11 +408,13 @@ void ImgListView::prefetchThumbnails(){
 				auto genPix = tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
 				if(genPix.isNull()){
 					stopPrefetching = true;
+					cleanerMutex.lock();
 					newModel->setRowCount(item->row()-100);
 					newProxy->invalidate();
 					newCache.clear();
 					oldCache.clear();
-					mb.exec();
+					cleanerMutex.unlock();
+					emit showError();
 					break;
 				}
 				//icon.addPixmap();
@@ -431,7 +438,7 @@ void ImgListView::prefetchThumbnails(){
 		emit progressSetVisible(false);
 		if(newCache.count() != oldCache.count()){
 			//qDebug()<<"Saving cache to file";
-			QtConcurrent::run([&,fName=std::move(fileName), newCache=std::move(newCache) ](){
+			QtConcurrent::run([&, fName=std::move(fileName), newCache=std::move(newCache) ](){
 				QFile thumbnailsFile(fName);
 				if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
 					thumbnailsFile.resize(0);
