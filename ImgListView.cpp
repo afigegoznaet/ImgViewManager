@@ -136,10 +136,10 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-    exportAction = m_menu.addAction("Export &image", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
+	exportAction = m_menu.addAction("Export &image", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
-    openSourceAction = m_menu.addAction("&Open source file", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
+	openSourceAction = m_menu.addAction("&Open source file", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
 	//openSourceAction->setDisabled(true);
 
@@ -227,6 +227,7 @@ void ImgListView::prefetchThumbnails(){
 
 
 	cleanerProc = QtConcurrent::run([&](){
+		QMutexLocker locker(&cleanerMutex);
 		oldModel->setRowCount(0);
 	});
 	newModel->setRowCount(0);
@@ -447,9 +448,9 @@ void ImgListView::prefetchThumbnails(){
 
 		}
 	}
-	atomicMutex.lock();
+	cleanerMutex.lock();
 	oldModel->setRowCount(0);
-	atomicMutex.unlock();
+	cleanerMutex.unlock();
 
 	if(!stopPrefetching)
 		emit callFullUpdate();
@@ -702,7 +703,7 @@ void ImgListView::resetViewSlot(){
 
 void ImgListView::synchronizedUpdate(const QString &fileName){
 
-	atomicMutex.lock();
+	cleanerMutex.lock();
 
 
 	auto items = newModel->findItems(fileName, Qt::MatchFixedString);
@@ -715,7 +716,7 @@ void ImgListView::synchronizedUpdate(const QString &fileName){
 	}
 
 
-	atomicMutex.unlock();
+	cleanerMutex.unlock();
 }
 
 void ImgListView::setZoom(int zoomDirection){

@@ -41,30 +41,29 @@ int main(int argc, char *argv[]){
 	if(argc>1)
 		params = QString(argv[1]);
 	MainWindow w(params);
-	QMutex locker;
+	QMutex splashLocker;
 
 #if !defined(QT_DEBUG) && defined(_WIN32)
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& message, int alignment, const QColor &color){
-		locker.lock();
+		QMutexLocker locker(&splashLocker);
 		splash.showMessage(message, alignment, color);
-		locker.unlock();
 	});
 #else
 
 	QObject::connect(&w, &MainWindow::splashText, [&](const QString& , int , const QColor &){
-		locker.lock();
+		splashLocker.lock();
 		//qDebug()<<message;
-		locker.unlock();
+		splashLocker.unlock();
 	});
 #endif
 	w.init();
-    w.setWindowTitle(WINDOW_TITLE);
+	w.setWindowTitle(WINDOW_TITLE);
 
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){
-		locker.lock();
+		splashLocker.lock();
 		splash.finish(&w); w.show(); timer->deleteLater();
-		locker.unlock();
+		splashLocker.unlock();
 	});
 	timer->start(2000);
 

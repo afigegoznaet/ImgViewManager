@@ -104,7 +104,7 @@ private:
 	QAction* fi_alpha;
 	QList<QStandardItem*> items;
 
-	QMutex atomicMutex;
+	QMutex cleanerMutex;
 	QWaitCondition synchronizer;
 
 	int default_icon_size;
