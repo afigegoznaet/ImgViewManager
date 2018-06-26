@@ -12,7 +12,8 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent) : QItemDelegate(pare
 		parentObject = parentObject->parent();
 	}
 	previewLabel = new QLabel(parentWindow);
-	previewLabel->setStyleSheet("background:transparent; border: solid 10px grey;  background-color: rgba(255, 0, 0,127);");
+	previewLabel->setStyleSheet("background:transparent; border: solid 10px grey;  background-color: rgba(229,243,255,127);");
+	previewLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 }
 
 
@@ -37,8 +38,9 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 		if(option.state & QStyle::State_MouseOver){
 			painter->setRenderHint(QPainter::HighQualityAntialiasing);
 			painter->fillRect(option.rect, hoverBrush);
-			paintPreview();
-			previewLabel->setVisible(true);
+			paintPreview(index);
+			if(enablePreview)
+				previewLabel->setVisible(true);
 		}
 		if(option.state & QStyle::State_Selected){
 			painter->setRenderHint(QPainter::HighQualityAntialiasing);
@@ -52,22 +54,33 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 	QItemDelegate::paint(painter, modOption,index);
 }
 
-void ImgThumbnailDelegate::paintPreview() const{
+void ImgThumbnailDelegate::paintPreview(const QModelIndex &index) const{
 
 	adjustSize();
-	QPixmap pix(500,500);
+
+	auto currentFileName = qobject_cast<ImgListView*>(parent())->getFileName(index);
+	qDebug()<<index;
+	qDebug()<<currentFileName;
+	QImageReader reader(currentFileName);
+	if(!reader.canRead()){
+		qDebug()<<"can't Read";
+		reader.setFileName(":/Images/bad_img.png");
+	}
+
+	auto img = reader.read();
+
+	QPixmap pix(img.size());
 	QPainter painter(&pix);
 
+	if(!img.isNull()){
+		painter.setRenderHint(QPainter::Antialiasing, true);
+		painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+		painter.drawPixmap(0,0, QPixmap::fromImage(img));
+		painter.save();
+		painter.restore();
+		previewLabel->setPixmap(pix.scaled(imgSize.width(), imgSize.height(),Qt::KeepAspectRatio));
+	}
 
-	painter.setRenderHint(QPainter::Antialiasing, true);
-	painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-	//painter.drawPixmap(hDelta, vDelta, img.width(), img.height(), QPixmap::fromImage(img));
-	painter.save();
-	painter.restore();
-
-	painter.save();
-	painter.restore();
-	previewLabel->setPixmap(pix);
 }
 
 void ImgThumbnailDelegate::adjustSize() const{

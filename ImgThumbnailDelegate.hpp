@@ -34,9 +34,13 @@ protected:
 					const QModelIndex &index) const override;
 signals:
 
+public slots:
+	void showPreview(bool flag){
+		enablePreview = flag;
+	}
 
 private:
-	void paintPreview() const;
+	void paintPreview(const QModelIndex &index) const;
 	void adjustSize() const;
 	QLabel* previewLabel;
 	mutable QPoint imgPos ;
@@ -45,6 +49,7 @@ private:
 	QAbstractItemModel* model;
 	int flags;
 	std::atomic_bool canDraw;
+	std::atomic_bool enablePreview;
 	QSize gridSize;
 	const QBrush selectionBrush;
 	const QBrush hoverBrush;

@@ -18,6 +18,8 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 	qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
 	qRegisterMetaType<QAbstractItemModel::LayoutChangeHint >("QAbstractItemModel::LayoutChangeHint");
 	qApp->installEventFilter(this);
+
+	//ui->mainToolBar->hide();
 }
 
 MainWindow::~MainWindow(){
@@ -38,6 +40,8 @@ void MainWindow::saveSettings(){
 	settings.setValue("StartDir", startDir);
 	settings.setValue("sortByPath", ui->actionSort_by_full_path->isChecked());
 	settings.setValue("sortByName", ui->actionSort_by_file_name->isChecked());
+	settings.setValue("scrollWhenLoading", ui->actionScroll_when_loading->isChecked());
+	settings.setValue("showPreview", ui->actionShow_Preview->isChecked());
 	settings.beginGroup("MainWindow");
 	settings.setValue("size", size());
 	settings.setValue("pos", pos());
@@ -113,8 +117,12 @@ void MainWindow::init(){
 	sortingGroup->addAction(ui->actionSort_by_full_path);
 	sortingGroup->addAction(ui->actionSort_by_file_name);
 	connect(ui->actionSort_by_full_path,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(sortByPath(bool)));
+	connect(ui->actionShow_Preview,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(showPreview(bool)));
+	connect(ui->actionScroll_when_loading,SIGNAL(toggled(bool)),ui->imagesView, SLOT(setScrolling(bool)));
 	ui->actionSort_by_full_path->setChecked(settings.value("sortByPath", true).toBool());
 	ui->actionSort_by_file_name->setChecked(settings.value("sortByName", true).toBool());
+	ui->actionScroll_when_loading->setChecked(settings.value("scrollWhenLoading", true).toBool());
+	ui->actionShow_Preview->setChecked(settings.value("showPreview", true).toBool());
 
 	connect(ui->actionZoom_In, &QAction::triggered, [&](){
 		ui->imagesView->setZoom(1);
@@ -199,6 +207,8 @@ void MainWindow::init(){
 									  background-color: transparent; \
 									  border: 0px; \
 									  }");
+									  statusBar()->hide();
+									  ui->centralWidget->setContentsMargins(0,0,0,0);
 
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey","1234").toByteArray();

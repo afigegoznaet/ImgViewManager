@@ -25,6 +25,9 @@ public:
 	explicit ImgListView(QWidget *parent = nullptr);
 	void prepareExit();
 	~ImgListView();
+	const QString getFileName(const QModelIndex &index) const{
+		return newProxy->data(index, Qt::DisplayRole).toString();
+	}
 
 signals:
 	void callUpdate(const QString&);
@@ -42,6 +45,7 @@ signals:
 	void filterSignal(QString inFilter);
 	void resetViewSignal();
 	void sortByPath(bool flag);
+	void showPreview(bool flag);
 	void showError();
 
 public slots:
@@ -54,6 +58,7 @@ public slots:
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
 	void setZoom(int zoomDirection);
+	void setScrolling(bool flag){autoScroll = flag;}
 
 private:
 	void keyPressEvent(QKeyEvent *event) override;
@@ -85,6 +90,7 @@ private:
 	QFuture<void> prefetchProc;
 	QFuture<void> cleanerProc;
 	std::atomic_bool stopPrefetching;
+	std::atomic_bool autoScroll;
 	QString filterText;
 	//QMap<QString, QPixmap> thumbnailsCache;
 	ProgressDialog* copyDialog;

@@ -165,6 +165,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()));
 	connect(this, SIGNAL(sortByPath(bool)), proxy0, SLOT(sortByPath(bool)));
 	connect(this, SIGNAL(sortByPath(bool)), proxy1, SLOT(sortByPath(bool)));
+	connect(this, SIGNAL(showPreview(bool)), thumbnailPainter, SLOT(showPreview(bool)));
 
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
@@ -417,6 +418,9 @@ void ImgListView::prefetchThumbnails(){
 			//QMutex locker;
 			//locker.lock();
 			emit callUpdate( fileInfo.absoluteFilePath() );
+			if(autoScroll)
+				scrollTo(newProxy->mapFromSource(item->index()));
+
 			//synchronizer.wait(&locker);
 
 		}
