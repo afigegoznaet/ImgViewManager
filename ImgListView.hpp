@@ -62,6 +62,7 @@ private:
 	void getDirs(const QString &rootDir, QStringList& dirList);
 	QString getTotalSize(QStringList& files, int skipFirstNfiles=0);
 	void addHiddenFiles(QStringList& fileList);
+	void leaveEvent(QEvent *) override;
 
 	//QFileSystemModel* fsModel;
 	//QSortFilterProxyModel* proxy;

@@ -769,3 +769,7 @@ void ImgListView::openSource(){
 		}
 	}
 }
+
+void ImgListView::leaveEvent(QEvent *){
+	thumbnailPainter->hidePreview();
+}

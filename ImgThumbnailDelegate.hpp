@@ -7,6 +7,7 @@
 #include <QHash>
 #include <atomic>
 #include <QPixmapCache>
+#include <QLabel>
 #include <QStandardItemModel>
 #include <QAbstractItemModel>
 
@@ -22,6 +23,9 @@ public:
 	QSize sizeHint(const QStyleOptionViewItem &, const QModelIndex &) const override{
 		return gridSize;
 	}
+	void hidePreview() const{
+		previewLabel->setVisible(false);
+	}
 
 protected:
 	void drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
@@ -32,6 +36,12 @@ signals:
 
 
 private:
+	void paintPreview() const;
+	void adjustSize() const;
+	QLabel* previewLabel;
+	mutable QPoint imgPos ;
+	mutable QSize imgSize;
+
 	QAbstractItemModel* model;
 	int flags;
 	std::atomic_bool canDraw;

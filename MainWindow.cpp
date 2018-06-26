@@ -2,10 +2,10 @@
 #include "ui_mainwindow.h"
 
 static char aboutText[] = "Tropical 2018 Collection\n"
-                          "For questions:\n"
-                          "support@clipartcrew.com\n\n"
-                          "Copyright 2018 Clipart Crew.\n"
-                          "Content rights belong to their respective owners.";
+						  "For questions:\n"
+						  "support@clipartcrew.com\n\n"
+						  "Copyright 2018 Clipart Crew.\n"
+						  "Content rights belong to their respective owners.";
 
 
 static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
@@ -68,7 +68,7 @@ void MainWindow::showAbout(){
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
-    msgBox.setText(aboutText);
+	msgBox.setText(aboutText);
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
@@ -315,4 +315,16 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event){
 		}
 	}
 	return QObject::eventFilter(obj, event);
+}
+
+QSize MainWindow::getTreeWidgetSize() const{
+	return ui->fileTree->size();
+}
+
+QPoint MainWindow::getTreeWidgetPos() const{
+	qDebug()<<ui->fileTree->frameGeometry();
+	qDebug()<<mapToGlobal( ui->fileTree->pos());
+	qDebug()<<ui->fileTree->mapTo(this, ui->fileTree->pos());
+	//return ui->fileTree->mapFromGlobal(ui->fileTree->pos());
+	return ui->fileTree->mapTo(this, ui->fileTree->pos());
 }
