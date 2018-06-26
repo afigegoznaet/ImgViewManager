@@ -41,6 +41,7 @@ private:
 	mutable QMap<QString,QAtomicInt> treeMap;
 	mutable SystemTreeView* parentView;
 	bool stopPrefetching = false;
+	mutable QMutex scannerMutex;
 };
 
 #endif // THUMBNAILSFILEMODEL_H
