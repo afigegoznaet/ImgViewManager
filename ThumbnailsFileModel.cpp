@@ -49,21 +49,25 @@ bool ThumbnailsFileModel::hasPics(const QString& scDir)const{
 		parentView->splashText(scDir, Qt::AlignCenter, Qt::white);});
 
 	if(hasImages(scDir)){
+		QMutexLocker locker(&scannerMutex);
 		treeMap.insert(dir.absolutePath(), true);
 		return true;
 	}
 
 	if(!(scDir.compare(".") && scDir.compare("..") && scDir.length()))
 		return true;
+
 	auto dirEntries = dir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot | QDir::NoSymLinks);
 
 	for(auto& entry : dirEntries){
 		if(hasPics( entry.absoluteFilePath() )){
+			QMutexLocker locker(&scannerMutex);
 			treeMap.insert(scDir, true);
 			return true;
 		}
 	}
 
+	QMutexLocker locker(&scannerMutex);
 	if(!stopPrefetching)
 		treeMap.insert(scDir, false);
 	return false;

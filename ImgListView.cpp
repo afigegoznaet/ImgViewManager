@@ -62,11 +62,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	setItemDelegate(thumbnailPainter);
 
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR == 7
+
 	setModel(proxy0);
 	thumbnailPainter->setModel(proxy0);
-
-#endif
 
 	//setModel(fsModel);
 	setViewMode(IconMode);
@@ -196,8 +194,6 @@ void ImgListView::changeDir(QString dir){
 
 void ImgListView::prefetchThumbnails(){
 
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR > 7
-
 	if(newProxy == proxy0){
 		newProxy = proxy1;
 		newModel = recursiveModel1;
@@ -210,26 +206,15 @@ void ImgListView::prefetchThumbnails(){
 		oldModel = recursiveModel1;
 	}
 
+	emit callFullUpdate();
+
 	newModel->blockSignals(true);
 
 	setModel(emptyModel);
-#else
-
-	newProxy = proxy0;
-	newModel = recursiveModel0;
-	oldProxy = proxy1;
-	oldModel = recursiveModel1;
-
-	oldModel->blockSignals(true);
-	newModel->blockSignals(true);
-	newProxy->setSourceModel(oldModel);
-
-#endif
-	//selectionModel()->clear();
-
 
 	cleanerProc = QtConcurrent::run([&](){
 		QMutexLocker locker(&cleanerMutex);
+		if(oldModel)
 		oldModel->setRowCount(0);
 	});
 	newModel->setRowCount(0);
@@ -698,11 +683,10 @@ void ImgListView::resetViewSlot(){
 
 	newProxy->setSourceModel(newModel);
 	thumbnailPainter->resumeDrawing();
-#if QT_VERSION_MAJOR == 5 && QT_VERSION_MINOR > 7
+
 	setModel(newProxy);
 	thumbnailPainter->setModel(newProxy);
 	selectionModel()->setModel(newProxy);
-#endif
 
 	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
 			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
