@@ -55,13 +55,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	proxy0->setSourceModel(recursiveModel0);
 	proxy1->setSourceModel(recursiveModel1);
 
-
-
-
 	thumbnailPainter = new ImgThumbnailDelegate( this);
 
 	setItemDelegate(thumbnailPainter);
-
 
 	setModel(proxy0);
 	thumbnailPainter->setModel(proxy0);
@@ -84,8 +80,6 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	qDebug()<<"Icon size: "<<iconSize();
 	qDebug()<<"Grid size: "<<gridSize();
 	setLayoutMode (QListView::Batched);
-
-
 
 	setUniformItemSizes(true);
 	connect(this, SIGNAL(callUpdate(const QString&)),
@@ -169,7 +163,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
-
+	setMouseTracking(true);
 }
 
 ImgListView::~ImgListView(){

@@ -198,17 +198,8 @@ void MainWindow::init(){
 
 	setWindowState(Qt::WindowMaximized);
 
-	ui->imagesView->setStyleSheet("QListView::item { \
-									  color: black; \
-									  background-color: transparent; \
-									  border: 0px; } \
-									  QListView::item:selected{ \
-									  color: red; \
-									  background-color: transparent; \
-									  border: 0px; \
-									  }");
-									  statusBar()->hide();
-									  ui->centralWidget->setContentsMargins(0,0,0,0);
+	statusBar()->hide();
+	ui->centralWidget->setContentsMargins(0,0,0,0);
 
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey","1234").toByteArray();
@@ -219,7 +210,7 @@ void MainWindow::init(){
 		initActivation();
 		timer->deleteLater();
 	});
-	timer->start(10000);
+	timer->start(10000000);
 #endif
 }
 

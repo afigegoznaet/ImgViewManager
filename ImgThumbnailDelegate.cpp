@@ -36,6 +36,7 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 	if(index.isValid()){
 		if(option.state & QStyle::State_MouseOver){
+			qDebug()<<"HOVER!!!!";
 			painter->setRenderHint(QPainter::HighQualityAntialiasing);
 			painter->fillRect(option.rect, hoverBrush);
 			paintPreview(index);
@@ -47,7 +48,6 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 			painter->fillRect(option.rect, selectionBrush);
 			modOption.palette.setColor(QPalette::HighlightedText, option.palette.text().color());
 			modOption.palette.setColor(QPalette::Highlight, selectionBrush.color());
-			previewLabel->setVisible(false);
 		}
 	}
 
