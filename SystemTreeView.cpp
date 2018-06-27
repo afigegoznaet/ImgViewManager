@@ -33,7 +33,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	fsModel->setDynamicSortFilter(false);
 	setModel(fsModel);
 	setRootIndex(fsModel->mapFromSource(rootIndex));
-
+	setMouseTracking(true);
 
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
