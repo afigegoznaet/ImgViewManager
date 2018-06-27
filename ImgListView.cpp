@@ -164,6 +164,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
 	setMouseTracking(true);
+	autoScroll = false;
 }
 
 ImgListView::~ImgListView(){

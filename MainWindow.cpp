@@ -200,6 +200,7 @@ void MainWindow::init(){
 
 	statusBar()->hide();
 	ui->centralWidget->setContentsMargins(0,0,0,0);
+	ui->fileTree->setMouseTracking(true);
 
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey","1234").toByteArray();

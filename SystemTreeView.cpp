@@ -35,6 +35,14 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	setRootIndex(fsModel->mapFromSource(rootIndex));
 	setMouseTracking(true);
 
+	setStyleSheet("QTreeView {show-decoration-selected: 0;}\
+				  QTreeView::item:hover { background: #e5f3ff; } QTreeView::item:selected { background: #cce8ff; }\
+				  QTreeView::item:selected:active { background: #cce8ff; }\
+				  QTreeView::item:selected:!active { background: #cce8ff; }\
+				  QTreeView::branch {\
+						  background: palette(base);\
+				  }");
+
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
 
