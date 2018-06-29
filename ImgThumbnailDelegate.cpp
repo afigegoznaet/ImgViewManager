@@ -36,7 +36,6 @@ void ImgThumbnailDelegate::paint(QPainter *painter, const QStyleOptionViewItem &
 
 	if(index.isValid()){
 		if(option.state & QStyle::State_MouseOver){
-			qDebug()<<"HOVER!!!!";
 			painter->setRenderHint(QPainter::HighQualityAntialiasing);
 			painter->fillRect(option.rect, hoverBrush);
 			paintPreview(index);

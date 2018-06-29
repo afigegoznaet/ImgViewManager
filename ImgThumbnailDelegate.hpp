@@ -36,6 +36,7 @@ signals:
 
 public slots:
 	void showPreview(bool flag){
+		qDebug()<<"ShowPreview: "<<flag;
 		enablePreview = flag;
 	}
 
@@ -49,7 +50,7 @@ private:
 	QAbstractItemModel* model;
 	int flags;
 	std::atomic_bool canDraw;
-	std::atomic_bool enablePreview;
+	std::atomic_bool enablePreview = false;
 	QSize gridSize;
 	const QBrush selectionBrush;
 	const QBrush hoverBrush;
