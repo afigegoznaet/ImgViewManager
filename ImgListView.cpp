@@ -413,9 +413,12 @@ void ImgListView::prefetchThumbnails(){
 			//QMutex locker;
 			//locker.lock();
 			emit callUpdate( fileInfo.absoluteFilePath() );
-			auto& theIndex = newProxy->mapFromSource(item->index());
-			if(autoScroll)
+
+			if(autoScroll){
+				auto& theIndex = newProxy->mapFromSource(item->index());
 				scrollTo(newProxy->index(theIndex.row(), 0));
+			}
+
 
 			//synchronizer.wait(&locker);
 
