@@ -35,10 +35,7 @@ protected:
 signals:
 
 public slots:
-	void showPreview(bool flag){
-		qDebug()<<"ShowPreview: "<<flag;
-		enablePreview = flag;
-	}
+	void showPreview(bool flag){ enablePreview = flag; }
 
 private:
 	void paintPreview(const QModelIndex &index) const;

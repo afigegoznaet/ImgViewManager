@@ -214,7 +214,6 @@ void MainWindow::init(){
 	});
 	timer->start(10000000);
 #endif
-		ui->actionShow_Preview->setChecked(settings.value("showPreview", true).toBool());
 }
 
 void MainWindow::initTree(){
