@@ -22,7 +22,6 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	//fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
 	recursiveModel1 = new QStandardItemModel(this);
-	emptyModel = new QStandardItemModel(this);
 
 	auto parentWindow = qobject_cast<MainWindow*>(parent);
 	auto parentObject = parent->parent();
@@ -159,12 +158,18 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()));
 	connect(this, SIGNAL(sortByPath(bool)), proxy0, SLOT(sortByPath(bool)));
 	connect(this, SIGNAL(sortByPath(bool)), proxy1, SLOT(sortByPath(bool)));
+	qDebug()<<"setup showpreview in viewer";
 	connect(this, SIGNAL(showPreview(bool)), thumbnailPainter, SLOT(showPreview(bool)));
 
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
 	setMouseTracking(true);
 	autoScroll = false;
+
+	connect(this, &ImgListView::scrollToIndex, this, [&](const QModelIndex idx){
+		moveToThread(this->thread());
+		scrollTo(newProxy->index(idx.row(), 0));
+	}, Qt::QueuedConnection);
 }
 
 ImgListView::~ImgListView(){
@@ -206,7 +211,7 @@ void ImgListView::prefetchThumbnails(){
 
 	newModel->blockSignals(true);
 
-	setModel(emptyModel);
+	//setModel(emptyModel);
 
 	cleanerProc = QtConcurrent::run([&](){
 		QMutexLocker locker(&cleanerMutex);
@@ -413,8 +418,12 @@ void ImgListView::prefetchThumbnails(){
 			//QMutex locker;
 			//locker.lock();
 			emit callUpdate( fileInfo.absoluteFilePath() );
-			if(autoScroll)
-				scrollTo(newProxy->mapFromSource(item->index()));
+
+			if(autoScroll){
+				auto& theIndex = newProxy->mapFromSource(item->index());
+				emit scrollToIndex(theIndex);
+			}
+
 
 			//synchronizer.wait(&locker);
 

@@ -34,7 +34,6 @@ QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const{
 				->index(path, 0);
 	if(!idx.isValid())
 		return QModelIndex();
-	qDebug()<<"Idx is valid";
 	return mapFromSource(idx);
 }
 
@@ -127,7 +126,7 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 
 		QDir dir(startDir);
 		while(dir.cdUp()){
-			qDebug()<<"Curr dir: "<<dir.absolutePath();
+			//qDebug()<<"Curr dir: "<<dir.absolutePath();
 			QModelIndex source_index = fsModel->index(dir.absolutePath());
 			for(int i=0;i<fsModel->rowCount(source_index);i++)
 				filterAcceptsRow(i,	source_index);

@@ -116,6 +116,7 @@ void MainWindow::init(){
 	sortingGroup = new QActionGroup(this);
 	sortingGroup->addAction(ui->actionSort_by_full_path);
 	sortingGroup->addAction(ui->actionSort_by_file_name);
+	qDebug()<<"setup showpreview in Main";
 	connect(ui->actionSort_by_full_path,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(sortByPath(bool)));
 	connect(ui->actionShow_Preview,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(showPreview(bool)));
 	connect(ui->actionScroll_when_loading,SIGNAL(toggled(bool)),ui->imagesView, SLOT(setScrolling(bool)));
