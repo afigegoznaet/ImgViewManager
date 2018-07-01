@@ -6,7 +6,7 @@
 
 QT       += core gui concurrent widgets
 
-TARGET = ImgViewManager
+TARGET = ivm
 TEMPLATE = app
 
 CONFIG += c++14
@@ -59,6 +59,15 @@ RESOURCES += \
 
 
 CONFIG += SODIUM
+
+
+linux {
+        target.path = /usr/local/bin
+        desktop.path = /usr/share/applications
+        desktop.files += ivm.desktop
+        INSTALLS += target desktop
+}
+
 
 win32-* {
 	RC_ICONS = Resources\tropical_paradise_icon_meJ_icon.ico
