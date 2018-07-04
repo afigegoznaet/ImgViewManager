@@ -420,7 +420,7 @@ void ImgListView::prefetchThumbnails(){
 			emit callUpdate( fileInfo.absoluteFilePath() );
 
 			if(autoScroll){
-				auto& theIndex = newProxy->mapFromSource(item->index());
+				auto theIndex = newProxy->mapFromSource(item->index());
 				emit scrollToIndex(theIndex);
 			}
 

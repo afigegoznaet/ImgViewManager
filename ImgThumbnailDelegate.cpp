@@ -2,7 +2,7 @@
 #include "ImgListView.hpp"
 #include "MainWindow.hpp"
 ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent) : QItemDelegate(parent),
-	canDraw(true), selectionBrush(QColor(204,232,255)), hoverBrush(QColor(229,243,255)){
+	canDraw(false), enablePreview(false), selectionBrush(QColor(204,232,255)), hoverBrush(QColor(229,243,255)){
 
 	flags = Qt::AlignHCenter | Qt::AlignBottom;
 	auto parentWindow = qobject_cast<MainWindow*>(parent);

@@ -47,7 +47,7 @@ private:
 	QAbstractItemModel* model;
 	int flags;
 	std::atomic_bool canDraw;
-	std::atomic_bool enablePreview = false;
+	std::atomic_bool enablePreview;
 	QSize gridSize;
 	const QBrush selectionBrush;
 	const QBrush hoverBrush;

@@ -16,6 +16,7 @@ CONFIG += c++14
 #QMAKE_LFLAGS+="-fsanitize=thread -shared"
 #QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
 #QMAKE_LFLAGS+=" -fsanitize=address"
+QMAKE_CXXFLAGS+="-fno-exceptions"
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
