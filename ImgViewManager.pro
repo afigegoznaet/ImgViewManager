@@ -10,13 +10,6 @@ TARGET = ivm
 TEMPLATE = app
 
 CONFIG += c++14
-#QMAKE_CXXFLAGS+="-fsanitize=address"
-#QMAKE_CXXFLAGS+="-fsanitize=thread"
-#QMAKE_CFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
-#QMAKE_LFLAGS+="-fsanitize=thread -shared"
-#QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
-#QMAKE_LFLAGS+=" -fsanitize=address"
-QMAKE_CXXFLAGS+="-fno-exceptions"
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -63,10 +56,17 @@ CONFIG += SODIUM
 
 
 linux {
-        target.path = /usr/local/bin
-        desktop.path = /usr/share/applications
-        desktop.files += ivm.desktop
-        INSTALLS += target desktop
+	target.path = /usr/local/bin
+	desktop.path = /usr/share/applications
+	desktop.files += ivm.desktop
+	INSTALLS += target desktop
+	#QMAKE_CXXFLAGS+="-fsanitize=address"
+	#QMAKE_CXXFLAGS+="-fsanitize=thread"
+	#QMAKE_CFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
+	#QMAKE_LFLAGS+="-fsanitize=thread -shared"
+	#QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
+	#QMAKE_LFLAGS+=" -fsanitize=address"
+	QMAKE_CXXFLAGS+="-fno-exceptions"
 }
 
 
@@ -79,7 +79,7 @@ win32-msvc* {
 		INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
 		QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 		QMAKE_CXXFLAGS += /MP
-		LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Release\\v141\\dynamic\\libsodium.lib"
+		LIBS += "..\\libsodium-1.0.16-msvc\\x64\\Release\\v141\\dynamic\\libsodium.lib"
 }
 win32-g++ {
 		INCLUDEPATH += "..\\libsodium-win32\\include"
