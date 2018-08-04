@@ -2,7 +2,10 @@
 #include "ImgListView.hpp"
 #include "MainWindow.hpp"
 ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent) : QItemDelegate(parent),
-	canDraw(false), enablePreview(false), selectionBrush(QColor(204,232,255)), hoverBrush(QColor(229,243,255)){
+	canDraw(false),
+	enablePreview(false),
+	selectionBrush(QColor(204,232,255)),
+	hoverBrush(QColor(229,243,255)){
 
 	flags = Qt::AlignHCenter | Qt::AlignBottom;
 	auto parentWindow = qobject_cast<MainWindow*>(parent);
@@ -14,6 +17,7 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QObject* parent) : QItemDelegate(pare
 	previewLabel = new QLabel(parentWindow);
 	previewLabel->setStyleSheet("background:transparent; border: solid 10px grey;  background-color: rgba(229,243,255,127);");
 	previewLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+	qDebug()<<"Preview enabled: "<<enablePreview;
 }
 
 
@@ -72,12 +76,13 @@ void ImgThumbnailDelegate::paintPreview(const QModelIndex &index) const{
 	QPainter painter(&pix);
 
 	if(!img.isNull()){
-		painter.setRenderHint(QPainter::Antialiasing, true);
-		painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+		painter.setRenderHints(QPainter::Antialiasing | QPainter::SmoothPixmapTransform);
 		painter.drawPixmap(0,0, QPixmap::fromImage(img));
 		painter.save();
 		painter.restore();
-		previewLabel->setPixmap(pix.scaled(imgSize.width(), imgSize.height(),Qt::KeepAspectRatio));
+		previewLabel->setPixmap(
+					pix.scaled(imgSize.width(), imgSize.height(), Qt::KeepAspectRatio,
+							   hiQPreview?Qt::SmoothTransformation:Qt::FastTransformation));
 	}
 
 }

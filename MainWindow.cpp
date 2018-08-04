@@ -42,6 +42,7 @@ void MainWindow::saveSettings(){
 	settings.setValue("sortByName", ui->actionSort_by_file_name->isChecked());
 	settings.setValue("scrollWhenLoading", ui->actionScroll_when_loading->isChecked());
 	settings.setValue("showPreview", ui->actionShow_Preview->isChecked());
+	settings.setValue("HiQPreview", ui->actionHigh_Quality_Preview->isChecked());
 	settings.beginGroup("MainWindow");
 	settings.setValue("size", size());
 	settings.setValue("pos", pos());
@@ -117,12 +118,25 @@ void MainWindow::init(){
 	sortingGroup->addAction(ui->actionSort_by_full_path);
 	sortingGroup->addAction(ui->actionSort_by_file_name);
 	qDebug()<<"setup showpreview in Main";
-	connect(ui->actionSort_by_full_path,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(sortByPath(bool)));
-	connect(ui->actionShow_Preview,SIGNAL(toggled(bool)),ui->imagesView, SIGNAL(showPreview(bool)));
-	connect(ui->actionScroll_when_loading,SIGNAL(toggled(bool)),ui->imagesView, SLOT(setScrolling(bool)));
+	connect(ui->actionSort_by_full_path,SIGNAL(toggled(bool)),
+			ui->imagesView, SIGNAL(sortByPath(bool)));
+	connect(ui->actionShow_Preview,SIGNAL(toggled(bool)),
+			ui->imagesView, SIGNAL(showPreview(bool)));
+	connect(ui->actionHigh_Quality_Preview,SIGNAL(toggled(bool)),
+			ui->imagesView, SIGNAL(enableHiQPreview(bool)));
+	connect(ui->actionScroll_when_loading,SIGNAL(toggled(bool)),
+			ui->imagesView, SLOT(setScrolling(bool)));
 	ui->actionSort_by_full_path->setChecked(settings.value("sortByPath", true).toBool());
 	ui->actionSort_by_file_name->setChecked(settings.value("sortByName", true).toBool());
 	ui->actionScroll_when_loading->setChecked(settings.value("scrollWhenLoading", true).toBool());
+
+	ui->actionHigh_Quality_Preview->setChecked(settings.value("HiQPreview", true).toBool());
+	ui->actionHigh_Quality_Preview->setEnabled(false);
+	ui->actionShow_Preview->setChecked(false);
+	connect(ui->actionShow_Preview,&QAction::toggled,[&](bool checked){
+		ui->actionHigh_Quality_Preview->setEnabled(checked);
+	});
+
 	ui->actionShow_Preview->setChecked(settings.value("showPreview", true).toBool());
 
 	connect(ui->actionZoom_In, &QAction::triggered, [&](){

@@ -36,6 +36,7 @@ signals:
 
 public slots:
 	void showPreview(bool flag){ enablePreview = flag; }
+	void enableHiQPreview(bool flag){ hiQPreview = flag; }
 
 private:
 	void paintPreview(const QModelIndex &index) const;
@@ -48,6 +49,7 @@ private:
 	int flags;
 	std::atomic_bool canDraw;
 	std::atomic_bool enablePreview;
+	std::atomic_bool hiQPreview;
 	QSize gridSize;
 	const QBrush selectionBrush;
 	const QBrush hoverBrush;

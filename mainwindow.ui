@@ -94,6 +94,7 @@
     <addaction name="actionSort_by_file_name"/>
     <addaction name="actionScroll_when_loading"/>
     <addaction name="actionShow_Preview"/>
+    <addaction name="actionHigh_Quality_Preview"/>
     <addaction name="separator"/>
     <addaction name="actionZoom_In"/>
     <addaction name="actionZoom_Out"/>
@@ -174,6 +175,14 @@
    </property>
    <property name="text">
     <string>Show Preview</string>
+   </property>
+  </action>
+  <action name="actionHigh_Quality_Preview">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>High Quality Preview</string>
    </property>
   </action>
  </widget>

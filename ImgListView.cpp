@@ -160,6 +160,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(sortByPath(bool)), proxy1, SLOT(sortByPath(bool)));
 	qDebug()<<"setup showpreview in viewer";
 	connect(this, SIGNAL(showPreview(bool)), thumbnailPainter, SLOT(showPreview(bool)));
+	connect(this, SIGNAL(enableHiQPreview(bool)), thumbnailPainter, SLOT(enableHiQPreview(bool)));
 
 	QSettings settings;
 	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
@@ -522,8 +523,7 @@ void ImgListView::exportImages(){
 	selector.setFileMode(QFileDialog::DirectoryOnly);
 	if (!selector.exec())
 		return;
-	else
-		selector.selectedFiles();
+
 
 	exportDir = selector.selectedFiles().first();
 

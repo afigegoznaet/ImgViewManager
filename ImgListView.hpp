@@ -46,6 +46,7 @@ signals:
 	void resetViewSignal();
 	void sortByPath(bool flag);
 	void showPreview(bool flag);
+	void enableHiQPreview(bool flag);
 	void showError();
 	void scrollToIndex(const QModelIndex idx);
 
