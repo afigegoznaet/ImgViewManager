@@ -1,5 +1,6 @@
 #include "ThumbnailsFileModel.hpp"
 #include "SystemTreeView.hpp"
+#include <utility>
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	: QSortFilterProxyModel(parent){
@@ -136,6 +137,19 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 	});
 }
 
+
+QFuture<void> ThumbnailsFileModel::scanTreeFully( QString startDir){
+	return QtConcurrent::run([&, startDir](){
+		this->thread()->setPriority(QThread::LowestPriority);
+		QDir currentDir(startDir);
+		QVector<QFuture<void>> scanner;
+		for(const auto& dir : currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)){
+			scanner.append(std::move(scanTreeFully(dir.absoluteFilePath())));
+			scanRoot(dir.absoluteFilePath());
+		}
+	});
+}
+
 bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
 	QDir dir = fileInfo(parent).absoluteFilePath();
 	return dir.entryList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::NoSymLinks).count();
@@ -149,7 +163,7 @@ void ThumbnailsFileModel::scanRoot(QString root){
 	treeMap[root] = hasPics(root);
 	for(QFileInfo &item : dir.entryInfoList(QDir::NoDotAndDotDot | QDir::AllDirs | QDir::NoSymLinks))
 		scanRoot(item.absoluteFilePath());
-
+	//connect(treeScanner)
 }
 
 

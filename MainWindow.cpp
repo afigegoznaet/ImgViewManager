@@ -1,5 +1,9 @@
 #include "MainWindow.hpp"
 #include "ui_mainwindow.h"
+#ifdef _WIN32
+#include <QtWinExtras/QWinTaskbarButton>
+#include <QtWinExtras/QWinTaskbarProgress>
+#endif
 
 static char aboutText[] = "Tropical 2018 Collection\n"
 						  "For questions:\n"
@@ -12,7 +16,11 @@ static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Y
 //static char secKey[] = "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
 //static char licenseExample[] = "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent) :
-	QMainWindow(parent), ui(new Ui::MainWindow), args(argv){
+	QMainWindow(parent),
+	ui(new Ui::MainWindow),
+	args(argv),
+	progress(nullptr)
+{
 
 	qRegisterMetaType<QVector<int> >("QVector<int>");
 	qRegisterMetaType<QList<QPersistentModelIndex>>("QList<QPersistentModelIndex>");
@@ -23,20 +31,20 @@ MainWindow::MainWindow(QString argv, QWidget *parent) :
 }
 
 MainWindow::~MainWindow(){
-	qDebug()<<"exiting from main";
+	//qDebug()<<"exiting from main";
 
 	ui->imagesView->prepareExit();
 	ui->fileTree->prepareExit();
 	saveSettings();
 	delete ui;
 
-	qDebug()<<"ui deleted";
+	//qDebug()<<"ui deleted";
 }
 
 void MainWindow::saveSettings(){
 	QSettings settings;
 	startDir = ui->fileTree->getCurrentDir();
-	qDebug()<<"Save: "<<startDir;
+	//qDebug()<<"Save: "<<startDir;
 	settings.setValue("StartDir", startDir);
 	settings.setValue("sortByPath", ui->actionSort_by_full_path->isChecked());
 	settings.setValue("sortByName", ui->actionSort_by_file_name->isChecked());
@@ -85,7 +93,7 @@ void MainWindow::init(){
 	 * */
 	QSettings settings;
 	startDir = settings.value("StartDir",QDir::rootPath()).toString();
-	qDebug()<<"Read: "<<startDir;
+	//qDebug()<<"Read: "<<startDir;
 
 	rootDir = settings.value("RootDir",QDir::rootPath()).toString();
 
@@ -97,13 +105,13 @@ void MainWindow::init(){
 			QDir dir(argList.last());
 			if( 1 < argList.length() && 0 == argList.first().compare("--setrootfolder") && dir.exists())
 				rootDir = dir.absolutePath();
-			qDebug()<<QDir::rootPath();
-			qDebug()<<argList.last();
-			qDebug()<<"Root: "<<rootDir;
+			//qDebug()<<QDir::rootPath();
+			//qDebug()<<argList.last();
+			//qDebug()<<"Root: "<<rootDir;
 			settings.setValue("RootDir", rootDir);
 		}
 	}
-	qDebug()<<"Root: "<<rootDir;
+	//qDebug()<<"Root: "<<rootDir;
 
 	/***
 	 * End read folders
@@ -196,7 +204,13 @@ void MainWindow::init(){
 
 	connect(ui->imagesView, SIGNAL(genericMessage(QString)),
 			this, SLOT(setScanDirMsg(QString)), Qt::QueuedConnection);
+#ifdef _WIN32
+	connect(ui->imagesView, SIGNAL(taskBarSetMaximum(int)),
+			this, SLOT(setProgressMax(int)));
 
+	connect(ui->imagesView, SIGNAL(taskBarSetValue(int)),
+			this, SLOT(setProgressValue(int)));
+#endif
 	connect(ui->fileTree, SIGNAL(changeDir(QString)),
 			ui->imagesView, SLOT(changeDir(QString)));
 
@@ -292,7 +306,7 @@ void MainWindow::initActivation(){
 	 */
 
 	connect(buttonBox, &QDialogButtonBox::accepted, [&](){
-		qDebug()<<m_lineEdit->toPlainText();
+		//qDebug()<<m_lineEdit->toPlainText();
 		licenseKey = m_lineEdit->toPlainText().toLatin1();
 		unsigned char *enc = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(licenseKey)).data());
 		unsigned char *pk = reinterpret_cast<unsigned char*>((QByteArray::fromBase64(publ)).data());
@@ -345,3 +359,31 @@ QPoint MainWindow::getTreeWidgetPos() const{
 	//return ui->fileTree->mapFromGlobal(ui->fileTree->pos());
 	return ui->fileTree->mapTo(this, ui->fileTree->pos());
 }
+#ifdef _WIN32
+void MainWindow::initProgressTaskbar(){
+	QWinTaskbarButton *button = new QWinTaskbarButton(this);
+	button->moveToThread(this->thread());
+	button->setWindow(windowHandle());
+	//button->setOverlayIcon(QIcon(":/loading.png"));
+
+	progress = button->progress();
+	progress->setVisible(true);
+	progress->setMinimum(0);
+	progress->setMaximum(cachedProgress);
+}
+
+void MainWindow::setProgressMax(int max){
+	if(!progress)
+		cachedProgress = max;
+	else
+		progress->setMaximum(max);
+}
+void MainWindow::setProgressValue(int value){
+	if(!progress)
+		return;
+	if( progress->maximum() == value )
+		progress->setValue(0);
+	else
+		progress->setValue(value);
+}
+#endif

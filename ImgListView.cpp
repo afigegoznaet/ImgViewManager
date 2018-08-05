@@ -30,7 +30,7 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 		parentObject = parentObject->parent();
 	}
 
-	qDebug()<<parentWindow->getRoot();
+	//qDebug()<<parentWindow->getRoot();
 
 	namedFilters << "*.png";
 	namedFilters << "*.jpeg";
@@ -67,17 +67,18 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 
 	QScreen *screen = QGuiApplication::primaryScreen();
 	QRect screenGeometry = screen->geometry();
-	qDebug()<<screenGeometry;
-	qDebug()<<screen->physicalSize();
-	int height = screenGeometry.height();
+	//qDebug()<<screenGeometry;
+	//qDebug()<<screen->physicalSize();
+	//int height = screenGeometry.height();
 	int width = screenGeometry.width();
-	qDebug()<<height;
-	qDebug()<<width;
-	default_icon_size = std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE);
+	//qDebug()<<height;
+	//qDebug()<<width;
+	default_icon_size = static_cast<int>(
+				std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE));
 	setIconSize(QSize(default_icon_size,default_icon_size));
 	setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
-	qDebug()<<"Icon size: "<<iconSize();
-	qDebug()<<"Grid size: "<<gridSize();
+	//qDebug()<<"Icon size: "<<iconSize();
+	//qDebug()<<"Grid size: "<<gridSize();
 	setLayoutMode (QListView::Batched);
 
 	setUniformItemSizes(true);
@@ -272,7 +273,12 @@ void ImgListView::prefetchThumbnails(){
 
 	emit filterSignal(filterText);
 
+	int dirCounter = 0;
+	emit taskBarSetMaximum(dirs.size());
+
+
 	for(auto dirEntry : dirs){
+		emit taskBarSetValue(dirCounter++);
 		if(stopPrefetching)
 			break;
 		QDir dir(dirEntry);
@@ -323,7 +329,7 @@ void ImgListView::prefetchThumbnails(){
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
 				if(!reader.canRead()){
-					qDebug()<<"can't Read";
+					qDebug()<<"can't Read: "<<currentFileName;
 					item->setData(QIcon(":/Images/bad_img.png"), Qt::DecorationRole);
 					continue;
 					//item->setIcon(icon);
@@ -334,9 +340,9 @@ void ImgListView::prefetchThumbnails(){
 					auto picSize = reader.size();
 					double coef = picSize.height()*1.0/picSize.width();
 					if(coef>1)
-						imgSize.setWidth(iconSize.width()/coef);
+						imgSize.setWidth(static_cast<int>(iconSize.width()/coef));
 					else
-						imgSize.setHeight(iconSize.height()*coef);
+						imgSize.setHeight(static_cast<int>(iconSize.height()*coef));
 					reader.setScaledSize(imgSize);
 				}
 
@@ -449,6 +455,9 @@ void ImgListView::prefetchThumbnails(){
 
 		}
 	}
+
+	emit taskBarSetValue(0);
+
 	cleanerMutex.lock();
 	oldModel->setRowCount(0);
 	cleanerMutex.unlock();
@@ -503,7 +512,7 @@ void ImgListView::applyFilter(QString inFilter){
 
 
 void ImgListView::exportImages(){
-	qDebug()<<"export called";
+	//qDebug()<<"export called";
 	auto selections = selectionModel()->selectedIndexes();
 	if( 0 == selections.count() ){
 		QMessageBox msgBox;
@@ -644,7 +653,7 @@ QString ImgListView::getTotalSize(QStringList& files, int skipFirstNfiles){
 		else
 			totalSize += QFile(fileName).size();
 
-	float gb=0, mb=0, kb=0;
+	double gb=0, mb=0, kb=0;
 	gb = totalSize / 1000000000.0;
 	mb = totalSize / 1000000.0;
 	kb = totalSize / 1000.0;

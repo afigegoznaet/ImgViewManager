@@ -40,6 +40,8 @@ signals:
 	void progressSetVisible(bool flag);
 	void progressSetMaximum(int value);
 	void progressSetValue(int value);
+	void taskBarSetMaximum(int value);
+	void taskBarSetValue(int value);
 	void newRowsInserted(const QModelIndex &parent, int first, int last);
 	void rowsAboutToBeInserted(const QModelIndex &parent, int start, int end);
 	void filterSignal(QString inFilter);

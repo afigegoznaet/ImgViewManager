@@ -7,6 +7,9 @@
 QT       += core gui concurrent widgets
 
 TARGET = ivm
+win32 {
+	QT       += winextras
+}
 TEMPLATE = app
 
 CONFIG += c++14
