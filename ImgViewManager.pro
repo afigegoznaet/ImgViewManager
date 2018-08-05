@@ -6,6 +6,11 @@
 
 QT       += core gui concurrent widgets
 
+win32 {
+	QT       += winextras
+}
+
+
 TARGET = ImgViewManager
 TEMPLATE = app
 
@@ -69,7 +74,7 @@ win32-msvc* {
 		INCLUDEPATH += "..\\libsodium-1.0.16-msvc\\include"
 		QMAKE_LFLAGS_WINDOWS += /STACK:10485760,655360
 		QMAKE_CXXFLAGS += /MP
-		LIBS += "..\\libsodium-1.0.16-msvc\\Win32\\Release\\v141\\dynamic\\libsodium.lib"
+		LIBS += "..\\libsodium-1.0.16-msvc\\x64\\Release\\v141\\dynamic\\libsodium.lib"
 }
 win32-g++ {
 		INCLUDEPATH += "..\\libsodium-win32\\include"

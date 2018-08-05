@@ -22,6 +22,8 @@ public slots:
 private:
 	ThumbnailsFileModel* fsModel;
 	QFuture<bool> runner;
+	QFuture<void> treeScanner;
+	QFutureWatcher<void> watcher;
 };
 
 #endif // SYSTEMTREEVIEW_H

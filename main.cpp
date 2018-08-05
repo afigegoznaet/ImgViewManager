@@ -62,8 +62,13 @@ int main(int argc, char *argv[]){
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, [&](){
 		splashLocker.lock();
-		splash.finish(&w); w.show(); timer->deleteLater();
+		splash.finish(&w);
+		w.show();
+		timer->deleteLater();
 		splashLocker.unlock();
+#ifdef _WIN32
+		w.initProgressTaskbar();
+#endif
 	});
 	timer->start(2000);
 

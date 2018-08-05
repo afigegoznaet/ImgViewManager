@@ -21,6 +21,17 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 		fsModel->scanRoot(rootPath);
 	});
 
+	qDebug()<<"***************************************";
+	qDebug()<<"Tree scan started!";
+	qDebug()<<"***************************************";
+	treeScanner = fsModel->scanTreeFully(rootPath);
+
+	connect(&watcher, &QFutureWatcherBase::finished, []{
+		qDebug()<<"***************************************";
+		qDebug()<<"Tree scan finished!";
+		qDebug()<<"***************************************";
+	});
+	watcher.setFuture(treeScanner);
 
 	qDebug()<<"Root: "<<rootPath;
 	auto rootIndex = model->setRootPath(rootPath);
@@ -47,14 +58,14 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 
 void SystemTreeView::init(QString& startDir){
 
-	qDebug()<<"startDir: "<<startDir;
+	//qDebug()<<"startDir: "<<startDir;
 	runner.waitForFinished();
 
 
 
 	auto idx = fsModel->fileIndex(startDir);
-	//qDebug()<<"idx: "<<idx.isValid();
-	//setCurrentIndex(idx);
+	if(!idx.isValid())
+		return;
 	expand(idx);
 	scrollTo(idx);
 
@@ -85,7 +96,7 @@ void SystemTreeView::init(QString& startDir){
 
 QString SystemTreeView::getCurrentDir(){
 	auto idx = currentIndex();
-	qDebug()<<"currentDir";
+	//qDebug()<<"currentDir";
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }
 

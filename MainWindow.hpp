@@ -14,6 +14,9 @@
 #endif
 
 namespace Ui { class MainWindow; }
+//namespace QtWinExtras { class QWinTaskbarProgress;}
+//using namespace QtWinExtras;
+class QWinTaskbarProgress;
 
 class MainWindow : public QMainWindow{
 	Q_OBJECT
@@ -23,8 +26,8 @@ signals:
 
 public:
 	//explicit MainWindow(QWidget *parent = 0);
-	explicit MainWindow(QString argv, QWidget *parent = 0);
-	~MainWindow();
+	explicit MainWindow(QString argv, QWidget *parent = nullptr);
+	~MainWindow() override;
 	void init();
 	void initTree();
 	QString getRoot(){return rootDir;}
@@ -34,6 +37,12 @@ public slots:
 	void setFileInfo(int total, int visible);
 	void setScanDirMsg(QString msg);
 	void showAbout();
+#ifdef _WIN32
+	void initProgressTaskbar();
+	void setProgressMax(int max);
+	void setProgressValue(int value);
+
+#endif
 
 private:
 	void saveSettings();
@@ -46,6 +55,10 @@ private:
 	QByteArray splitterSizes;
 	QString info = "";
 	QString args;
+#ifdef _WIN32
+	QWinTaskbarProgress *progress;
+	int cachedProgress;
+#endif
 };
 
 #endif // MAINWINDOW_H
