@@ -1,5 +1,5 @@
-#include "MainWindow.hpp"
 #include "ui_mainwindow.h"
+#include "MainWindow.hpp"
 #ifdef _WIN32
 #include <QtWinExtras/QWinTaskbarButton>
 #include <QtWinExtras/QWinTaskbarProgress>

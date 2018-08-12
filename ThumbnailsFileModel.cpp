@@ -50,6 +50,8 @@ bool ThumbnailsFileModel::hasPics(const QString& scDir)const{
 
 	if(hasImages(scDir)){
 		QMutexLocker locker(&scannerMutex);
+		if(stopPrefetching)
+			return false;
 		treeMap.insert(dir.absolutePath(), true);
 		return true;
 	}
