@@ -18,8 +18,10 @@ static char pubKey[] = "uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Y
 MainWindow::MainWindow(QString argv, QWidget *parent) :
 	QMainWindow(parent),
 	ui(new Ui::MainWindow),
-	args(argv),
-	progress(nullptr)
+	args(argv)
+#ifdef _WIN32
+	, progress(nullptr)
+#endif
 {
 
 	qRegisterMetaType<QVector<int> >("QVector<int>");
