@@ -24,6 +24,7 @@ public:
 	QFuture<void> scanTreeFully(QString startDir = QDir::rootPath());
 	bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
 	void scanRoot(QString root);
+	QThreadPool& getPool(){return privatePool;}
 signals:
 	void splashText(const QString& message, int alignment, const QColor &color);
 public slots:
@@ -43,6 +44,20 @@ private:
 	mutable SystemTreeView* parentView;
 	bool stopPrefetching = false;
 	mutable QMutex scannerMutex;
+
+	QThreadPool privatePool;
+
+	QVector<QFuture<void>> scanner;
+	std::atomic_char counter;
+
+	class ScannerRunnable : public QRunnable{
+	public:
+		ScannerRunnable(ThumbnailsFileModel* host, const QString& dir);
+		void run() override;
+	private:
+		const QString dir;
+		ThumbnailsFileModel *host;
+	};
 
 };
 

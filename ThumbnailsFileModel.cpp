@@ -3,13 +3,14 @@
 #include <utility>
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
-	: QSortFilterProxyModel(parent){
+	: QSortFilterProxyModel(parent), privatePool(this), scanner(8), counter(0){
 	filter << "*.png";
 	filter << "*.jpeg";
 	filter << "*.jpg";
 
 	parentView = qobject_cast<SystemTreeView*>(parent);
 	setDynamicSortFilter(false);
+	privatePool.setMaxThreadCount(4);
 }
 
 
@@ -139,15 +140,31 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString& startDir){
 	});
 }
 
+ThumbnailsFileModel::ScannerRunnable::ScannerRunnable(ThumbnailsFileModel *host, const QString& dir) : host(host), dir(dir){}
+
+void ThumbnailsFileModel::ScannerRunnable::run(){
+
+	host->scanRoot(dir);
+	QDir currentDir(dir);
+
+	for(const auto& dir : currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)){
+		auto runner = new ScannerRunnable(host, dir.absoluteFilePath());
+		host->getPool().start(runner);
+
+	}
+}
 
 QFuture<void> ThumbnailsFileModel::scanTreeFully( QString startDir){
+
 	return QtConcurrent::run([&, startDir](){
+
 		this->thread()->setPriority(QThread::LowestPriority);
 		QDir currentDir(startDir);
-		QVector<QFuture<void>> scanner;
+
 		for(const auto& dir : currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)){
-			scanner.append(std::move(scanTreeFully(dir.absoluteFilePath())));
-			scanRoot(dir.absoluteFilePath());
+			auto runner = new ScannerRunnable(this, dir.absoluteFilePath());
+			privatePool.start(runner);
+			//scanRoot(dir.absoluteFilePath());
 		}
 	});
 }
