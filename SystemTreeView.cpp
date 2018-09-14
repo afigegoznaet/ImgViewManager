@@ -20,19 +20,9 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent){
 	auto runner = QtConcurrent::run([&, rootPath](){
 		fsModel->scanRoot(rootPath);
 	});
-/*
-	qDebug()<<"***************************************";
-	qDebug()<<"Tree scan started!";
-	qDebug()<<"***************************************";
-	treeScanner = fsModel->scanTreeFully(rootPath);
 
-	connect(&watcher, &QFutureWatcherBase::finished, []{
-		qDebug()<<"***************************************";
-		qDebug()<<"Tree scan finished!";
-		qDebug()<<"***************************************";
-	});
-	watcher.setFuture(treeScanner);
-*/
+	fsModel->scanTreeFully(rootPath);
+
 	qDebug()<<"Root: "<<rootPath;
 	auto rootIndex = model->setRootPath(rootPath);
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);

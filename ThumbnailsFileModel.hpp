@@ -19,7 +19,7 @@ public:
 	QDir rootDirectory() const;
 	void setNameFilters(const QStringList &filters);
 	QModelIndex setRootPath(const QString &newPath);
-	~ThumbnailsFileModel(){treeMap.clear();}
+	~ThumbnailsFileModel();
 	QFuture<bool> scanTreeAsync(const QString& startDir = QDir::rootPath());
 	QFuture<void> scanTreeFully(QString startDir = QDir::rootPath());
 	bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;

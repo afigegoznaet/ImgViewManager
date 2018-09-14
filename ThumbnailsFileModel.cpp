@@ -13,7 +13,10 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	privatePool.setMaxThreadCount(4);
 }
 
-
+ThumbnailsFileModel::~ThumbnailsFileModel(){
+	treeMap.clear();
+	privatePool.waitForDone(1);
+}
 
 bool ThumbnailsFileModel::hasImages(const QDir &dir) const{
 	return dir.entryInfoList(filter, QDir::Files | QDir::NoDotAndDotDot | QDir::NoSymLinks).count();
@@ -144,13 +147,15 @@ ThumbnailsFileModel::ScannerRunnable::ScannerRunnable(ThumbnailsFileModel *host,
 
 void ThumbnailsFileModel::ScannerRunnable::run(){
 
-	host->scanRoot(dir);
+	if(host->stopPrefetching)
+		return;
+
 	QDir currentDir(dir);
 
 	for(const auto& dir : currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)){
 		auto runner = new ScannerRunnable(host, dir.absoluteFilePath());
 		host->getPool().start(runner);
-
+		host->scanRoot(dir.absoluteFilePath());
 	}
 }
 
@@ -158,7 +163,7 @@ QFuture<void> ThumbnailsFileModel::scanTreeFully( QString startDir){
 
 	return QtConcurrent::run([&, startDir](){
 
-		this->thread()->setPriority(QThread::LowestPriority);
+		//this->thread()->setPriority(QThread::LowestPriority);
 		QDir currentDir(startDir);
 
 		for(const auto& dir : currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)){
