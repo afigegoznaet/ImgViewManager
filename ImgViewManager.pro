@@ -62,7 +62,9 @@ linux {
 	target.path = /usr/local/bin
 	desktop.path = /usr/share/applications
 	desktop.files += ivm.desktop
-	INSTALLS += target desktop
+	icon.path = /usr/share/icons/hicolor/16x16/apps/
+	icon.files = Resources/tropical_paradise_icon.png
+	INSTALLS += target desktop icon
 	#QMAKE_CXXFLAGS+="-fsanitize=address"
 	#QMAKE_CXXFLAGS+="-fsanitize=thread"
 	#QMAKE_CFLAGS+="-fsanitize=address -fno-omit-frame-pointer"
