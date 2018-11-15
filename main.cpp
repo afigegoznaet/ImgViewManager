@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
 #endif
 	// qApp->processEvents();
 	//#endif;
-	qDebug() << argc;
+	// qDebug() << argc;
 	for (int i = 0; i < argc; i++)
 		qDebug() << argv[i];
 

@@ -20,7 +20,7 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QObject *parent)
 	previewLabel->setStyleSheet(
 		"background:transparent; border: solid 10px grey;  background-color: rgba(229,243,255,127);");
 	previewLabel->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-	qDebug() << "Preview enabled: " << enablePreview;
+	// qDebug() << "Preview enabled: " << enablePreview;
 }
 
 void ImgThumbnailDelegate::drawDisplay(QPainter *painter,
@@ -73,7 +73,7 @@ void ImgThumbnailDelegate::paintPreview(const QModelIndex &index) const {
 	// qDebug()<<currentFileName;
 	QImageReader reader(currentFileName);
 	if (!reader.canRead()) {
-		qDebug() << "can't Read";
+		// qDebug() << "can't Read";
 		reader.setFileName(":/Images/bad_img.png");
 	}
 

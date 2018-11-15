@@ -31,7 +31,7 @@ public:
 
 public slots:
 	void setFileInfo(int total, int visible);
-	void setScanDirMsg(QString msg);
+	void setScanDirMsg(const QString& msg);
 	void showAbout();
 #ifdef _WIN32
 	void initProgressTaskbar();
@@ -42,7 +42,7 @@ public slots:
 
 private:
 	QByteArray licenseKey;
-	QActionGroup *sortingGroup;
+	QActionGroup *sortingGroup{};
 	Ui::MainWindow *ui;
 	QString startDir;
 	QString rootDir;

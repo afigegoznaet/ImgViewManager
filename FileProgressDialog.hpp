@@ -28,9 +28,9 @@ public slots:
 	void onWrite(uint);
 	void movementResult(int);
 	void dirMovementResult(int);
-	void errorMsg(QString errorText);
+	void errorMsg(const QString& errorText);
 	void hideDialogSlot();
-	void processFileAction(QStringList fileList, QString destination);
+	void processFileAction(QStringList fileList, const QString& destination);
 
 private:
 	Ui::ProgressDialog *progress;

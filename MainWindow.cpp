@@ -4,6 +4,8 @@
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QPlainTextEdit>
+#include <utility>
+#include <utility>
 
 #ifdef VALIDATE_LICENSE
 #include <sodium.h>
@@ -28,7 +30,8 @@ static char pubKey[] =
 // static char licenseExample[] =
 // "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent)
-	: QMainWindow(parent), ui(new Ui::MainWindow), args(argv)
+	: QMainWindow(parent), ui(new Ui::MainWindow),
+	  args(std::move(std::move(argv)))
 #ifdef _WIN32
 	  ,
 	  progress(nullptr)
@@ -89,7 +92,9 @@ void MainWindow::setFileInfo(int total, int visible) {
 	ui->infoBox->setText(info);
 }
 
-void MainWindow::setScanDirMsg(QString msg) { ui->infoBox->setText(msg); }
+void MainWindow::setScanDirMsg(const QString &msg) {
+	ui->infoBox->setText(msg);
+}
 
 void MainWindow::showAbout() {
 	QMessageBox msgBox;
@@ -141,7 +146,7 @@ void MainWindow::init() {
 	sortingGroup = new QActionGroup(this);
 	sortingGroup->addAction(ui->actionSort_by_full_path);
 	sortingGroup->addAction(ui->actionSort_by_file_name);
-	qDebug() << "setup showpreview in Main";
+	// qDebug() << "setup showpreview in Main";
 	connect(ui->actionSort_by_full_path, SIGNAL(toggled(bool)), ui->imagesView,
 			SIGNAL(sortByPath(bool)));
 	connect(ui->actionShow_Preview, SIGNAL(toggled(bool)), ui->imagesView,
@@ -357,7 +362,7 @@ void MainWindow::initActivation() {
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
 	if (event->type() == QEvent::Wheel) {
-		QWheelEvent *wheel = static_cast<QWheelEvent *>(event);
+		auto *wheel = dynamic_cast<QWheelEvent *>(event);
 		// qDebug()<<"Wheel: "<<wheel;
 		// qDebug()<<wheel->modifiers();
 		// qDebug()<<wheel->delta();

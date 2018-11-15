@@ -42,7 +42,7 @@ QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const {
 	QPersistentModelIndex idx =
 		(dynamic_cast<QFileSystemModel *>(this->sourceModel()))->index(path, 0);
 	if (!idx.isValid())
-		return QModelIndex();
+		return {};
 	return mapFromSource(idx);
 }
 
@@ -166,7 +166,7 @@ void ThumbnailsFileModel::ScannerRunnable::run() {
 	}
 }
 
-QFuture<void> ThumbnailsFileModel::scanTreeFully(QString startDir) {
+QFuture<void> ThumbnailsFileModel::scanTreeFully(const QString& startDir) {
 
 	return QtConcurrent::run([&, startDir]() {
 		// this->thread()->setPriority(QThread::LowestPriority);
@@ -188,7 +188,7 @@ bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
 		.count();
 }
 
-void ThumbnailsFileModel::scanRoot(QString root) {
+void ThumbnailsFileModel::scanRoot(const QString& root) {
 	if (stopPrefetching)
 		return;
 	QDir dir(root);

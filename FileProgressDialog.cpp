@@ -8,7 +8,7 @@
 #include "FileMoverDelegate.hpp"
 
 ProgressDialog::ProgressDialog(QWidget *parent, Qt::WindowFlags f)
-	: QDialog(parent, f), progress(new Ui::ProgressDialog), status(1) {
+	: QDialog(parent, f), progress(new Ui::ProgressDialog), status(true) {
 	progress->setupUi(this);
 	progress->tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
 	progress->tableWidget->setColumnCount(2);
@@ -46,11 +46,11 @@ ProgressDialog::~ProgressDialog() {
 }
 
 void ProgressDialog::processFileAction(QStringList fileList,
-									   QString destination) {
+									   const QString& destination) {
 	if (isHidden())
 		show();
 	if (!progress->tableWidget->rowCount())
-		status = 1;
+		status = true;
 
 	int initialCount = progress->tableWidget->rowCount();
 	int newRow = progress->tableWidget->rowCount();
@@ -102,7 +102,7 @@ QMessageBox::StandardButton ProgressDialog::showError(int result) {
 			reply = QMessageBox::question(this, "Error!!!", errorMoveMasg,
 										  QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes)
-			status = 1;
+			status = true;
 		else
 			QMessageBox::warning(this, "Error!!!", errorMoveEOLMasg);
 
@@ -113,7 +113,7 @@ QMessageBox::StandardButton ProgressDialog::showError(int result) {
 			reply = QMessageBox::question(this, "Error!!!", errorCopyMasg,
 										  QMessageBox::Yes | QMessageBox::No);
 		if (reply == QMessageBox::Yes)
-			status = 1;
+			status = true;
 		else
 			reply = QMessageBox::question(this, "Error!!!", errorCopyEOLMasg);
 
@@ -145,14 +145,14 @@ void ProgressDialog::dirMovementResult(int result) {
 }
 
 
-void ProgressDialog::errorMsg(QString errorText) {
+void ProgressDialog::errorMsg(const QString& errorText) {
 	QMessageBox::warning(this, "Error", errorText);
 	cond.wakeOne();
 }
 void ProgressDialog::hideDialogSlot() { this->hide(); }
 
 
-void ProgressDialog::DoSomething(void) {
+void ProgressDialog::DoSomething() {
 	if (status && progress->tableWidget->rowCount()) {
 		// stub.waitForFinished();
 		QString source(progress->tableWidget->item(0, 0)->text());

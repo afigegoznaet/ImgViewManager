@@ -12,6 +12,7 @@
 #include <QKeyEvent>
 #include <QFileDialog>
 #include <QProgressBar>
+#include <utility>
 
 //#include <algorithm>
 //#include <QStandardPaths>
@@ -46,7 +47,7 @@ ImgListView::ImgListView(QWidget *parent)
 	  mb("Out of memory",
 		 "The application is unable to allocate anymore memory, try to display less pictures at once",
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
-		 QMessageBox::NoButton | QMessageBox::NoButton, QMessageBox::NoButton) {
+		 QMessageBox::NoButton, QMessageBox::NoButton) {
 
 	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
@@ -111,8 +112,8 @@ ImgListView::ImgListView(QWidget *parent)
 	setLayoutMode(QListView::Batched);
 
 	setUniformItemSizes(true);
-	connect(this, SIGNAL(callUpdate(const QString &)), this,
-			SLOT(synchronizedUpdate(const QString &)), Qt::QueuedConnection);
+	connect(this, SIGNAL(callUpdate(QString)), this,
+			SLOT(synchronizedUpdate(QString)), Qt::QueuedConnection);
 	connect(this, SIGNAL(doubleClicked(QModelIndex)), this,
 			SLOT(onDoubleClicked()));
 
@@ -235,7 +236,7 @@ ImgListView::~ImgListView() {
 }
 
 void ImgListView::changeDir(QString dir) {
-	currentDir = dir;
+	currentDir = std::move(dir);
 
 	stopPrefetching = true;
 
@@ -282,7 +283,7 @@ void ImgListView::prefetchThumbnails() {
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
 
-	for (auto dirEntry : dirs) {
+	for (const auto &dirEntry : dirs) {
 		QStringList fileList;
 		if (stopPrefetching)
 			break;
@@ -299,7 +300,7 @@ void ImgListView::prefetchThumbnails() {
 		}
 
 		QList<QStandardItem *> items;
-		for (auto fileName : fileList) {
+		for (const auto &fileName : fileList) {
 			if (stopPrefetching)
 				return;
 
@@ -327,7 +328,7 @@ void ImgListView::prefetchThumbnails() {
 	emit taskBarSetMaximum(dirs.size());
 
 
-	for (auto dirEntry : dirs) {
+	for (const auto &dirEntry : dirs) {
 		emit taskBarSetValue(dirCounter++);
 		if (stopPrefetching)
 			break;
@@ -342,21 +343,26 @@ void ImgListView::prefetchThumbnails() {
 		QDataStream in(&thumbnailsFile);
 		in.setVersion(QDataStream::Qt_5_7);
 		if (thumbnailsFile.open(QIODevice::ReadOnly)) {
-			QMap<QString, QPixmap> cacheMap;
-			in >> cacheMap;
-			for (const auto &thumbName : cacheMap.keys())
-				oldCache.insert(dir.absolutePath() + "/" + thumbName,
-								cacheMap[thumbName]);
+			quint32 num;
+			in >> num;
+			for (quint32 i = 0; i < num; ++i) {
+				QString k;
+				QPixmap v;
+				in >> k >> v;
+				if (in.status() != QDataStream::Ok) {
+					oldCache.clear();
+					break;
+				}
+				oldCache.insert(dir.absolutePath() + "/" + k, v);
+			}
 		}
 
 		thumbnailsFile.close();
 
 		auto dirEntries = dir.entryInfoList(namedFilters);
 
-
 		emit progressSetMaximum(dirEntries.count());
 		int counter = 0;
-
 
 		for (auto &fileInfo : dirEntries) {
 			if (stopPrefetching)
@@ -507,11 +513,12 @@ void ImgListView::prefetchThumbnails() {
 					thumbnailsFile.resize(0);
 					QDataStream out(&thumbnailsFile);
 					out.setVersion(QDataStream::Qt_5_7);
-					QMap<QString, QPixmap> cacheMap;
-					for (const auto &thumbName : newCache.keys())
-						cacheMap.insert(thumbName.section('/', -1),
-										newCache[thumbName]);
-					out << cacheMap;
+
+					out << quint32(newCache.size());
+					for (auto it = newCache.constBegin();
+						 it != newCache.constEnd(); ++it)
+						out << it.key().section('/', -1) << it.value();
+
 					thumbnailsFile.flush();
 					thumbnailsFile.close();
 				}
@@ -557,7 +564,7 @@ void ImgListView::prepareExit() {
 	cleanerProc.waitForFinished();
 }
 
-void ImgListView::applyFilter(QString inFilter) {
+void ImgListView::applyFilter(const QString &inFilter) {
 
 	filterText = inFilter;
 	QString newFilter = "*" + inFilter;
@@ -722,7 +729,7 @@ void ImgListView::getDirs(const QString &rootDir, QStringList &dirList) {
 	QDir dir(rootDir);
 	auto currList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
 
-	for (auto dirEntry : currList) {
+	for (const auto &dirEntry : currList) {
 
 		dirList << dirEntry.absoluteFilePath();
 		getDirs(dirEntry.absoluteFilePath(), dirList);
@@ -731,7 +738,7 @@ void ImgListView::getDirs(const QString &rootDir, QStringList &dirList) {
 
 QString ImgListView::getTotalSize(QStringList &files, int skipFirstNfiles) {
 	qint64 totalSize = 0;
-	for (auto fileName : files)
+	for (const auto &fileName : files)
 		if (skipFirstNfiles > 0 && skipFirstNfiles--)
 			continue;
 		else
@@ -756,10 +763,10 @@ QString ImgListView::getTotalSize(QStringList &files, int skipFirstNfiles) {
 
 void ImgListView::addHiddenFiles(QStringList &fileList) {
 	auto initialCount = fileList.count();
-	for (auto filePath : fileList) {
+	for (const auto &filePath : fileList) {
 		QFileInfo inf(filePath);
 
-		for (auto newSuffix : sourceExtensons) {
+		for (const auto &newSuffix : sourceExtensons) {
 			QString newFile(filePath);
 			newFile.replace(filePath.lastIndexOf(inf.completeSuffix()), 5,
 							newSuffix);
@@ -771,7 +778,8 @@ void ImgListView::addHiddenFiles(QStringList &fileList) {
 		openSourceAction->setDisabled(true);
 }
 
-void ImgListView::checkSelections(QItemSelection, QItemSelection) {
+void ImgListView::checkSelections(const QItemSelection &,
+								  const QItemSelection &) {
 
 	int selectedCount = selectionModel()->selectedIndexes().count();
 	if (selectedCount < 1)
@@ -841,7 +849,7 @@ void ImgListView::setZoom(int zoomDirection) {
 void ImgListView::openSource() {
 
 	auto selections = selectionModel()->selectedIndexes();
-	if (selections.size() == 0)
+	if (selections.empty())
 		selections << indexAt(mapFromGlobal(QCursor::pos()));
 	for (auto &index : selections) {
 		if (0 == index.column()) {
@@ -850,7 +858,7 @@ void ImgListView::openSource() {
 					->data(Qt::DisplayRole)
 					.toString();
 			QFileInfo inf(fileName);
-			for (auto newSuffix : sourceExtensons) {
+			for (const auto &newSuffix : sourceExtensons) {
 				QString newFile(fileName);
 				newFile.replace(fileName.lastIndexOf(inf.completeSuffix()), 5,
 								newSuffix);

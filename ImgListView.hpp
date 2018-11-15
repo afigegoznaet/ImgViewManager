@@ -47,10 +47,10 @@ signals:
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();
-	void applyFilter(QString inFilter);
+	void applyFilter(const QString& inFilter);
 	void exportImages();
 	void openSource();
-	void checkSelections(QItemSelection, QItemSelection);
+	void checkSelections(const QItemSelection&, const QItemSelection&);
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
 	void setZoom(int zoomDirection);
@@ -68,10 +68,10 @@ private:
 	// QFileSystemModel* fsModel;
 	// QSortFilterProxyModel* proxy;
 
-	ThumbnailsSorter *newProxy;
-	QStandardItemModel *newModel;
-	ThumbnailsSorter *oldProxy;
-	QStandardItemModel *oldModel;
+	ThumbnailsSorter *newProxy{};
+	QStandardItemModel *newModel{};
+	ThumbnailsSorter *oldProxy{};
+	QStandardItemModel *oldModel{};
 
 	ThumbnailsSorter *proxy0;
 	ThumbnailsSorter *proxy1;
@@ -85,7 +85,7 @@ private:
 	QFuture<void> prefetchProc;
 	QFuture<void> cleanerProc;
 	std::atomic_bool stopPrefetching;
-	std::atomic_bool autoScroll;
+	std::atomic_bool autoScroll{};
 	QString filterText;
 	// QMap<QString, QPixmap> thumbnailsCache;
 	ProgressDialog *copyDialog;
@@ -111,7 +111,7 @@ private:
 	QWaitCondition synchronizer;
 
 	int default_icon_size;
-	int default_grid_spacing;
+	int default_grid_spacing{};
 };
 
 #endif // IMGLISTVIEW_H

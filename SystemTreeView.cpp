@@ -17,10 +17,10 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 	connect(fsModel, SIGNAL(splashText(QString, int, QColor)), this,
 			SIGNAL(splashText(QString, int, QColor)));
 
-	auto runner =
-		QtConcurrent::run([&, rootPath]() { fsModel->scanRoot(rootPath); });
+	// auto runner =
+	// QtConcurrent::run([&, rootPath]() { fsModel->scanRoot(rootPath); });
 
-	fsModel->scanTreeFully(rootPath);
+	// fsModel->scanTreeFully(rootPath);
 
 	qDebug() << "Root: " << rootPath;
 	auto rootIndex = model->setRootPath(rootPath);

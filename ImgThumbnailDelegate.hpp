@@ -34,11 +34,11 @@ private:
 	QLabel *previewLabel;
 	mutable QPoint imgPos;
 	mutable QSize imgSize;
-	QAbstractItemModel *model;
+	QAbstractItemModel *model{};
 	int flags;
 	std::atomic_bool canDraw;
 	std::atomic_bool enablePreview;
-	std::atomic_bool hiQPreview;
+	std::atomic_bool hiQPreview{};
 	QSize gridSize;
 	const QBrush selectionBrush;
 	const QBrush hoverBrush;

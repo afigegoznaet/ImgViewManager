@@ -18,9 +18,9 @@ public:
 	QModelIndex setRootPath(const QString &newPath);
 	~ThumbnailsFileModel();
 	QFuture<bool> scanTreeAsync(const QString &startDir = QDir::rootPath());
-	QFuture<void> scanTreeFully(QString startDir = QDir::rootPath());
+	QFuture<void> scanTreeFully(const QString& startDir = QDir::rootPath());
 	bool hasChildren(const QModelIndex &parent = QModelIndex()) const override;
-	void scanRoot(QString root);
+	void scanRoot(const QString& root);
 	QThreadPool &getPool() { return privatePool; }
 signals:
 	void splashText(const QString &message, int alignment, const QColor &color);
