@@ -6,16 +6,16 @@
 #include <QtConcurrent/QtConcurrent>
 #include <QDebug>
 
-bool isMovable(QString& from, QString& to);
+bool isMovable(QString &from, QString &to);
 
-class FileMoverDelegate : public QObject
-{
+class FileMoverDelegate : public QObject {
 	Q_OBJECT
 public:
-	explicit FileMoverDelegate(QString source, QString destination, QString action, QObject *parent = 0);
+	explicit FileMoverDelegate(QString source, QString destination,
+							   QString action, QObject *parent = 0);
 	int doWork();
 	~FileMoverDelegate();
-	//void execute();
+	// void execute();
 	QMetaObject::Connection hz;
 
 signals:

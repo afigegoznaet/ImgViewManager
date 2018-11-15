@@ -16,9 +16,9 @@ bool isMovable(QString &from, QString &to){
 	in.setPath(from);
 	out.setPath(to.mid(0,to.lastIndexOf('/')));
 
-	qDebug()<<in.rootPath();
-	qDebug()<<out.rootPath();
-	qDebug()<<(in == out);
+	//qDebug()<<in.rootPath();
+	//qDebug()<<out.rootPath();
+	//qDebug()<<(in == out);
 	return in == out;
 }
 
@@ -98,7 +98,7 @@ FileMoverDelegate::FileMoverDelegate(QString source, QString destination, QStrin
 	QObject(parent), destination(destination), source(source), action(action), status(true){
 	//connect(this, SIGNAL(completed(int)),qobject_cast<ProgressDialog*>(parent),SLOT(movementResult(int)), Qt::QueuedConnection);
 
-	qDebug()<<"Mover constructor"<<thread();
+	//qDebug()<<"Mover constructor"<<thread();
 }
 
 void FileMoverDelegate::setStatus(int status){

@@ -1,36 +1,65 @@
 #include "ImgListView.hpp"
 #include "MainWindow.hpp"
-#include <algorithm>
-#include <QStandardPaths>
+#include <QStandardItemModel>
+#include "ImgThumbnailDelegate.hpp"
+#include "ThumbnailsSorter.hpp"
+#include <QGuiApplication>
+#include <QScreen>
+#include "FileProgressDialog.hpp"
+#include <QDesktopServices>
+#include <QImageReader>
+#include <QPainter>
+#include <QKeyEvent>
+#include <QFileDialog>
+#include <QProgressBar>
+
+//#include <algorithm>
+//#include <QStandardPaths>
+/*
+
+
+#include <atomic>
+#include <QKeyEvent>
+
+#include <QMessageBox>
+#include <QFileDialog>
+
+#include <QFileSystemModel>
+
+
+
+#include <memory>
+*/
+
 
 #define SHOWTOTAL
 
 #define MIN_ICON_SIZE 128
-#define PREVIEW_SIZE  256
+#define PREVIEW_SIZE 256
 #define ZOOM_THRESHOLD 16
-#define MAX_ZOOM (ZOOM_THRESHOLD*5)
+#define MAX_ZOOM (ZOOM_THRESHOLD * 5)
 
 
-ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(false),
-	spinner(":/Images/spinner.png"), mb("Out of memory",
-										"The application is unable to allocate anymore memory, try to display less pictures at once",
-										QMessageBox::Critical,
-										QMessageBox::Ok | QMessageBox::NoButton,
-										QMessageBox::NoButton | QMessageBox::NoButton,
-										QMessageBox::NoButton){
+ImgListView::ImgListView(QWidget *parent)
+	: QListView(parent), stopPrefetching(false),
+	  spinner(":/Images/spinner.png"),
+	  mb("Out of memory",
+		 "The application is unable to allocate anymore memory, try to display less pictures at once",
+		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
+		 QMessageBox::NoButton | QMessageBox::NoButton, QMessageBox::NoButton) {
 
-	//fsModel = new QFileSystemModel(this);
+	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
 	recursiveModel1 = new QStandardItemModel(this);
 
-	auto parentWindow = qobject_cast<MainWindow*>(parent);
+	auto parentWindow = qobject_cast<MainWindow *>(parent);
 	auto parentObject = parent->parent();
-	while(nullptr == parentWindow){
-		parentWindow = qobject_cast<MainWindow*>(parentObject);
+	while (nullptr == parentWindow) {
+		parentWindow = qobject_cast<MainWindow *>(parentObject);
 		parentObject = parentObject->parent();
 	}
 
-	//qDebug()<<parentWindow->getRoot();
+	// qDebug()<<parentWindow->getRoot();
 
 	namedFilters << "*.png";
 	namedFilters << "*.jpeg";
@@ -54,52 +83,58 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	proxy0->setSourceModel(recursiveModel0);
 	proxy1->setSourceModel(recursiveModel1);
 
-	thumbnailPainter = new ImgThumbnailDelegate( this);
+	thumbnailPainter = new ImgThumbnailDelegate(this);
 
 	setItemDelegate(thumbnailPainter);
 
 	setModel(proxy0);
 	thumbnailPainter->setModel(proxy0);
 
-	//setModel(fsModel);
+	// setModel(fsModel);
 	setViewMode(IconMode);
 	setResizeMode(Adjust);
 
 	QScreen *screen = QGuiApplication::primaryScreen();
 	QRect screenGeometry = screen->geometry();
-	//qDebug()<<screenGeometry;
-	//qDebug()<<screen->physicalSize();
-	//int height = screenGeometry.height();
+	// qDebug()<<screenGeometry;
+	// qDebug()<<screen->physicalSize();
+	// int height = screenGeometry.height();
 	int width = screenGeometry.width();
-	//qDebug()<<height;
-	//qDebug()<<width;
+	// qDebug()<<height;
+	// qDebug()<<width;
 	default_icon_size = static_cast<int>(
-				std::max<double>(std::ceil((width/8.0)/16.0)*16, MIN_ICON_SIZE));
-	setIconSize(QSize(default_icon_size,default_icon_size));
-	setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
-	//qDebug()<<"Icon size: "<<iconSize();
-	//qDebug()<<"Grid size: "<<gridSize();
-	setLayoutMode (QListView::Batched);
+		std::max<double>(std::ceil((width / 8.0) / 16.0) * 16, MIN_ICON_SIZE));
+	setIconSize(QSize(default_icon_size, default_icon_size));
+	setGridSize(QSize(iconSize().width() + 32, iconSize().height() + 32));
+	// qDebug()<<"Icon size: "<<iconSize();
+	// qDebug()<<"Grid size: "<<gridSize();
+	setLayoutMode(QListView::Batched);
 
 	setUniformItemSizes(true);
-	connect(this, SIGNAL(callUpdate(const QString&)),
-			this, SLOT(synchronizedUpdate(const QString&)), Qt::QueuedConnection);
-	connect(this,SIGNAL(doubleClicked(QModelIndex)),
-			this,SLOT(onDoubleClicked()));
+	connect(this, SIGNAL(callUpdate(const QString &)), this,
+			SLOT(synchronizedUpdate(const QString &)), Qt::QueuedConnection);
+	connect(this, SIGNAL(doubleClicked(QModelIndex)), this,
+			SLOT(onDoubleClicked()));
 
 	setSelectionMode(QAbstractItemView::ExtendedSelection);
-	//selectionModel()->setModel(fsModel);
-	//selectionModel()->setModel(proxy);
+	// selectionModel()->setModel(fsModel);
+	// selectionModel()->setModel(proxy);
 	setMovement(Movement::Static);
 
 	copyDialog = new ProgressDialog(this);
 
-	connect(this, SIGNAL(setFileAction(QStringList,QString)),
-			copyDialog, SLOT(processFileAction(QStringList,QString)));
-	connect(this, SIGNAL(callFullUpdate()), this, SLOT(update()), Qt::QueuedConnection);
-	connect(this, SIGNAL(filterSignal(QString)), this, SLOT(applyFilter(QString)));
-	connect(this, &ImgListView::showError, this, [&](){ moveToThread(
-					this->thread()); mb.exec(); }, Qt::QueuedConnection);
+	connect(this, SIGNAL(setFileAction(QStringList, QString)), copyDialog,
+			SLOT(processFileAction(QStringList, QString)));
+	connect(this, SIGNAL(callFullUpdate()), this, SLOT(update()),
+			Qt::QueuedConnection);
+	connect(this, SIGNAL(filterSignal(QString)), this,
+			SLOT(applyFilter(QString)));
+	connect(this, &ImgListView::showError, this,
+			[&]() {
+				moveToThread(this->thread());
+				mb.exec();
+			},
+			Qt::QueuedConnection);
 
 	dirLoadBar = new QProgressBar(this);
 	dirLoadBar->setMinimum(0);
@@ -107,38 +142,50 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	dirLoadBar->resize(QSize(300, 25));
 	dirLoadBar->setStyleSheet("background:transparent");
 	dirLoadBar->setAttribute(Qt::WA_TranslucentBackground);
-	dirLoadBar->move(600,600);
+	dirLoadBar->move(600, 600);
 	dirLoadBar->setVisible(false);
 
 #if !defined(QT_DEBUG) || !defined(_WIN32)
-	connect(this, &ImgListView::progressSetVisible, [&](bool visible){
-		if(!visible)
+	connect(this, &ImgListView::progressSetVisible, [&](bool visible) {
+		if (!visible)
 			return dirLoadBar->setVisible(visible);
 
 		auto region = geometry();
-		dirLoadBar->move((QPoint(region.left()+(region.width() - dirLoadBar->width())/2,
-						 region.top()+(region.height() - dirLoadBar->height())/2)));
+		dirLoadBar->move((QPoint(
+			region.left() + (region.width() - dirLoadBar->width()) / 2,
+			region.top() + (region.height() - dirLoadBar->height()) / 2)));
 		dirLoadBar->setVisible(visible);
 	});
 #endif
-	connect(this, &ImgListView::progressSetMaximum, dirLoadBar, &QProgressBar::setMaximum, Qt::QueuedConnection);
-	connect(this, &ImgListView::progressSetValue, dirLoadBar, &QProgressBar::setValue, Qt::QueuedConnection);
+	connect(this, &ImgListView::progressSetMaximum, dirLoadBar,
+			&QProgressBar::setMaximum, Qt::QueuedConnection);
+	connect(this, &ImgListView::progressSetValue, dirLoadBar,
+			&QProgressBar::setValue, Qt::QueuedConnection);
 
-	openAction = m_menu.addAction("&Open image",[&](){
-		QDesktopServices::openUrl(QUrl::fromLocalFile( model()->data(indexAt(mapFromGlobal(QCursor::pos()))).toString()  ));
-	}, QKeySequence(Qt::CTRL + Qt::Key_O));
+	openAction = m_menu.addAction(
+		"&Open image",
+		[&]() {
+			QDesktopServices::openUrl(QUrl::fromLocalFile(
+				model()
+					->data(indexAt(mapFromGlobal(QCursor::pos())))
+					.toString()));
+		},
+		QKeySequence(Qt::CTRL + Qt::Key_O));
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-	exportAction = m_menu.addAction("Export &image", [&](){exportImages();}, QKeySequence(Qt::CTRL + Qt::Key_I));
+	exportAction = m_menu.addAction("Export &image", [&]() { exportImages(); },
+									QKeySequence(Qt::CTRL + Qt::Key_I));
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
-	openSourceAction = m_menu.addAction("&Open source file", [&](){openSource();}, QKeySequence(Qt::CTRL + Qt::Key_S));
+	openSourceAction =
+		m_menu.addAction("&Open source file", [&]() { openSource(); },
+						 QKeySequence(Qt::CTRL + Qt::Key_S));
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
-	//openSourceAction->setDisabled(true);
+	// openSourceAction->setDisabled(true);
 
 	m_menu.addSeparator();
-	//m_menu.addSection("File info");
+	// m_menu.addSection("File info");
 
 	fi_selectedFiles = m_menu.addAction("Selected files: 0");
 	fi_fileFormat = m_menu.addAction("File format: n\a");
@@ -147,9 +194,9 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	fi_size = m_menu.addAction("Image size: n\a");
 	fi_alpha = m_menu.addAction("Transparency: n\a");
 
-	//exportAction->setParent(this);
+	// exportAction->setParent(this);
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
-	//qDebug()<<exportAction->shortcut();
+	// qDebug()<<exportAction->shortcut();
 	addAction(exportAction);
 	addAction(openAction);
 	addAction(openSourceAction);
@@ -159,28 +206,35 @@ ImgListView::ImgListView(QWidget *parent) : QListView(parent), stopPrefetching(f
 	connect(this, SIGNAL(resetViewSignal()), this, SLOT(resetViewSlot()));
 	connect(this, SIGNAL(sortByPath(bool)), proxy0, SLOT(sortByPath(bool)));
 	connect(this, SIGNAL(sortByPath(bool)), proxy1, SLOT(sortByPath(bool)));
-	qDebug()<<"setup showpreview in viewer";
-	connect(this, SIGNAL(showPreview(bool)), thumbnailPainter, SLOT(showPreview(bool)));
-	connect(this, SIGNAL(enableHiQPreview(bool)), thumbnailPainter, SLOT(enableHiQPreview(bool)));
+	// qDebug()<<"setup showpreview in viewer";
+	connect(this, SIGNAL(showPreview(bool)), thumbnailPainter,
+			SLOT(showPreview(bool)));
+	connect(this, SIGNAL(enableHiQPreview(bool)), thumbnailPainter,
+			SLOT(enableHiQPreview(bool)));
 
 	QSettings settings;
-	exportDir = settings.value("LastDir",QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation)).toString();
+	exportDir = settings
+					.value("LastDir", QStandardPaths::writableLocation(
+										  QStandardPaths::DocumentsLocation))
+					.toString();
 	setMouseTracking(true);
 	autoScroll = false;
 
-	connect(this, &ImgListView::scrollToIndex, this, [&](const QModelIndex idx){
-		moveToThread(this->thread());
-		scrollTo(newProxy->index(idx.row(), 0));
-	}, Qt::QueuedConnection);
+	connect(this, &ImgListView::scrollToIndex, this,
+			[&](const QModelIndex idx) {
+				moveToThread(this->thread());
+				scrollTo(newProxy->index(idx.row(), 0));
+			},
+			Qt::QueuedConnection);
 }
 
-ImgListView::~ImgListView(){
+ImgListView::~ImgListView() {
 
 	QSettings settings;
 	settings.setValue("LastDir", exportDir);
 }
 
-void ImgListView::changeDir(QString dir){
+void ImgListView::changeDir(QString dir) {
 	currentDir = dir;
 
 	stopPrefetching = true;
@@ -188,21 +242,20 @@ void ImgListView::changeDir(QString dir){
 	prefetchProc.waitForFinished();
 	stopPrefetching = false;
 
-	//thumbnailPainter->stopDrawing();
+	// thumbnailPainter->stopDrawing();
 
-	prefetchProc = QtConcurrent::run([&](){prefetchThumbnails();});
+	prefetchProc = QtConcurrent::run([&]() { prefetchThumbnails(); });
 	//
-
 }
 
-void ImgListView::prefetchThumbnails(){
+void ImgListView::prefetchThumbnails() {
 
-	if(newProxy == proxy0){
+	if (newProxy == proxy0) {
 		newProxy = proxy1;
 		newModel = recursiveModel1;
 		oldProxy = proxy0;
 		oldModel = recursiveModel0;
-	}else{
+	} else {
 		newProxy = proxy0;
 		newModel = recursiveModel0;
 		oldProxy = proxy1;
@@ -213,41 +266,41 @@ void ImgListView::prefetchThumbnails(){
 
 	newModel->blockSignals(true);
 
-	//setModel(emptyModel);
+	// setModel(emptyModel);
 
-	cleanerProc = QtConcurrent::run([&](){
+	cleanerProc = QtConcurrent::run([&]() {
 		QMutexLocker locker(&cleanerMutex);
-		if(oldModel)
-		oldModel->setRowCount(0);
+		if (oldModel)
+			oldModel->setRowCount(0);
 	});
 	newModel->setRowCount(0);
 
-	//oldModel->clear();
-	//newProxy->clear();
-	emit genericMessage("Scanning "+currentDir);
+	// oldModel->clear();
+	// newProxy->clear();
+	emit genericMessage("Scanning " + currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
 
-	for(auto dirEntry : dirs){
+	for (auto dirEntry : dirs) {
 		QStringList fileList;
-		if(stopPrefetching)
+		if (stopPrefetching)
 			break;
 
-		emit genericMessage("Scanning "+dirEntry);
+		emit genericMessage("Scanning " + dirEntry);
 		QDir dir(dirEntry);
 		auto dirEntries = dir.entryInfoList(namedFilters);
-		for(auto& fileInfo : dirEntries ){
-			if(stopPrefetching)
+		for (auto &fileInfo : dirEntries) {
+			if (stopPrefetching)
 				return;
-			if(fileInfo.isDir())
+			if (fileInfo.isDir())
 				continue;
-			fileList<<fileInfo.absoluteFilePath();
+			fileList << fileInfo.absoluteFilePath();
 		}
 
-		QList<QStandardItem*> items;
-		for(auto fileName : fileList){
-			if(stopPrefetching)
+		QList<QStandardItem *> items;
+		for (auto fileName : fileList) {
+			if (stopPrefetching)
 				return;
 
 			auto item = new QStandardItem();
@@ -256,19 +309,16 @@ void ImgListView::prefetchThumbnails(){
 			item->setData(fileName, Qt::ToolTipRole);
 			items << item;
 			newModel->appendRow(item);
-			//qDebug()<<item->data(Qt::DisplayRole);
-
+			// qDebug()<<item->data(Qt::DisplayRole);
 		}
-
 	}
 
-	if(stopPrefetching)
+	if (stopPrefetching)
 		return;
 
 	newProxy->sort();
-	//proxy->setSourceModel(recursiveModel);
+	// proxy->setSourceModel(recursiveModel);
 	emit resetViewSignal();
-
 
 
 	emit filterSignal(filterText);
@@ -277,26 +327,26 @@ void ImgListView::prefetchThumbnails(){
 	emit taskBarSetMaximum(dirs.size());
 
 
-	for(auto dirEntry : dirs){
+	for (auto dirEntry : dirs) {
 		emit taskBarSetValue(dirCounter++);
-		if(stopPrefetching)
+		if (stopPrefetching)
 			break;
 		QDir dir(dirEntry);
 		QString fileName = dir.absolutePath();
-		fileName +="/.kthumbnails";
+		fileName += "/.kthumbnails";
 
 		QFile thumbnailsFile(fileName);
 
 		QMap<QString, QPixmap> oldCache;
 		QMap<QString, QPixmap> newCache;
-		QDataStream in (&thumbnailsFile);
+		QDataStream in(&thumbnailsFile);
 		in.setVersion(QDataStream::Qt_5_7);
-		if(thumbnailsFile.open(QIODevice::ReadOnly)){
+		if (thumbnailsFile.open(QIODevice::ReadOnly)) {
 			QMap<QString, QPixmap> cacheMap;
-			in>> cacheMap;
-			for(auto thumbName : cacheMap.keys())
-				oldCache.insert(dir.absolutePath()+"/"+thumbName,cacheMap[thumbName]);
-
+			in >> cacheMap;
+			for (const auto &thumbName : cacheMap.keys())
+				oldCache.insert(dir.absolutePath() + "/" + thumbName,
+								cacheMap[thumbName]);
 		}
 
 		thumbnailsFile.close();
@@ -305,44 +355,50 @@ void ImgListView::prefetchThumbnails(){
 
 
 		emit progressSetMaximum(dirEntries.count());
-		int counter = 0 ;
+		int counter = 0;
 
 
-		for(auto& fileInfo : dirEntries ){
-			if(stopPrefetching)
+		for (auto &fileInfo : dirEntries) {
+			if (stopPrefetching)
 				break;
-			if(fileInfo.isDir())
+			if (fileInfo.isDir())
 				continue;
 
-			auto item = newModel->findItems(fileInfo.absoluteFilePath(),
-												  Qt::MatchFixedString).first();
+			auto item = newModel
+							->findItems(fileInfo.absoluteFilePath(),
+										Qt::MatchFixedString)
+							.first();
 
 			emit progressSetValue(counter++);
 
 			auto currentFileName = fileInfo.absoluteFilePath();
 			auto tcEntry = oldCache.constFind(currentFileName);
-			if(tcEntry == oldCache.constEnd() || tcEntry.value().isNull()) {
-				if(stopPrefetching)
+			if (tcEntry == oldCache.constEnd() || tcEntry.value().isNull()) {
+				if (stopPrefetching)
 					break;
 				emit progressSetVisible(true);
-				QSize iconSize(PREVIEW_SIZE,PREVIEW_SIZE);
+				QSize iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
 				QSize imgSize(iconSize);
 				QImageReader reader(currentFileName);
-				if(!reader.canRead()){
-					qDebug()<<"can't Read: "<<currentFileName;
-					item->setData(QIcon(":/Images/bad_img.png"), Qt::DecorationRole);
+				if (!reader.canRead()) {
+					qDebug() << "can't Read: " << currentFileName;
+					item->setData(QIcon(":/Images/bad_img.png"),
+								  Qt::DecorationRole);
 					continue;
-					//item->setIcon(icon);
+					// item->setIcon(icon);
 				}
 
 				auto picSize = reader.size();
-				if(picSize.width()>iconSize.width() || picSize.height()>iconSize.height()){
+				if (picSize.width() > iconSize.width()
+					|| picSize.height() > iconSize.height()) {
 					auto picSize = reader.size();
-					double coef = picSize.height()*1.0/picSize.width();
-					if(coef>1)
-						imgSize.setWidth(static_cast<int>(iconSize.width()/coef));
+					double coef = picSize.height() * 1.0 / picSize.width();
+					if (coef > 1)
+						imgSize.setWidth(
+							static_cast<int>(iconSize.width() / coef));
 					else
-						imgSize.setHeight(static_cast<int>(iconSize.height()*coef));
+						imgSize.setHeight(
+							static_cast<int>(iconSize.height() * coef));
 					reader.setScaledSize(imgSize);
 				}
 
@@ -350,38 +406,40 @@ void ImgListView::prefetchThumbnails(){
 				reader.setAutoTransform(true);
 				reader.setQuality(15);
 
-				if(stopPrefetching)
+				if (stopPrefetching)
 					break;
 
 				auto img = reader.read();
 
-				QImage newImg(iconSize,QImage::Format_ARGB32);
+				QImage newImg(iconSize, QImage::Format_ARGB32);
 				newImg.fill(qRgba(0, 0, 0, 0));
 				QPainter painter(&newImg);
 
-				if(!newImg.isNull()){
+				if (!newImg.isNull()) {
 
 					int hDelta(0), vDelta(0);
 
-					if(img.width()<iconSize.width())
-						hDelta = (iconSize.width() - img.width())/2;
-					if(img.height() < iconSize.height())
-						vDelta = (iconSize.height() - img.height())/2;
+					if (img.width() < iconSize.width())
+						hDelta = (iconSize.width() - img.width()) / 2;
+					if (img.height() < iconSize.height())
+						vDelta = (iconSize.height() - img.height()) / 2;
 
 					painter.setRenderHint(QPainter::Antialiasing, true);
-					painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
-					painter.drawPixmap(hDelta, vDelta, img.width(), img.height(), QPixmap::fromImage(img));
+					painter.setRenderHint(QPainter::SmoothPixmapTransform,
+										  true);
+					painter.drawPixmap(hDelta, vDelta, img.width(),
+									   img.height(), QPixmap::fromImage(img));
 					painter.save();
 					painter.restore();
 				}
 
-				if(stopPrefetching)
+				if (stopPrefetching)
 					break;
 				QPixmap newPixmap(QPixmap::fromImage(newImg));
-				if(newPixmap.isNull()){
+				if (newPixmap.isNull()) {
 					stopPrefetching = true;
 					cleanerMutex.lock();
-					newModel->setRowCount(item->row()-100);
+					newModel->setRowCount(item->row() - 100);
 					newProxy->invalidate();
 					newCache.clear();
 					oldCache.clear();
@@ -390,19 +448,23 @@ void ImgListView::prefetchThumbnails(){
 					break;
 				}
 				QIcon icon;
-				auto genPix = newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-				//icon.addPixmap(genPix);
+				auto genPix =
+					newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio,
+									 Qt::SmoothTransformation);
+				// icon.addPixmap(genPix);
 				icon.addPixmap(genPix, QIcon::Selected);
 				item->setIcon(icon);
 				newCache.insert(currentFileName, newPixmap);
-				//thumbnailPainter->resumeDrawing();
-			}else{
+				// thumbnailPainter->resumeDrawing();
+			} else {
 				QIcon icon;
-				auto genPix = tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
-				if(genPix.isNull()){
+				auto genPix =
+					tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio,
+									Qt::SmoothTransformation);
+				if (genPix.isNull()) {
 					stopPrefetching = true;
 					cleanerMutex.lock();
-					newModel->setRowCount(item->row()-100);
+					newModel->setRowCount(item->row() - 100);
 					newProxy->invalidate();
 					newCache.clear();
 					oldCache.clear();
@@ -410,49 +472,50 @@ void ImgListView::prefetchThumbnails(){
 					emit showError();
 					break;
 				}
-				//icon.addPixmap();
+				// icon.addPixmap();
 				icon.addPixmap(genPix, QIcon::Selected);
 				item->setIcon(icon);
-				//item->setIcon();
+				// item->setIcon();
 				newCache.insert(currentFileName, *tcEntry);
 			}
 
 			item->setText(fileInfo.absoluteFilePath());
 
-			if(stopPrefetching)
+			if (stopPrefetching)
 				break;
 
-			//QMutex locker;
-			//locker.lock();
-			emit callUpdate( fileInfo.absoluteFilePath() );
+			// QMutex locker;
+			// locker.lock();
+			emit callUpdate(fileInfo.absoluteFilePath());
 
-			if(autoScroll){
+			if (autoScroll) {
 				auto theIndex = newProxy->mapFromSource(item->index());
 				emit scrollToIndex(theIndex);
 			}
 
 
-			//synchronizer.wait(&locker);
-
+			// synchronizer.wait(&locker);
 		}
 		emit progressSetVisible(false);
-		if(newCache.count() != oldCache.count()){
-			//qDebug()<<"Saving cache to file";
-			QtConcurrent::run([&, fName=std::move(fileName), newCache=std::move(newCache) ](){
+		if (newCache.count() != oldCache.count()) {
+			// qDebug()<<"Saving cache to file";
+			QtConcurrent::run([&, fName = std::move(fileName),
+							   newCache = std::move(newCache)]() {
 				QFile thumbnailsFile(fName);
-				if(thumbnailsFile.open(QIODevice::WriteOnly | QIODevice::Truncate)){
+				if (thumbnailsFile.open(QIODevice::WriteOnly
+										| QIODevice::Truncate)) {
 					thumbnailsFile.resize(0);
-					QDataStream out (&thumbnailsFile);
+					QDataStream out(&thumbnailsFile);
 					out.setVersion(QDataStream::Qt_5_7);
 					QMap<QString, QPixmap> cacheMap;
-					for(auto thumbName : newCache.keys())
-						cacheMap.insert(thumbName.section('/', -1),newCache[thumbName]);
-					out<<cacheMap;
+					for (const auto &thumbName : newCache.keys())
+						cacheMap.insert(thumbName.section('/', -1),
+										newCache[thumbName]);
+					out << cacheMap;
 					thumbnailsFile.flush();
 					thumbnailsFile.close();
 				}
 			});
-
 		}
 	}
 
@@ -462,29 +525,30 @@ void ImgListView::prefetchThumbnails(){
 	oldModel->setRowCount(0);
 	cleanerMutex.unlock();
 
-	if(!stopPrefetching)
+	if (!stopPrefetching)
 		emit callFullUpdate();
 }
 
-void ImgListView::keyPressEvent(QKeyEvent *event){
+void ImgListView::keyPressEvent(QKeyEvent *event) {
 	auto key = event->key();
 
-	if(key == Qt::Key_Return || key == Qt::Key_Enter)
+	if (key == Qt::Key_Return || key == Qt::Key_Enter)
 		onDoubleClicked();
 	else
 		QAbstractItemView::keyPressEvent(event);
 }
 
 
-void ImgListView::onDoubleClicked(){
+void ImgListView::onDoubleClicked() {
 	auto selectedThumbnails = selectionModel()->selectedIndexes();
-	for(auto &index : selectedThumbnails){
-		//QFileInfo info=fsModel->fileInfo(index);
-		QDesktopServices::openUrl(QUrl::fromLocalFile(newProxy->data(index).toString() ));
+	for (auto &index : selectedThumbnails) {
+		// QFileInfo info=fsModel->fileInfo(index);
+		QDesktopServices::openUrl(
+			QUrl::fromLocalFile(newProxy->data(index).toString()));
 	}
 }
 
-void ImgListView::prepareExit(){
+void ImgListView::prepareExit() {
 	stopPrefetching = true;
 	thumbnailPainter->stopDrawing();
 	newProxy->invalidate();
@@ -493,42 +557,40 @@ void ImgListView::prepareExit(){
 	cleanerProc.waitForFinished();
 }
 
-void ImgListView::applyFilter(QString inFilter){
+void ImgListView::applyFilter(QString inFilter) {
 
 	filterText = inFilter;
-	QString newFilter="*"+inFilter;
+	QString newFilter = "*" + inFilter;
 	newProxy->setFilterWildcard(newFilter);
 	newProxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
 	int totalCount = newModel->rowCount();
 	int visCount = newProxy->rowCount();
 
-	if(visCount > totalCount)
+	if (visCount > totalCount)
 		visCount = totalCount;
 
-	emit numFiles( totalCount, visCount );
-
+	emit numFiles(totalCount, visCount);
 }
 
 
-void ImgListView::exportImages(){
-	//qDebug()<<"export called";
+void ImgListView::exportImages() {
+	// qDebug()<<"export called";
 	auto selections = selectionModel()->selectedIndexes();
-	if( 0 == selections.count() ){
+	if (0 == selections.count()) {
 		QMessageBox msgBox;
 		msgBox.setIcon(QMessageBox::Warning);
 		msgBox.setWindowTitle("Warning");
 		msgBox.setText("No files selected");
-		//msgBox.setInformativeText("Do you want to save your changes?");
+		// msgBox.setInformativeText("Do you want to save your changes?");
 		msgBox.setStandardButtons(QMessageBox::Ok);
 		msgBox.setDefaultButton(QMessageBox::Ok);
 		msgBox.exec();
 		return;
 	}
-	if(exportDir.length() < 1)
+	if (exportDir.length() < 1)
 		exportDir = currentDir;
-	QFileDialog selector(this,"Select output folder",
-						 exportDir);
+	QFileDialog selector(this, "Select output folder", exportDir);
 	selector.setFileMode(QFileDialog::DirectoryOnly);
 	if (!selector.exec())
 		return;
@@ -536,55 +598,67 @@ void ImgListView::exportImages(){
 
 	exportDir = selector.selectedFiles().first();
 
-	if(0 == exportDir.compare(currentDir)){
+	if (0 == exportDir.compare(currentDir)) {
 		QMessageBox msgBox;
 		msgBox.setIcon(QMessageBox::Warning);
 		msgBox.setWindowTitle("Wrong directory");
 		msgBox.setText("Output directory can not be the same");
-		//msgBox.setInformativeText("Do you want to save your changes?");
+		// msgBox.setInformativeText("Do you want to save your changes?");
 		msgBox.setStandardButtons(QMessageBox::Ok);
 		msgBox.setDefaultButton(QMessageBox::Ok);
 		msgBox.exec();
 		return;
 	}
 	QStringList fileList;
-	for(auto &index : selections)
-		if( 0 == index.column() )
-			 fileList << newModel->itemFromIndex(newProxy->mapToSource(index))
-						 ->data(Qt::DisplayRole).toString();
+	for (auto &index : selections)
+		if (0 == index.column())
+			fileList << newModel->itemFromIndex(newProxy->mapToSource(index))
+							->data(Qt::DisplayRole)
+							.toString();
 
 	addHiddenFiles(fileList);
 	emit setFileAction(fileList, exportDir);
 }
 
-void ImgListView::mousePressEvent(QMouseEvent *event){
-	if(event->button() == Qt::RightButton){
+void ImgListView::mousePressEvent(QMouseEvent *event) {
+	if (event->button() == Qt::RightButton) {
 		auto pointedIndex = indexAt(event->pos());
-		if(!pointedIndex.isValid())
+		if (!pointedIndex.isValid())
 			openAction->setDisabled(true);
 
 		QStringList selectedFiels;
 
-		for(auto &index : selectionModel()->selection().indexes())
-			selectedFiels << newModel->itemFromIndex(newProxy->mapToSource(index))->data(Qt::DisplayRole).toString();
+		for (auto &index : selectionModel()->selection().indexes())
+			selectedFiels << newModel
+								 ->itemFromIndex(newProxy->mapToSource(index))
+								 ->data(Qt::DisplayRole)
+								 .toString();
 
 		auto selectionsCount = selectedFiels.count();
-		if(selectionsCount < 1)
+		if (selectionsCount < 1)
 			exportAction->setDisabled(true);
 
-		if(pointedIndex.isValid() || selectionsCount > 0){
-			QString text = "";
-			if(selectionsCount > 1 ){
-				fi_selectedFiles->setText("Selected files: \t"+QString::number(selectionsCount));
-				fi_fileFormat->setText("Selected files size: \t"+getTotalSize(selectedFiels));
+		if (pointedIndex.isValid() || selectionsCount > 0) {
+			// QString text = "";
+			if (selectionsCount > 1) {
+				fi_selectedFiles->setText("Selected files: \t"
+										  + QString::number(selectionsCount));
+				fi_fileFormat->setText("Selected files size: \t"
+									   + getTotalSize(selectedFiels));
 
 				addHiddenFiles(selectedFiels);
 
-				fi_bitDepth->setText("hidden source files: \t"+QString::number(selectedFiels.count() - selectionsCount));
-				fi_grayScale->setText("hidden source files size: \t"+getTotalSize(selectedFiels, selectionsCount));
+				fi_bitDepth->setText(
+					"hidden source files: \t"
+					+ QString::number(selectedFiels.count() - selectionsCount));
+				fi_grayScale->setText(
+					"hidden source files size: \t"
+					+ getTotalSize(selectedFiels, selectionsCount));
 #ifdef SHOWTOTAL
-				fi_size->setText("Total files: \t"+QString::number(selectedFiels.count()));
-				fi_alpha->setText("Total files size: \t"+getTotalSize(selectedFiels));
+				fi_size->setText("Total files: \t"
+								 + QString::number(selectedFiels.count()));
+				fi_alpha->setText("Total files size: \t"
+								  + getTotalSize(selectedFiels));
 #else
 				m_menu.removeAction(fi_size);
 				m_menu.removeAction(fi_alpha);
@@ -592,11 +666,15 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 				fi_size->setText("");
 				fi_alpha->setText("");
 #endif
-			}else{
-				if(!pointedIndex.isValid()){
-					pointedIndex = selectionModel()->selection().indexes().first();
+			} else {
+				if (!pointedIndex.isValid()) {
+					pointedIndex =
+						selectionModel()->selection().indexes().first();
 				}
-				auto fileName = newModel->itemFromIndex(newProxy->mapToSource(pointedIndex))->data(Qt::DisplayRole).toString();
+				auto fileName =
+					newModel->itemFromIndex(newProxy->mapToSource(pointedIndex))
+						->data(Qt::DisplayRole)
+						.toString();
 				auto list = QStringList(fileName);
 				addHiddenFiles(list);
 				QImageReader reader(fileName);
@@ -604,20 +682,27 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 
 				QImage img = reader.read();
 
-				//m_menu.addAction(fi_bitDepth);
-				//m_menu.addAction(fi_grayScale);
+				// m_menu.addAction(fi_bitDepth);
+				// m_menu.addAction(fi_grayScale);
 #ifndef SHOWTOTAL
 				m_menu.addAction(fi_size);
 				m_menu.addAction(fi_alpha);
 #endif
 				QStringList tempList(fileName);
-				fi_selectedFiles->setText("File size: \t" + getTotalSize(tempList));
+				fi_selectedFiles->setText("File size: \t"
+										  + getTotalSize(tempList));
 				fi_fileFormat->setText("File format: \t"
 									   + QImageReader::imageFormat(fileName));
-				fi_bitDepth->setText("Color depth: \t"+QString::number(img.depth())+"bpp");
-				fi_grayScale->setText("Grayscale: \t"+QString(img.allGray()?"true":"false"));
-				fi_size->setText("Image size: \t"+QString::number(img.width())+"x"+QString::number(img.height()));
-				fi_alpha->setText("Transparency: \t"+QString(img.hasAlphaChannel()?"true":"false"));
+				fi_bitDepth->setText("Color depth: \t"
+									 + QString::number(img.depth()) + "bpp");
+				fi_grayScale->setText(
+					"Grayscale: \t"
+					+ QString(img.allGray() ? "true" : "false"));
+				fi_size->setText("Image size: \t" + QString::number(img.width())
+								 + "x" + QString::number(img.height()));
+				fi_alpha->setText(
+					"Transparency: \t"
+					+ QString(img.hasAlphaChannel() ? "true" : "false"));
 			}
 
 			m_menu.exec(QCursor::pos());
@@ -631,72 +716,72 @@ void ImgListView::mousePressEvent(QMouseEvent *event){
 	QListView::mousePressEvent(event);
 }
 
-void ImgListView::getDirs(const QString &rootDir, QStringList &dirList){
-	if(stopPrefetching)
+void ImgListView::getDirs(const QString &rootDir, QStringList &dirList) {
+	if (stopPrefetching)
 		return;
 	QDir dir(rootDir);
 	auto currList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
 
-	for(auto dirEntry : currList){
+	for (auto dirEntry : currList) {
 
 		dirList << dirEntry.absoluteFilePath();
 		getDirs(dirEntry.absoluteFilePath(), dirList);
 	}
-
 }
 
-QString ImgListView::getTotalSize(QStringList& files, int skipFirstNfiles){
+QString ImgListView::getTotalSize(QStringList &files, int skipFirstNfiles) {
 	qint64 totalSize = 0;
-	for(auto fileName : files)
-		if( skipFirstNfiles > 0 && skipFirstNfiles--)
+	for (auto fileName : files)
+		if (skipFirstNfiles > 0 && skipFirstNfiles--)
 			continue;
 		else
 			totalSize += QFile(fileName).size();
 
-	double gb=0, mb=0, kb=0;
+	double gb = 0, mb = 0, kb = 0;
 	gb = totalSize / 1000000000.0;
 	mb = totalSize / 1000000.0;
 	kb = totalSize / 1000.0;
 	QString text;
-	if(gb>.5){
-		text = QString::number(gb, 'f', 1)+" GB";
-	}else if(mb>.5){
-		text = QString::number(mb, 'f', 1)+" MB";
-	}else if(kb>.5){
-		text = QString::number(kb, 'f', 1)+" KB";
-	}else{
-		text = QString::number(totalSize)+" B";
+	if (gb > .5) {
+		text = QString::number(gb, 'f', 1) + " GB";
+	} else if (mb > .5) {
+		text = QString::number(mb, 'f', 1) + " MB";
+	} else if (kb > .5) {
+		text = QString::number(kb, 'f', 1) + " KB";
+	} else {
+		text = QString::number(totalSize) + " B";
 	}
 	return text;
 }
 
-void ImgListView::addHiddenFiles(QStringList& fileList){
+void ImgListView::addHiddenFiles(QStringList &fileList) {
 	auto initialCount = fileList.count();
-	for(auto filePath : fileList){
+	for (auto filePath : fileList) {
 		QFileInfo inf(filePath);
 
-		for( auto newSuffix : sourceExtensons ){
+		for (auto newSuffix : sourceExtensons) {
 			QString newFile(filePath);
-			newFile.replace(
-					filePath.lastIndexOf(inf.completeSuffix()), 5, newSuffix);
-			if(QFile::exists(newFile))
-				fileList<<newFile;
+			newFile.replace(filePath.lastIndexOf(inf.completeSuffix()), 5,
+							newSuffix);
+			if (QFile::exists(newFile))
+				fileList << newFile;
 		}
 	}
-	if(initialCount == fileList.count())
+	if (initialCount == fileList.count())
 		openSourceAction->setDisabled(true);
 }
 
-void ImgListView::checkSelections(QItemSelection, QItemSelection){
+void ImgListView::checkSelections(QItemSelection, QItemSelection) {
 
 	int selectedCount = selectionModel()->selectedIndexes().count();
-	if(selectedCount <1 )
+	if (selectedCount < 1)
 		return applyFilter(filterText);
-	QString info = QString::number(selectedCount) + " selected of "+QString::number(newModel->rowCount());
+	QString info = QString::number(selectedCount) + " selected of "
+				   + QString::number(newModel->rowCount());
 	emit genericMessage(info);
 }
 
-void ImgListView::resetViewSlot(){
+void ImgListView::resetViewSlot() {
 
 	newProxy->setSourceModel(newModel);
 	thumbnailPainter->resumeDrawing();
@@ -705,72 +790,79 @@ void ImgListView::resetViewSlot(){
 	thumbnailPainter->setModel(newProxy);
 	selectionModel()->setModel(newProxy);
 
-	connect(selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-			this, SLOT(checkSelections(QItemSelection,QItemSelection)), Qt::UniqueConnection);
+	connect(selectionModel(),
+			SIGNAL(selectionChanged(QItemSelection, QItemSelection)), this,
+			SLOT(checkSelections(QItemSelection, QItemSelection)),
+			Qt::UniqueConnection);
 }
 
-void ImgListView::synchronizedUpdate(const QString &fileName){
+void ImgListView::synchronizedUpdate(const QString &fileName) {
 
 	cleanerMutex.lock();
 
 
 	auto items = newModel->findItems(fileName, Qt::MatchFixedString);
-	if(items.count()){
+	if (items.count()) {
 		auto item = items.first();
 		auto idx = newModel->indexFromItem(item);
 
-		if(newModel->rowCount() && idx.isValid())
-			emit dataChanged(newModel->index(0,0), newModel->index(newModel->rowCount()-1,0), {Qt::DecorationRole});
+		if (newModel->rowCount() && idx.isValid())
+			emit dataChanged(newModel->index(0, 0),
+							 newModel->index(newModel->rowCount() - 1, 0),
+							 {Qt::DecorationRole});
 	}
 
 
 	cleanerMutex.unlock();
 }
 
-void ImgListView::setZoom(int zoomDirection){
-	if(zoomDirection < 0){
+void ImgListView::setZoom(int zoomDirection) {
+	if (zoomDirection < 0) {
 		auto icon_size = iconSize().width();
 		icon_size -= ZOOM_THRESHOLD;
-		if(icon_size < default_icon_size - MAX_ZOOM)
+		if (icon_size < default_icon_size - MAX_ZOOM)
 			return;
-		setIconSize(QSize(icon_size,icon_size));
-		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
-	}else if(zoomDirection > 0){
+		setIconSize(QSize(icon_size, icon_size));
+		setGridSize(QSize(iconSize().width() + 32, iconSize().height() + 32));
+	} else if (zoomDirection > 0) {
 		auto icon_size = iconSize().width();
 		icon_size += ZOOM_THRESHOLD;
-		if(icon_size > default_icon_size + MAX_ZOOM)
+		if (icon_size > default_icon_size + MAX_ZOOM)
 			return;
-		setIconSize(QSize(icon_size,icon_size));
-		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
-	}else{
-		setIconSize(QSize(default_icon_size,default_icon_size));
-		setGridSize(QSize(iconSize().width()+32, iconSize().height()+32));
+		setIconSize(QSize(icon_size, icon_size));
+		setGridSize(QSize(iconSize().width() + 32, iconSize().height() + 32));
+	} else {
+		setIconSize(QSize(default_icon_size, default_icon_size));
+		setGridSize(QSize(iconSize().width() + 32, iconSize().height() + 32));
 	}
 	emit callFullUpdate();
 }
 
-void ImgListView::openSource(){
+void ImgListView::openSource() {
 
 	auto selections = selectionModel()->selectedIndexes();
-	if(selections.size() == 0)
-		selections <<  indexAt(mapFromGlobal(QCursor::pos()));
-	for(auto &index : selections){
-		if( 0 == index.column() ){
-			QString fileName = newModel->itemFromIndex(newProxy->mapToSource(index))
-									 ->data(Qt::DisplayRole).toString();
+	if (selections.size() == 0)
+		selections << indexAt(mapFromGlobal(QCursor::pos()));
+	for (auto &index : selections) {
+		if (0 == index.column()) {
+			QString fileName =
+				newModel->itemFromIndex(newProxy->mapToSource(index))
+					->data(Qt::DisplayRole)
+					.toString();
 			QFileInfo inf(fileName);
-			for( auto newSuffix : sourceExtensons ){
+			for (auto newSuffix : sourceExtensons) {
 				QString newFile(fileName);
-				newFile.replace(
-						fileName.lastIndexOf(inf.completeSuffix()), 5, newSuffix);
-				if(QFile::exists(newFile))
-					QDesktopServices::openUrl(QUrl::fromLocalFile( newFile ));
+				newFile.replace(fileName.lastIndexOf(inf.completeSuffix()), 5,
+								newSuffix);
+				if (QFile::exists(newFile))
+					QDesktopServices::openUrl(QUrl::fromLocalFile(newFile));
 			}
-
 		}
 	}
 }
 
-void ImgListView::leaveEvent(QEvent *){
-	thumbnailPainter->hidePreview();
+void ImgListView::leaveEvent(QEvent *) { thumbnailPainter->hidePreview(); }
+
+const QString ImgListView::getFileName(const QModelIndex &index) const {
+	return newProxy->data(index, Qt::DisplayRole).toString();
 }
