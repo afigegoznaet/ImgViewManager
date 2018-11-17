@@ -47,10 +47,10 @@ signals:
 public slots:
 	void changeDir(QString dir);
 	void onDoubleClicked();
-	void applyFilter(const QString& inFilter);
+	void applyFilter(const QString &inFilter);
 	void exportImages();
 	void openSource();
-	void checkSelections(const QItemSelection&, const QItemSelection&);
+	void checkSelections(const QItemSelection &, const QItemSelection &);
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
 	void setZoom(int zoomDirection);
@@ -81,7 +81,7 @@ private:
 	ImgThumbnailDelegate *thumbnailPainter;
 
 	QStringList namedFilters;
-	QStringList sourceExtensons;
+	const QStringList sourceExtensons;
 	QFuture<void> prefetchProc;
 	QFuture<void> cleanerProc;
 	std::atomic_bool stopPrefetching;

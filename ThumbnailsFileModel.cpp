@@ -53,8 +53,8 @@ bool ThumbnailsFileModel::hasPics(const QString &scDir) const {
 		return false;
 	QDir dir(scDir);
 
-	QtConcurrent::run([&, scDir]() {
-		parentView->splashText(scDir, Qt::AlignCenter, Qt::white);
+	QtConcurrent::run([=]() {
+		emit parentView->splashText(scDir, Qt::AlignCenter, Qt::white);
 	});
 
 	if (hasImages(scDir)) {
@@ -90,7 +90,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(
 	int source_row, const QModelIndex &source_index) const {
 
 	// return QSortFilterProxyModel::filterAcceptsRow(source_row, source_index);
-	QFileSystemModel *asd = qobject_cast<QFileSystemModel *>(sourceModel());
+	auto *asd = qobject_cast<QFileSystemModel *>(sourceModel());
 	auto newIndex = asd->index(source_row, 0, source_index);
 
 	auto dirPath = fileInfo(newIndex, true).absoluteFilePath();
@@ -108,24 +108,23 @@ bool ThumbnailsFileModel::filterAcceptsRow(
 }
 
 QDir ThumbnailsFileModel::rootDirectory() const {
-	QFileSystemModel *sm = qobject_cast<QFileSystemModel *>(sourceModel());
+	auto *sm = qobject_cast<QFileSystemModel *>(sourceModel());
 	return sm->rootDirectory();
 }
 
 void ThumbnailsFileModel::setNameFilters(const QStringList &filters) {
-	QFileSystemModel *sm = qobject_cast<QFileSystemModel *>(sourceModel());
+	auto *sm = qobject_cast<QFileSystemModel *>(sourceModel());
 	sm->setNameFilters(filters);
 }
 
 QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath) {
-	QFileSystemModel *sm = qobject_cast<QFileSystemModel *>(sourceModel());
+	auto *sm = qobject_cast<QFileSystemModel *>(sourceModel());
 	return sm->setRootPath(newPath);
 }
 
 QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString &startDir) {
 	return QtConcurrent::run([&, startDir]() {
-		QFileSystemModel *fsModel =
-			qobject_cast<QFileSystemModel *>(sourceModel());
+		auto *fsModel = qobject_cast<QFileSystemModel *>(sourceModel());
 		QModelIndex source_index = fsModel->index(startDir);
 		bool res = false;
 
@@ -148,8 +147,8 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString &startDir) {
 }
 
 ThumbnailsFileModel::ScannerRunnable::ScannerRunnable(ThumbnailsFileModel *host,
-													  const QString &dir)
-	: host(host), dir(dir) {}
+													  QString dir)
+	: host(host), dir(std::move(dir)) {}
 
 void ThumbnailsFileModel::ScannerRunnable::run() {
 
@@ -158,25 +157,26 @@ void ThumbnailsFileModel::ScannerRunnable::run() {
 
 	QDir currentDir(dir);
 
-	for (const auto &dir :
-		 currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
+	const auto &list =
+		currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
+	for (const auto &dir : list) {
 		auto runner = new ScannerRunnable(host, dir.absoluteFilePath());
 		host->getPool().start(runner);
 		host->scanRoot(dir.absoluteFilePath());
 	}
 }
 
-QFuture<void> ThumbnailsFileModel::scanTreeFully(const QString& startDir) {
+QFuture<void> ThumbnailsFileModel::scanTreeFully(const QString &startDir) {
 
 	return QtConcurrent::run([&, startDir]() {
 		// this->thread()->setPriority(QThread::LowestPriority);
 		QDir currentDir(startDir);
 
-		for (const auto &dir :
-			 currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot)) {
+		const auto &list =
+			currentDir.entryInfoList(QDir::AllDirs | QDir::NoDotAndDotDot);
+		for (const auto &dir : list) {
 			auto runner = new ScannerRunnable(this, dir.absoluteFilePath());
 			privatePool.start(runner);
-			// scanRoot(dir.absoluteFilePath());
 		}
 	});
 }
@@ -188,7 +188,7 @@ bool ThumbnailsFileModel::hasChildren(const QModelIndex &parent) const {
 		.count();
 }
 
-void ThumbnailsFileModel::scanRoot(const QString& root) {
+void ThumbnailsFileModel::scanRoot(const QString &root) {
 	if (stopPrefetching)
 		return;
 	QDir dir(root);

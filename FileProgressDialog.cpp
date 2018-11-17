@@ -46,7 +46,7 @@ ProgressDialog::~ProgressDialog() {
 }
 
 void ProgressDialog::processFileAction(QStringList fileList,
-									   const QString& destination) {
+									   const QString &destination) {
 	if (isHidden())
 		show();
 	if (!progress->tableWidget->rowCount())
@@ -56,7 +56,7 @@ void ProgressDialog::processFileAction(QStringList fileList,
 	int newRow = progress->tableWidget->rowCount();
 
 
-	foreach (auto fileName, fileList) {
+	for (const auto &fileName : fileList) {
 
 		if (!fileName.compare("..", Qt::CaseInsensitive)
 			|| !fileName.compare(".", Qt::CaseInsensitive))
@@ -81,7 +81,7 @@ void ProgressDialog::processFileAction(QStringList fileList,
 }
 
 void ProgressDialog::onWrite(uint percentsWritten) {
-	if (percentsWritten > (uint)progress->progressBar->value())
+	if (percentsWritten > static_cast<uint>(progress->progressBar->value()))
 		progress->progressBar->setValue(percentsWritten);
 	if (100 == percentsWritten)
 		progress->progressBar->setValue(0);
@@ -145,7 +145,7 @@ void ProgressDialog::dirMovementResult(int result) {
 }
 
 
-void ProgressDialog::errorMsg(const QString& errorText) {
+void ProgressDialog::errorMsg(const QString &errorText) {
 	QMessageBox::warning(this, "Error", errorText);
 	cond.wakeOne();
 }

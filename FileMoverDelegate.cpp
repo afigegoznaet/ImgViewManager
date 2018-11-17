@@ -74,7 +74,7 @@ int FileMoverDelegate::copy() {
 
 int FileMoverDelegate::move() {
 
-	return 10 + (int)QFile::rename(source, destination);
+	return 10 + static_cast<int>(QFile::rename(source, destination));
 }
 /*
 void FileMover::execute(){

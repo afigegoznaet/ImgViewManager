@@ -22,7 +22,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 
 	// fsModel->scanTreeFully(rootPath);
 
-	qDebug() << "Root: " << rootPath;
+	// qDebug() << "Root: " << rootPath;
 	auto rootIndex = model->setRootPath(rootPath);
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 
@@ -44,8 +44,8 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 	for (int i = 1; i < model->columnCount(); ++i)
 		hideColumn(i);
 
-	connect(selectionModel(), &QItemSelectionModel::currentChanged,
-			[&](QModelIndex current, QModelIndex) {
+	connect(selectionModel(), &QItemSelectionModel::currentChanged, this,
+			[this](QModelIndex current, QModelIndex) {
 				emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
 			});
 }

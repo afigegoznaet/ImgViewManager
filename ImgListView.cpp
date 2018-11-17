@@ -43,7 +43,19 @@
 
 ImgListView::ImgListView(QWidget *parent)
 	: QListView(parent), stopPrefetching(false),
-	  spinner(":/Images/spinner.png"),
+	  spinner(":/Images/spinner.png"), sourceExtensons({
+										   "psd",
+										   "eps",
+										   "ai",
+										   "svg",
+#ifndef _WIN32
+										   "PSD",
+										   "EPS",
+										   "AI",
+										   "SVG",
+#endif
+									   }),
+
 	  mb("Out of memory",
 		 "The application is unable to allocate anymore memory, try to display less pictures at once",
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
@@ -66,17 +78,6 @@ ImgListView::ImgListView(QWidget *parent)
 	namedFilters << "*.jpeg";
 	namedFilters << "*.jpg";
 
-
-	sourceExtensons << "psd";
-	sourceExtensons << "eps";
-	sourceExtensons << "ai";
-	sourceExtensons << "svg";
-#ifndef _WIN32
-	sourceExtensons << "PSD";
-	sourceExtensons << "EPS";
-	sourceExtensons << "AI";
-	sourceExtensons << "SVG";
-#endif
 
 	proxy0 = new ThumbnailsSorter(this);
 	proxy1 = new ThumbnailsSorter(this);
@@ -164,7 +165,7 @@ ImgListView::ImgListView(QWidget *parent)
 			&QProgressBar::setValue, Qt::QueuedConnection);
 
 	openAction = m_menu.addAction(
-		"&Open image",
+		"&Open image", this,
 		[&]() {
 			QDesktopServices::openUrl(QUrl::fromLocalFile(
 				model()
@@ -175,12 +176,13 @@ ImgListView::ImgListView(QWidget *parent)
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-	exportAction = m_menu.addAction("Export &image", [&]() { exportImages(); },
-									QKeySequence(Qt::CTRL + Qt::Key_I));
+	exportAction =
+		m_menu.addAction("Export &image", this, [&]() { exportImages(); },
+						 QKeySequence(Qt::CTRL + Qt::Key_I));
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
 	openSourceAction =
-		m_menu.addAction("&Open source file", [&]() { openSource(); },
+		m_menu.addAction("&Open source file", this, [&]() { openSource(); },
 						 QKeySequence(Qt::CTRL + Qt::Key_S));
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
 	// openSourceAction->setDisabled(true);
@@ -283,7 +285,9 @@ void ImgListView::prefetchThumbnails() {
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
 
-	for (const auto &dirEntry : dirs) {
+	const auto &ddirs = dirs;
+
+	for (const auto &dirEntry : ddirs) {
 		QStringList fileList;
 		if (stopPrefetching)
 			break;
@@ -300,7 +304,8 @@ void ImgListView::prefetchThumbnails() {
 		}
 
 		QList<QStandardItem *> items;
-		for (const auto &fileName : fileList) {
+		const auto &crFileList = fileList;
+		for (const auto &fileName : crFileList) {
 			if (stopPrefetching)
 				return;
 
@@ -328,7 +333,7 @@ void ImgListView::prefetchThumbnails() {
 	emit taskBarSetMaximum(dirs.size());
 
 
-	for (const auto &dirEntry : dirs) {
+	for (const auto &dirEntry : ddirs) {
 		emit taskBarSetValue(dirCounter++);
 		if (stopPrefetching)
 			break;
@@ -359,21 +364,21 @@ void ImgListView::prefetchThumbnails() {
 
 		thumbnailsFile.close();
 
-		auto dirEntries = dir.entryInfoList(namedFilters);
+		const auto &dirEntries = dir.entryInfoList(namedFilters);
 
 		emit progressSetMaximum(dirEntries.count());
 		int counter = 0;
 
-		for (auto &fileInfo : dirEntries) {
+		for (const auto &fileInfo : dirEntries) {
 			if (stopPrefetching)
 				break;
 			if (fileInfo.isDir())
 				continue;
 
-			auto item = newModel
-							->findItems(fileInfo.absoluteFilePath(),
-										Qt::MatchFixedString)
-							.first();
+			auto item = *newModel
+							 ->findItems(fileInfo.absoluteFilePath(),
+										 Qt::MatchFixedString)
+							 .cbegin();
 
 			emit progressSetValue(counter++);
 
@@ -470,7 +475,7 @@ void ImgListView::prefetchThumbnails() {
 				if (genPix.isNull()) {
 					stopPrefetching = true;
 					cleanerMutex.lock();
-					newModel->setRowCount(item->row() - 100);
+					newModel->setRowCount(0);
 					newProxy->invalidate();
 					newCache.clear();
 					oldCache.clear();
@@ -505,7 +510,7 @@ void ImgListView::prefetchThumbnails() {
 		emit progressSetVisible(false);
 		if (newCache.count() != oldCache.count()) {
 			// qDebug()<<"Saving cache to file";
-			QtConcurrent::run([&, fName = std::move(fileName),
+			QtConcurrent::run([fName = std::move(fileName),
 							   newCache = std::move(newCache)]() {
 				QFile thumbnailsFile(fName);
 				if (thumbnailsFile.open(QIODevice::WriteOnly
@@ -603,7 +608,7 @@ void ImgListView::exportImages() {
 		return;
 
 
-	exportDir = selector.selectedFiles().first();
+	exportDir = *selector.selectedFiles().cbegin();
 
 	if (0 == exportDir.compare(currentDir)) {
 		QMessageBox msgBox;
@@ -815,9 +820,9 @@ void ImgListView::synchronizedUpdate(const QString &fileName) {
 		auto idx = newModel->indexFromItem(item);
 
 		if (newModel->rowCount() && idx.isValid())
-			emit dataChanged(newModel->index(0, 0),
-							 newModel->index(newModel->rowCount() - 1, 0),
-							 {Qt::DecorationRole});
+			dataChanged(newModel->index(0, 0),
+						newModel->index(newModel->rowCount() - 1, 0),
+						{Qt::DecorationRole});
 	}
 
 

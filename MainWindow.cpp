@@ -166,21 +166,22 @@ void MainWindow::init() {
 		settings.value("HiQPreview", true).toBool());
 	ui->actionHigh_Quality_Preview->setEnabled(false);
 	ui->actionShow_Preview->setChecked(false);
-	connect(ui->actionShow_Preview, &QAction::toggled, [&](bool checked) {
-		ui->actionHigh_Quality_Preview->setEnabled(checked);
-	});
+	connect(ui->actionShow_Preview, &QAction::toggled,
+			ui->actionHigh_Quality_Preview, [=](bool checked) {
+				ui->actionHigh_Quality_Preview->setEnabled(checked);
+			});
 
 	ui->actionShow_Preview->setChecked(
 		settings.value("showPreview", true).toBool());
 
-	connect(ui->actionZoom_In, &QAction::triggered,
-			[&]() { ui->imagesView->setZoom(1); });
+	connect(ui->actionZoom_In, &QAction::triggered, ui->imagesView,
+			[=]() { ui->imagesView->setZoom(1); });
 
-	connect(ui->actionZoom_Out, &QAction::triggered,
-			[&]() { ui->imagesView->setZoom(-1); });
+	connect(ui->actionZoom_Out, &QAction::triggered, ui->imagesView,
+			[=]() { ui->imagesView->setZoom(-1); });
 
-	connect(ui->actionReset_zoom, &QAction::triggered,
-			[&]() { ui->imagesView->setZoom(0); });
+	connect(ui->actionReset_zoom, &QAction::triggered, ui->imagesView,
+			[=]() { ui->imagesView->setZoom(0); });
 
 	ui->menuBar->addAction("About", this, SLOT(showAbout()));
 	connect(ui->actionExit, &QAction::triggered,
@@ -236,8 +237,8 @@ void MainWindow::init() {
 	connect(ui->fileTree, SIGNAL(changeDir(QString)), ui->imagesView,
 			SLOT(changeDir(QString)));
 
-	connect(ui->fileTree, &SystemTreeView::splashText,
-			[&](const QString &message, int alignment, const QColor &color) {
+	connect(ui->fileTree, &SystemTreeView::splashText, this,
+			[=](const QString &message, int alignment, const QColor &color) {
 				emit splashText(message, alignment, color);
 			});
 
@@ -256,8 +257,8 @@ void MainWindow::init() {
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey", "1234").toByteArray();
 
-	QTimer *timer = new QTimer();
-	QObject::connect(timer, &QTimer::timeout, [&, timer]() {
+	auto *timer = new QTimer();
+	QObject::connect(timer, &QTimer::timeout, this, [=]() {
 		timer->moveToThread(timer->thread());
 		initActivation();
 		timer->deleteLater();
@@ -311,11 +312,11 @@ void MainWindow::initActivation() {
 
 	QPushButton *cancelButton = new QPushButton(tr("Cancel"));
 
-	QDialogButtonBox *buttonBox = new QDialogButtonBox(Qt::Horizontal);
+	auto *buttonBox = new QDialogButtonBox(Qt::Horizontal);
 	buttonBox->addButton(createButton, QDialogButtonBox::AcceptRole);
 	buttonBox->addButton(cancelButton, QDialogButtonBox::RejectRole);
 
-	QVBoxLayout *lt = new QVBoxLayout;
+	auto *lt = new QVBoxLayout;
 	qlabel->adjustSize();
 	lt->addWidget(qlabel);
 	lt->addWidget(m_lineEdit);
@@ -328,7 +329,7 @@ void MainWindow::initActivation() {
 	 * Dialog created
 	 */
 
-	connect(buttonBox, &QDialogButtonBox::accepted, [&]() {
+	connect(buttonBox, &QDialogButtonBox::accepted, this, [&]() {
 		// qDebug()<<m_lineEdit->toPlainText();
 		licenseKey = m_lineEdit->toPlainText().toLatin1();
 		unsigned char *enc = reinterpret_cast<unsigned char *>(

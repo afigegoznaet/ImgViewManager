@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 	w.setWindowTitle(WINDOW_TITLE);
 
 	QTimer *timer = new QTimer();
-	QObject::connect(timer, &QTimer::timeout, [&]() {
+	QObject::connect(timer, &QTimer::timeout, &w, [&]() {
 		splashLocker.lock();
 		splash.finish(&w);
 		w.show();
@@ -83,5 +83,5 @@ int main(int argc, char *argv[]) {
 	timer->start(2000);
 
 	qDebug() << "Qt version: " << QT_VERSION_STR;
-	return a.exec();
+	return QApplication::exec();
 }
