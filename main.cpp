@@ -59,19 +59,18 @@ int main(int argc, char *argv[]) {
 		});
 #else
 
-	QObject::connect(&w, &MainWindow::splashText,
-					 [&](const QString &, int, const QColor &) {
-						 splashLocker.lock();
-						 // qDebug()<<message;
-						 splashLocker.unlock();
-					 });
+	auto connection = QObject::connect(
+		&w, &MainWindow::splashText, [&](const QString &, int, const QColor &) {
+			splashLocker.lock();
+			// qDebug()<<message;
+			splashLocker.unlock();
+		});
 #endif
-	w.init();
-	w.setWindowTitle(WINDOW_TITLE);
 
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, &w, [&]() {
 		splashLocker.lock();
+		QObject::disconnect(connection);
 		splash.finish(&w);
 		w.show();
 		timer->deleteLater();
@@ -81,6 +80,10 @@ int main(int argc, char *argv[]) {
 #endif
 	});
 	timer->start(2000);
+
+	w.init();
+	w.setWindowTitle(WINDOW_TITLE);
+
 
 	qDebug() << "Qt version: " << QT_VERSION_STR;
 	return QApplication::exec();
