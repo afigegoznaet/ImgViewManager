@@ -43,23 +43,13 @@
 
 ImgListView::ImgListView(QWidget *parent)
 	: QListView(parent), stopPrefetching(false),
-	  spinner(":/Images/spinner.png"), sourceExtensons({
-										   "psd",
-										   "eps",
-										   "ai",
-										   "svg",
-#ifndef _WIN32
-										   "PSD",
-										   "EPS",
-										   "AI",
-										   "SVG",
-#endif
-									   }),
-
+	  spinner(":/Images/spinner.png"),
 	  mb("Out of memory",
-		 "The application is unable to allocate anymore memory, try to display less pictures at once",
+		 "The application is unable to allocate anymore memory, try to display "
+		 "less pictures at once",
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
-		 QMessageBox::NoButton, QMessageBox::NoButton) {
+		 QMessageBox::NoButton, QMessageBox::NoButton),
+	  sourceExtensons({"psd", "eps", "ai", "svg", "PSD", "EPS", "AI", "SVG"}) {
 
 	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
@@ -511,8 +501,9 @@ void ImgListView::prefetchThumbnails() {
 		emit progressSetVisible(false);
 		if (newCache.count() != oldCache.count()) {
 			// qDebug()<<"Saving cache to file";
-			QtConcurrent::run([fName = std::move(fileName),
-							   newCache = std::move(newCache)]() {
+			QtConcurrent::run([
+				fName = std::move(fileName), newCache = std::move(newCache)
+			]() {
 				QFile thumbnailsFile(fName);
 				if (thumbnailsFile.open(QIODevice::WriteOnly
 										| QIODevice::Truncate)) {
@@ -695,8 +686,8 @@ void ImgListView::mousePressEvent(QMouseEvent *event) {
 
 				QImage img = reader.read();
 
-				// m_menu.addAction(fi_bitDepth);
-				// m_menu.addAction(fi_grayScale);
+// m_menu.addAction(fi_bitDepth);
+// m_menu.addAction(fi_grayScale);
 #ifndef SHOWTOTAL
 				m_menu.addAction(fi_size);
 				m_menu.addAction(fi_alpha);
@@ -708,9 +699,9 @@ void ImgListView::mousePressEvent(QMouseEvent *event) {
 									   + QImageReader::imageFormat(fileName));
 				fi_bitDepth->setText("Color depth: \t"
 									 + QString::number(img.depth()) + "bpp");
-				fi_grayScale->setText(
-					"Grayscale: \t"
-					+ QString(img.allGray() ? "true" : "false"));
+				fi_grayScale->setText("Grayscale: \t" + QString(img.allGray()
+																	? "true"
+																	: "false"));
 				fi_size->setText("Image size: \t" + QString::number(img.width())
 								 + "x" + QString::number(img.height()));
 				fi_alpha->setText(

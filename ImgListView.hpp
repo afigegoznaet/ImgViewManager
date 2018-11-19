@@ -80,8 +80,7 @@ private:
 
 	ImgThumbnailDelegate *thumbnailPainter;
 
-	QStringList namedFilters;
-	const QStringList sourceExtensons;
+
 	QFuture<void> prefetchProc;
 	QFuture<void> cleanerProc;
 	std::atomic_bool stopPrefetching;
@@ -95,6 +94,8 @@ private:
 	QString exportDir;
 	QIcon spinner;
 	QMessageBox mb;
+	QStringList namedFilters;
+	const QStringList sourceExtensons;
 
 	QAction *exportAction;
 	QAction *openAction;
