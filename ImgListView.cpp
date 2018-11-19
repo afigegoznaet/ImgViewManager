@@ -439,13 +439,12 @@ void ImgListView::prefetchThumbnails() {
 					break;
 				QPixmap newPixmap(QPixmap::fromImage(newImg));
 				if (newPixmap.isNull()) {
+					QMutexLocker locker(&cleanerMutex);
 					stopPrefetching = true;
-					cleanerMutex.lock();
 					newModel->setRowCount(item->row() - 100);
 					newProxy->invalidate();
 					newCache.clear();
 					oldCache.clear();
-					cleanerMutex.unlock();
 					emit showError();
 					break;
 				}
@@ -501,9 +500,8 @@ void ImgListView::prefetchThumbnails() {
 		emit progressSetVisible(false);
 		if (newCache.count() != oldCache.count()) {
 			// qDebug()<<"Saving cache to file";
-			QtConcurrent::run([
-				fName = std::move(fileName), newCache = std::move(newCache)
-			]() {
+			QtConcurrent::run([fName = std::move(fileName),
+							   newCache = std::move(newCache)]() {
 				QFile thumbnailsFile(fName);
 				if (thumbnailsFile.open(QIODevice::WriteOnly
 										| QIODevice::Truncate)) {
@@ -525,9 +523,8 @@ void ImgListView::prefetchThumbnails() {
 
 	emit taskBarSetValue(0);
 
-	cleanerMutex.lock();
+	QMutexLocker locker(&cleanerMutex);
 	oldModel->setRowCount(0);
-	cleanerMutex.unlock();
 
 	if (!stopPrefetching)
 		emit callFullUpdate();
@@ -699,9 +696,9 @@ void ImgListView::mousePressEvent(QMouseEvent *event) {
 									   + QImageReader::imageFormat(fileName));
 				fi_bitDepth->setText("Color depth: \t"
 									 + QString::number(img.depth()) + "bpp");
-				fi_grayScale->setText("Grayscale: \t" + QString(img.allGray()
-																	? "true"
-																	: "false"));
+				fi_grayScale->setText(
+					"Grayscale: \t"
+					+ QString(img.allGray() ? "true" : "false"));
 				fi_size->setText("Image size: \t" + QString::number(img.width())
 								 + "x" + QString::number(img.height()));
 				fi_alpha->setText(
@@ -727,7 +724,8 @@ void ImgListView::getDirs(const QString &rootDir, QStringList &dirList) {
 	auto currList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
 
 	for (const auto &dirEntry : currList) {
-
+		if (stopPrefetching)
+			return;
 		dirList << dirEntry.absoluteFilePath();
 		getDirs(dirEntry.absoluteFilePath(), dirList);
 	}
@@ -803,8 +801,7 @@ void ImgListView::resetViewSlot() {
 
 void ImgListView::synchronizedUpdate(const QString &fileName) {
 
-	cleanerMutex.lock();
-
+	QMutexLocker locker(&cleanerMutex);
 
 	auto items = newModel->findItems(fileName, Qt::MatchFixedString);
 	if (items.count()) {
@@ -816,9 +813,6 @@ void ImgListView::synchronizedUpdate(const QString &fileName) {
 						newModel->index(newModel->rowCount() - 1, 0),
 						{Qt::DecorationRole});
 	}
-
-
-	cleanerMutex.unlock();
 }
 
 void ImgListView::setZoom(int zoomDirection) {
