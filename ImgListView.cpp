@@ -247,6 +247,7 @@ void ImgListView::changeDir(QString dir) {
 
 	// thumbnailPainter->stopDrawing();
 
+	scrollToTop();
 	prefetchProc = QtConcurrent::run([&]() { prefetchThumbnails(); });
 	//
 }
