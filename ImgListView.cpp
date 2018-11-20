@@ -233,12 +233,11 @@ void ImgListView::changeDir(QString dir) {
 	stopPrefetching = true;
 
 	prefetchProc.waitForFinished();
-	stopPrefetching = false;
-
 	// thumbnailPainter->stopDrawing();
 
 	scrollToTop();
-	prefetchProc = QtConcurrent::run([&]() { prefetchThumbnails(); });
+	stopPrefetching = false;
+	prefetchProc = QtConcurrent::run([=]() { prefetchThumbnails(); });
 	//
 }
 
@@ -261,12 +260,13 @@ void ImgListView::prefetchThumbnails() {
 	newModel->blockSignals(true);
 
 	// setModel(emptyModel);
-
-	cleanerProc = QtConcurrent::run([&]() {
-		QMutexLocker locker(&cleanerMutex);
-		if (oldModel)
-			oldModel->setRowCount(0);
-	});
+	/*
+		cleanerProc = QtConcurrent::run([&]() {
+			QMutexLocker locker(&cleanerMutex);
+			if (oldModel)
+				oldModel->setRowCount(0);
+		});
+		*/
 	newModel->setRowCount(0);
 
 	// oldModel->clear();
@@ -718,12 +718,14 @@ void ImgListView::mousePressEvent(QMouseEvent *event) {
 }
 
 void ImgListView::getDirs(const QString &rootDir, QStringList &dirList) {
+
 	if (stopPrefetching)
 		return;
 	QDir dir(rootDir);
 	auto currList = dir.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
 
 	for (const auto &dirEntry : currList) {
+		// QMutexLocker locker(&cleanerMutex);
 		if (stopPrefetching)
 			return;
 		dirList << dirEntry.absoluteFilePath();
@@ -864,4 +866,10 @@ void ImgListView::leaveEvent(QEvent *) { thumbnailPainter->hidePreview(); }
 
 const QString ImgListView::getFileName(const QModelIndex &index) const {
 	return newProxy->data(index, Qt::DisplayRole).toString();
+}
+
+void ImgListView::paintEvent(QPaintEvent *event) {
+	if (stopPrefetching)
+		return;
+	QListView::paintEvent(event);
 }

@@ -56,7 +56,7 @@ public slots:
 	void setZoom(int zoomDirection);
 	void setScrolling(bool flag) { autoScroll = flag; }
 
-private:
+protected:
 	void keyPressEvent(QKeyEvent *event) override;
 	void prefetchThumbnails();
 	void mousePressEvent(QMouseEvent *event) override;
@@ -64,10 +64,11 @@ private:
 	QString getTotalSize(QStringList &files, int skipFirstNfiles = 0);
 	void addHiddenFiles(QStringList &fileList);
 	void leaveEvent(QEvent *) override;
+	void paintEvent(QPaintEvent *event) override;
 
 	// QFileSystemModel* fsModel;
 	// QSortFilterProxyModel* proxy;
-
+private:
 	ThumbnailsSorter *newProxy{};
 	QStandardItemModel *newModel{};
 	ThumbnailsSorter *oldProxy{};

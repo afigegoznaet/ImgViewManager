@@ -72,6 +72,11 @@ linux {
 	#QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
 	#QMAKE_LFLAGS+=" -fsanitize=address"
 	QMAKE_CXXFLAGS+="-fno-exceptions"
+CONFIG(debug, debug|release) {
+  message( "debug" )
+QMAKE_CXXFLAGS+="-fsanitize=address"
+QMAKE_LFLAGS+=" -fsanitize=address"
+}
 }
 
 
