@@ -143,18 +143,23 @@ void MainWindow::init() {
 	/***
 	 * Setup menu actions
 	 * */
+
+	auto preview = ui->actionHigh_Quality_Preview;
+	auto imView = ui->imagesView;
+
 	sortingGroup = new QActionGroup(this);
 	sortingGroup->addAction(ui->actionSort_by_full_path);
 	sortingGroup->addAction(ui->actionSort_by_file_name);
 	// qDebug() << "setup showpreview in Main";
-	connect(ui->actionSort_by_full_path, SIGNAL(toggled(bool)), ui->imagesView,
+	connect(ui->actionSort_by_full_path, SIGNAL(toggled(bool)), imView,
 			SIGNAL(sortByPath(bool)));
-	connect(ui->actionShow_Preview, SIGNAL(toggled(bool)), ui->imagesView,
+	connect(ui->actionShow_Preview, SIGNAL(toggled(bool)), imView,
 			SIGNAL(showPreview(bool)));
-	connect(ui->actionHigh_Quality_Preview, SIGNAL(toggled(bool)),
-			ui->imagesView, SIGNAL(enableHiQPreview(bool)));
-	connect(ui->actionScroll_when_loading, SIGNAL(toggled(bool)),
-			ui->imagesView, SLOT(setScrolling(bool)));
+
+	connect(preview, SIGNAL(toggled(bool)), imView,
+			SIGNAL(enableHiQPreview(bool)));
+	connect(ui->actionScroll_when_loading, SIGNAL(toggled(bool)), imView,
+			SLOT(setScrolling(bool)));
 	ui->actionSort_by_full_path->setChecked(
 		settings.value("sortByPath", true).toBool());
 	ui->actionSort_by_file_name->setChecked(
@@ -166,27 +171,25 @@ void MainWindow::init() {
 		settings.value("HiQPreview", true).toBool());
 	ui->actionHigh_Quality_Preview->setEnabled(false);
 	ui->actionShow_Preview->setChecked(false);
-	connect(ui->actionShow_Preview, &QAction::toggled,
-			ui->actionHigh_Quality_Preview, [=](bool checked) {
-				ui->actionHigh_Quality_Preview->setEnabled(checked);
-			});
+	connect(ui->actionShow_Preview, &QAction::toggled, preview,
+			[preview](bool checked) { preview->setEnabled(checked); });
 
 	ui->actionShow_Preview->setChecked(
 		settings.value("showPreview", true).toBool());
 
-	connect(ui->actionZoom_In, &QAction::triggered, ui->imagesView,
-			[=]() { ui->imagesView->setZoom(1); });
+	connect(ui->actionZoom_In, &QAction::triggered, imView,
+			[imView]() { imView->setZoom(1); });
 
-	connect(ui->actionZoom_Out, &QAction::triggered, ui->imagesView,
-			[=]() { ui->imagesView->setZoom(-1); });
+	connect(ui->actionZoom_Out, &QAction::triggered, imView,
+			[imView]() { imView->setZoom(-1); });
 
-	connect(ui->actionReset_zoom, &QAction::triggered, ui->imagesView,
-			[=]() { ui->imagesView->setZoom(0); });
+	connect(ui->actionReset_zoom, &QAction::triggered, imView,
+			[imView]() { imView->setZoom(0); });
 
 	ui->menuBar->addAction("About", this, SLOT(showAbout()));
 	connect(ui->actionExit, &QAction::triggered,
-			[&]() { QApplication::quit(); });
-	connect(ui->actionExport_Images, SIGNAL(triggered(bool)), ui->imagesView,
+			[]() { QApplication::quit(); });
+	connect(ui->actionExport_Images, SIGNAL(triggered(bool)), imView,
 			SLOT(exportImages()));
 
 	ui->actionExit->setShortcut(QKeySequence::Quit);
@@ -228,24 +231,24 @@ void MainWindow::init() {
 	connect(ui->imagesView, SIGNAL(genericMessage(QString)), this,
 			SLOT(setScanDirMsg(QString)), Qt::QueuedConnection);
 #ifdef _WIN32
-	connect(ui->imagesView, SIGNAL(taskBarSetMaximum(int)), this,
+	connect(imView, SIGNAL(taskBarSetMaximum(int)), this,
 			SLOT(setProgressMax(int)));
 
-	connect(ui->imagesView, SIGNAL(taskBarSetValue(int)), this,
+	connect(imView, SIGNAL(taskBarSetValue(int)), this,
 			SLOT(setProgressValue(int)));
 #endif
-	connect(ui->fileTree, SIGNAL(changeDir(QString)), ui->imagesView,
+	connect(ui->fileTree, SIGNAL(changeDir(QString)), imView,
 			SLOT(changeDir(QString)));
 
 	connect(ui->fileTree, &SystemTreeView::splashText, this,
-			[=](const QString &message, int alignment, const QColor &color) {
+			[this](const QString &message, int alignment, const QColor &color) {
 				emit splashText(message, alignment, color);
 			});
 
 	// emit splashText("aaaa", 1, Qt::blue);
 	ui->fileTree->init(startDir);
 	ui->infoBox->setEnabled(false);
-	connect(ui->filterBox, SIGNAL(textChanged(QString)), ui->imagesView,
+	connect(ui->filterBox, SIGNAL(textChanged(QString)), imView,
 			SLOT(applyFilter(QString)));
 
 	setWindowState(Qt::WindowMaximized);
@@ -257,8 +260,8 @@ void MainWindow::init() {
 #ifdef VALIDATE_LICENSE
 	licenseKey = settings.value("licenseKey", "1234").toByteArray();
 
-	auto *timer = new QTimer();
-	QObject::connect(timer, &QTimer::timeout, this, [=]() {
+	auto *timer = new QTimer(this);
+	QObject::connect(timer, &QTimer::timeout, this, [this, timer]() {
 		timer->moveToThread(timer->thread());
 		initActivation();
 		timer->deleteLater();

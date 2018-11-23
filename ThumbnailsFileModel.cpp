@@ -53,7 +53,7 @@ bool ThumbnailsFileModel::hasPics(const QString &scDir) const {
 		return false;
 	QDir dir(scDir);
 
-	QtConcurrent::run([=]() {
+	QtConcurrent::run([this, scDir]() {
 		emit parentView->splashText(scDir, Qt::AlignCenter, Qt::white);
 	});
 
