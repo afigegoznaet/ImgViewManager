@@ -99,9 +99,8 @@ FileMoverDelegate::~FileMoverDelegate() {
 
 FileMoverDelegate::FileMoverDelegate(QString source, QString destination,
 									 QString action, QObject *parent)
-	: QObject(parent), destination(std::move(std::move(destination))),
-	  source(std::move(std::move(source))),
-	  action(std::move(std::move(action))), status(true) {
+	: QObject(parent), destination(std::move(destination)),
+	  source(std::move(source)), action(std::move(action)), status(true) {
 	// connect(this,
 	// SIGNAL(completed(int)),qobject_cast<ProgressDialog*>(parent),SLOT(movementResult(int)),
 	// Qt::QueuedConnection);

@@ -30,8 +30,7 @@ static char pubKey[] =
 // static char licenseExample[] =
 // "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
 MainWindow::MainWindow(QString argv, QWidget *parent)
-	: QMainWindow(parent), ui(new Ui::MainWindow),
-	  args(std::move(std::move(argv)))
+	: QMainWindow(parent), ui(new Ui::MainWindow), args(std::move(argv))
 #ifdef _WIN32
 	  ,
 	  progress(nullptr)
@@ -124,8 +123,13 @@ void MainWindow::init() {
 			QDir dir(argList.last());
 			if (1 < argList.length()
 				&& 0 == argList.first().compare("--setrootfolder")
-				&& dir.exists())
+				&& dir.exists()) {
 				rootDir = dir.absolutePath();
+			} else {
+				QDir dir(argList.first());
+				if (dir.exists())
+					startDir = argList.first();
+			}
 			// qDebug()<<QDir::rootPath();
 			// qDebug()<<argList.last();
 			// qDebug()<<"Root: "<<rootDir;

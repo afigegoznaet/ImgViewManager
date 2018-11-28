@@ -10,7 +10,7 @@ class SystemTreeView : public QTreeView {
 	Q_OBJECT
 public:
 	explicit SystemTreeView(QWidget *parent = nullptr);
-	void init(QString &startDir);
+	void init(const QString &startDir);
 	void initDir(QString &startDir);
 	QString getCurrentDir();
 	void prepareExit();
