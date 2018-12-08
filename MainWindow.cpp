@@ -99,7 +99,8 @@ void MainWindow::showAbout() {
 	QMessageBox msgBox;
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle("About");
-	msgBox.setText(QByteArray::fromBase64(aboutText));
+	msgBox.setText(aboutText);
+	// msgBox.setText(QByteArray::fromBase64(aboutText));
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	msgBox.setDefaultButton(QMessageBox::Ok);
 	msgBox.exec();
