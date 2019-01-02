@@ -50,14 +50,6 @@ int main(int argc, char *argv[]) {
 	MainWindow w(params);
 	QMutex splashLocker;
 
-#if !defined(QT_DEBUG) && defined(_WIN32)
-	QObject::connect(
-		&w, &MainWindow::splashText,
-		[&](const QString &message, int alignment, const QColor &color) {
-			QMutexLocker locker(&splashLocker);
-			splash.showMessage(message, alignment, color);
-		});
-#else
 
 	auto connection = QObject::connect(
 		&w, &MainWindow::splashText, [&](const QString &, int, const QColor &) {
@@ -65,7 +57,7 @@ int main(int argc, char *argv[]) {
 			// qDebug()<<message;
 			splashLocker.unlock();
 		});
-#endif
+
 
 	QTimer *timer = new QTimer();
 	QObject::connect(timer, &QTimer::timeout, &w, [&]() {

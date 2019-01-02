@@ -24,9 +24,13 @@ void ThumbnailsSorter::sortByPath(bool flag) {
 
 bool ThumbnailsSorter::lessThan(const QModelIndex &left,
 								const QModelIndex &right) const {
-	if (fullPathSorting)
-		return QSortFilterProxyModel::lessThan(left, right);
-
+	if (fullPathSorting) {
+		QString leftFile =
+			sourceModel()->data(left, Qt::DisplayRole).toString();
+		QString rightFile =
+			sourceModel()->data(right, Qt::DisplayRole).toString();
+		return comparator.compare(leftFile, rightFile) < 0;
+	}
 	QString leftFile =
 		sourceModel()->data(left, Qt::DisplayRole).toString().section('/', -1);
 	QString rightFile =
