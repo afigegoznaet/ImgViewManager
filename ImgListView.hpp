@@ -18,8 +18,9 @@ class ImgListView : public QListView {
 public:
 	explicit ImgListView(QWidget *parent = nullptr);
 	void prepareExit();
-	~ImgListView();
+	~ImgListView() override;
 	const QString getFileName(const QModelIndex &index) const;
+	auto &		  getBigImgCache() { return bigImgCache; }
 
 signals:
 	void callUpdate(const QString &);
@@ -57,45 +58,48 @@ public slots:
 	void setScrolling(bool flag) { autoScroll = flag; }
 
 protected:
-	void keyPressEvent(QKeyEvent *event) override;
-	void prefetchThumbnails();
-	void mousePressEvent(QMouseEvent *event) override;
-	void getDirs(const QString &rootDir, QStringList &dirList);
+	void	keyPressEvent(QKeyEvent *event) override;
+	void	prefetchThumbnails();
+	void	generateScaledImages();
+	void	mousePressEvent(QMouseEvent *event) override;
+	void	getDirs(const QString &rootDir, QStringList &dirList);
 	QString getTotalSize(QStringList &files, int skipFirstNfiles = 0);
-	void addHiddenFiles(QStringList &fileList);
-	void leaveEvent(QEvent *) override;
-	void paintEvent(QPaintEvent *event) override;
+	void	addHiddenFiles(QStringList &fileList);
+	void	leaveEvent(QEvent *) override;
+	void	paintEvent(QPaintEvent *event) override;
 
 	// QFileSystemModel* fsModel;
 	// QSortFilterProxyModel* proxy;
 private:
-	ThumbnailsSorter *newProxy{};
-	QStandardItemModel *newModel{};
-	ThumbnailsSorter *oldProxy{};
-	QStandardItemModel *oldModel{};
+	ThumbnailsSorter *	   newProxy{};
+	QStandardItemModel *   newModel{};
+	ThumbnailsSorter *	   oldProxy{};
+	QStandardItemModel *   oldModel{};
+	QMap<QString, QPixmap> bigImgCache;
 
-	ThumbnailsSorter *proxy0;
-	ThumbnailsSorter *proxy1;
+
+	ThumbnailsSorter *	proxy0;
+	ThumbnailsSorter *	proxy1;
 	QStandardItemModel *recursiveModel0;
 	QStandardItemModel *recursiveModel1;
 
 	ImgThumbnailDelegate *thumbnailPainter;
 
 
-	QFuture<void> prefetchProc;
-	QFuture<void> cleanerProc;
+	QFuture<void>	 prefetchProc;
+	QFuture<void>	 cleanerProc;
 	std::atomic_bool stopPrefetching;
 	std::atomic_bool autoScroll{};
-	QString filterText;
+	QString			 filterText;
 	// QMap<QString, QPixmap> thumbnailsCache;
-	ProgressDialog *copyDialog;
-	QProgressBar *dirLoadBar;
-	QMenu m_menu;
-	QString currentDir;
-	QString exportDir;
-	QIcon spinner;
-	QMessageBox mb;
-	QStringList namedFilters;
+	ProgressDialog *  copyDialog;
+	QProgressBar *	  dirLoadBar;
+	QMenu			  m_menu;
+	QString			  currentDir;
+	QString			  exportDir;
+	QIcon			  spinner;
+	QMessageBox		  mb;
+	QStringList		  namedFilters;
 	const QStringList sourceExtensons;
 
 	QAction *exportAction;
@@ -107,9 +111,9 @@ private:
 	QAction *fi_grayScale;
 	QAction *fi_size;
 	QAction *fi_alpha;
-	QList<QStandardItem *> items;
+	// QList<QStandardItem *> items;
 
-	QMutex cleanerMutex;
+	QMutex		   cleanerMutex;
 	QWaitCondition synchronizer;
 
 	int default_icon_size;

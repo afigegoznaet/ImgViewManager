@@ -87,7 +87,7 @@ ImgListView::ImgListView(QWidget *parent)
 	setResizeMode(Adjust);
 
 	QScreen *screen = QGuiApplication::primaryScreen();
-	QRect screenGeometry = screen->geometry();
+	QRect	 screenGeometry = screen->geometry();
 	// qDebug()<<screenGeometry;
 	// qDebug()<<screen->physicalSize();
 	// int height = screenGeometry.height();
@@ -121,12 +121,13 @@ ImgListView::ImgListView(QWidget *parent)
 			Qt::QueuedConnection);
 	connect(this, SIGNAL(filterSignal(QString)), this,
 			SLOT(applyFilter(QString)));
-	connect(this, &ImgListView::showError, this,
-			[&]() {
-				moveToThread(this->thread());
-				mb.exec();
-			},
-			Qt::QueuedConnection);
+	connect(
+		this, &ImgListView::showError, this,
+		[&]() {
+			moveToThread(this->thread());
+			mb.exec();
+		},
+		Qt::QueuedConnection);
 
 	dirLoadBar = new QProgressBar(this);
 	dirLoadBar->setMinimum(0);
@@ -166,14 +167,14 @@ ImgListView::ImgListView(QWidget *parent)
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-	exportAction =
-		m_menu.addAction("Export &image", this, [&]() { exportImages(); },
-						 QKeySequence(Qt::CTRL + Qt::Key_I));
+	exportAction = m_menu.addAction(
+		"Export &image", this, [&]() { exportImages(); },
+		QKeySequence(Qt::CTRL + Qt::Key_I));
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
-	openSourceAction =
-		m_menu.addAction("&Open source file", this, [&]() { openSource(); },
-						 QKeySequence(Qt::CTRL + Qt::Key_S));
+	openSourceAction = m_menu.addAction(
+		"&Open source file", this, [&]() { openSource(); },
+		QKeySequence(Qt::CTRL + Qt::Key_S));
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
 	// openSourceAction->setDisabled(true);
 
@@ -213,12 +214,13 @@ ImgListView::ImgListView(QWidget *parent)
 	setMouseTracking(true);
 	autoScroll = false;
 
-	connect(this, &ImgListView::scrollToIndex, this,
-			[&](const QModelIndex idx) {
-				moveToThread(this->thread());
-				scrollTo(newProxy->index(idx.row(), 0));
-			},
-			Qt::QueuedConnection);
+	connect(
+		this, &ImgListView::scrollToIndex, this,
+		[&](const QModelIndex idx) {
+			moveToThread(this->thread());
+			scrollTo(newProxy->index(idx.row(), 0));
+		},
+		Qt::QueuedConnection);
 }
 
 ImgListView::~ImgListView() {
@@ -237,7 +239,10 @@ void ImgListView::changeDir(QString dir) {
 
 	scrollToTop();
 	stopPrefetching = false;
-	prefetchProc = QtConcurrent::run([this]() { prefetchThumbnails(); });
+	prefetchProc = QtConcurrent::run([this]() {
+		prefetchThumbnails();
+		generateScaledImages();
+	});
 	//
 }
 
@@ -271,7 +276,7 @@ void ImgListView::prefetchThumbnails() {
 
 	// oldModel->clear();
 	// newProxy->clear();
-	emit genericMessage("Scanning " + currentDir);
+	emit		genericMessage("Scanning " + currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
@@ -295,7 +300,7 @@ void ImgListView::prefetchThumbnails() {
 		}
 
 		QList<QStandardItem *> items;
-		const auto &crFileList = fileList;
+		const auto &		   crFileList = fileList;
 		for (const auto &fileName : crFileList) {
 			if (stopPrefetching)
 				return;
@@ -320,7 +325,7 @@ void ImgListView::prefetchThumbnails() {
 
 	emit filterSignal(filterText);
 
-	int dirCounter = 0;
+	int	 dirCounter = 0;
 	emit taskBarSetMaximum(dirs.size());
 
 
@@ -328,7 +333,7 @@ void ImgListView::prefetchThumbnails() {
 		emit taskBarSetValue(dirCounter++);
 		if (stopPrefetching)
 			break;
-		QDir dir(dirEntry);
+		QDir	dir(dirEntry);
 		QString fileName = dir.absolutePath();
 		fileName += "/.kthumbnails";
 
@@ -336,7 +341,7 @@ void ImgListView::prefetchThumbnails() {
 
 		QMap<QString, QPixmap> oldCache;
 		QMap<QString, QPixmap> newCache;
-		QDataStream in(&thumbnailsFile);
+		QDataStream			   in(&thumbnailsFile);
 		in.setVersion(QDataStream::Qt_5_7);
 		if (thumbnailsFile.open(QIODevice::ReadOnly)) {
 			quint32 num;
@@ -358,7 +363,7 @@ void ImgListView::prefetchThumbnails() {
 		const auto &dirEntries = dir.entryInfoList(namedFilters);
 
 		emit progressSetMaximum(dirEntries.count());
-		int counter = 0;
+		int	 counter = 0;
 
 		for (const auto &fileInfo : dirEntries) {
 			if (stopPrefetching)
@@ -378,9 +383,9 @@ void ImgListView::prefetchThumbnails() {
 			if (tcEntry == oldCache.constEnd() || tcEntry.value().isNull()) {
 				if (stopPrefetching)
 					break;
-				emit progressSetVisible(true);
-				QSize iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
-				QSize imgSize(iconSize);
+				emit		 progressSetVisible(true);
+				QSize		 iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
+				QSize		 imgSize(iconSize);
 				QImageReader reader(currentFileName);
 				if (!reader.canRead()) {
 					qDebug() << "can't Read: " << currentFileName;
@@ -393,7 +398,7 @@ void ImgListView::prefetchThumbnails() {
 				auto picSize = reader.size();
 				if (picSize.width() > iconSize.width()
 					|| picSize.height() > iconSize.height()) {
-					auto picSize = reader.size();
+					// auto picSize = reader.size();
 					double coef = picSize.height() * 1.0 / picSize.width();
 					if (coef > 1)
 						imgSize.setWidth(
@@ -449,7 +454,7 @@ void ImgListView::prefetchThumbnails() {
 					break;
 				}
 				QIcon icon;
-				auto genPix =
+				auto  genPix =
 					newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio,
 									 Qt::SmoothTransformation);
 				// icon.addPixmap(genPix);
@@ -459,7 +464,7 @@ void ImgListView::prefetchThumbnails() {
 				// thumbnailPainter->resumeDrawing();
 			} else {
 				QIcon icon;
-				auto genPix =
+				auto  genPix =
 					tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio,
 									Qt::SmoothTransformation);
 				if (genPix.isNull()) {
@@ -530,6 +535,21 @@ void ImgListView::prefetchThumbnails() {
 		emit callFullUpdate();
 }
 
+void ImgListView::generateScaledImages() {
+	bigImgCache.clear();
+	[[maybe_unused]] auto rows = newModel->rowCount();
+	for (int i = 0; i < newModel->rowCount(); i++) {
+		if (stopPrefetching)
+			return;
+		if (thumbnailPainter->getPreviewSize().width() < 200)
+			return;
+		QModelIndex index = newModel->index(i, 0);
+		auto		currentFileName = newModel->data(index).toString();
+		auto		pix = thumbnailPainter->drawScaledPixmap(currentFileName);
+		bigImgCache[currentFileName] = pix;
+	}
+}
+
 void ImgListView::keyPressEvent(QKeyEvent *event) {
 	auto key = event->key();
 
@@ -592,7 +612,7 @@ void ImgListView::exportImages() {
 	if (exportDir.length() < 1)
 		exportDir = currentDir;
 	QFileDialog selector(this, "Select output folder", exportDir);
-	selector.setFileMode(QFileDialog::DirectoryOnly);
+	selector.setOption(QFileDialog::ShowDirsOnly, true);
 	if (!selector.exec())
 		return;
 

@@ -9,15 +9,18 @@ class ImgThumbnailDelegate : public QItemDelegate {
 	Q_OBJECT
 public:
 	explicit ImgThumbnailDelegate(QObject *parent);
-	void setModel(QAbstractItemModel *model) { this->model = model; }
-	void stopDrawing() { canDraw = false; }
-	void resumeDrawing() { canDraw = true; }
-	void setGridSize(QSize gridSize) { this->gridSize = gridSize; }
+	void  setModel(QAbstractItemModel *_model) { model = _model; }
+	void  stopDrawing() { canDraw = false; }
+	void  resumeDrawing() { canDraw = true; }
+	void  setGridSize(QSize _gridSize) { gridSize = _gridSize; }
 	QSize sizeHint(const QStyleOptionViewItem &,
 				   const QModelIndex &) const override {
 		return gridSize;
 	}
-	void hidePreview() const;
+	void					hidePreview() const;
+	const QSize &			getPreviewSize() const { return imgSize; }
+	const std::atomic_bool &getHiQPreview() const { return hiQPreview; }
+	[[nodiscard]] QPixmap	drawScaledPixmap(QString fileName) const;
 
 protected:
 	void drawDisplay(QPainter *painter, const QStyleOptionViewItem &option,
@@ -31,17 +34,17 @@ public slots:
 	void enableHiQPreview(bool flag) { hiQPreview = flag; }
 
 private:
-	QLabel *previewLabel;
-	mutable QPoint imgPos;
-	mutable QSize imgSize;
+	QLabel *			previewLabel;
+	mutable QPoint		imgPos;
+	mutable QSize		imgSize;
 	QAbstractItemModel *model{};
-	int flags;
-	std::atomic_bool canDraw;
-	std::atomic_bool enablePreview;
-	std::atomic_bool hiQPreview{};
-	QSize gridSize;
-	const QBrush selectionBrush;
-	const QBrush hoverBrush;
+	int					flags;
+	std::atomic_bool	canDraw;
+	std::atomic_bool	enablePreview;
+	std::atomic_bool	hiQPreview{};
+	QSize				gridSize;
+	const QBrush		selectionBrush;
+	const QBrush		hoverBrush;
 
 	void paintPreview(const QModelIndex &index) const;
 	void adjustSize() const;

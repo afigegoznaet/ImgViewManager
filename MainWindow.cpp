@@ -29,6 +29,8 @@ static char pubKey[] =
 // "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
 // static char licenseExample[] =
 // "xEhRziT2LDKspOpdEm09vctAFj+ULC85fVMgzAyVYPxPKly6K1XzS49MkcUFvW7v/dfTgZkv2MLe4L68VpPbCHRlc3Q=";
+
+
 MainWindow::MainWindow(QString argv, QWidget *parent)
 	: QMainWindow(parent), ui(new Ui::MainWindow), args(std::move(argv))
 #ifdef _WIN32
@@ -114,21 +116,20 @@ void MainWindow::init() {
 	startDir = settings.value("StartDir", QDir::rootPath()).toString();
 	// qDebug()<<"Read: "<<startDir;
 
-	rootDir = settings.value("RootDir", QDir::rootPath()).toString();
+	rootDir = settings.value("RootDir", QDir::root().root().path()).toString();
 
 	if (args.length()) {
 		if (0 == args.trimmed().compare("--filesystem"))
 			rootDir = QDir::rootPath();
 		else {
 			QStringList argList = args.split("=");
-			QDir dir(argList.last());
+			QDir		dir(argList.last());
 			if (1 < argList.length()
 				&& 0 == argList.first().compare("--setrootfolder")
 				&& dir.exists()) {
 				rootDir = dir.absolutePath();
 			} else {
-				QDir dir(argList.first());
-				if (dir.exists())
+				if (QDir(argList.first()).exists())
 					startDir = argList.first();
 			}
 			// qDebug()<<QDir::rootPath();
@@ -294,7 +295,7 @@ void MainWindow::initActivation() {
 	// char*>((QByteArray::fromBase64(secret)).data());
 
 
-	unsigned char decodedLicense[256] = {0};
+	unsigned char	   decodedLicense[256] = {0};
 	unsigned long long decodedLicenseLength;
 	if (crypto_sign_open(decodedLicense, &decodedLicenseLength, enc,
 						 (QByteArray::fromBase64(licenseKey)).length(), pk)
@@ -312,7 +313,7 @@ void MainWindow::initActivation() {
 	 * @brief Create dialog
 	 */
 	QLabel *qlabel = new QLabel();
-	auto m_lineEdit = new QPlainTextEdit();
+	auto	m_lineEdit = new QPlainTextEdit();
 	m_lineEdit->setPlaceholderText("Enter license here");
 
 	QPushButton *createButton = new QPushButton(tr("Ok"));
