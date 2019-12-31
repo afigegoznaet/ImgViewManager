@@ -19,8 +19,13 @@ public:
 	explicit ImgListView(QWidget *parent = nullptr);
 	void prepareExit();
 	~ImgListView() override;
+	void setProgressBar(QProgressBar *_progressBar) {
+		progressBar = _progressBar;
+	}
+
 	const QString getFileName(const QModelIndex &index) const;
 	auto &		  getBigImgCache() { return bigImgCache; }
+	void		  init();
 
 signals:
 	void callUpdate(const QString &);
@@ -93,7 +98,7 @@ private:
 	QString			 filterText;
 	// QMap<QString, QPixmap> thumbnailsCache;
 	ProgressDialog *  copyDialog;
-	QProgressBar *	  dirLoadBar;
+	QProgressBar *	  progressBar;
 	QMenu			  m_menu;
 	QString			  currentDir;
 	QString			  exportDir;

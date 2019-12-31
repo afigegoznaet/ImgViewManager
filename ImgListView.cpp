@@ -128,31 +128,23 @@ ImgListView::ImgListView(QWidget *parent)
 			mb.exec();
 		},
 		Qt::QueuedConnection);
+}
 
-	dirLoadBar = new QProgressBar(this);
-	dirLoadBar->setMinimum(0);
-	dirLoadBar->setMaximum(0);
-	dirLoadBar->resize(QSize(300, 25));
-	dirLoadBar->setStyleSheet("background:transparent");
-	dirLoadBar->setAttribute(Qt::WA_TranslucentBackground);
-	dirLoadBar->move(600, 600);
-	dirLoadBar->setVisible(false);
+void ImgListView::init() {
+
+	progressBar->setMinimum(0);
+	progressBar->setMaximum(0);
+
 
 #if !defined(QT_DEBUG) || !defined(_WIN32)
-	connect(this, &ImgListView::progressSetVisible, [&](bool visible) {
-		if (!visible)
-			return dirLoadBar->setVisible(visible);
-
-		auto region = geometry();
-		dirLoadBar->move((QPoint(
-			region.left() + (region.width() - dirLoadBar->width()) / 2,
-			region.top() + (region.height() - dirLoadBar->height()) / 2)));
-		dirLoadBar->setVisible(visible);
-	});
+	// connect(this, &ImgListView::progressSetVisible, [&](bool visible) {
+	// progressBar->setVisible(visible); });
+	connect(this, SIGNAL(progressSetVisible(bool)), progressBar,
+			SLOT(setVisible(bool)));
 #endif
-	connect(this, &ImgListView::progressSetMaximum, dirLoadBar,
+	connect(this, &ImgListView::progressSetMaximum, progressBar,
 			&QProgressBar::setMaximum, Qt::QueuedConnection);
-	connect(this, &ImgListView::progressSetValue, dirLoadBar,
+	connect(this, &ImgListView::progressSetValue, progressBar,
 			&QProgressBar::setValue, Qt::QueuedConnection);
 
 	openAction = m_menu.addAction(
@@ -240,8 +232,10 @@ void ImgListView::changeDir(QString dir) {
 	scrollToTop();
 	stopPrefetching = false;
 	prefetchProc = QtConcurrent::run([this]() {
+		bigImgCache.clear();
 		prefetchThumbnails();
 		generateScaledImages();
+		emit progressSetVisible(false);
 	});
 	//
 }
@@ -536,8 +530,10 @@ void ImgListView::prefetchThumbnails() {
 }
 
 void ImgListView::generateScaledImages() {
-	bigImgCache.clear();
-	[[maybe_unused]] auto rows = newModel->rowCount();
+	const auto rows = newModel->rowCount();
+	emit	   progressSetMaximum(rows);
+	emit	   progressSetValue(0);
+	emit	   progressSetVisible(true);
 	for (int i = 0; i < newModel->rowCount(); i++) {
 		if (stopPrefetching)
 			return;
@@ -547,6 +543,7 @@ void ImgListView::generateScaledImages() {
 		auto		currentFileName = newModel->data(index).toString();
 		auto		pix = thumbnailPainter->drawScaledPixmap(currentFileName);
 		bigImgCache[currentFileName] = pix;
+		emit progressSetValue(i);
 	}
 }
 

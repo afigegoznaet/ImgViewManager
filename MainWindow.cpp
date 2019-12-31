@@ -138,13 +138,14 @@ void MainWindow::init() {
 			settings.setValue("RootDir", rootDir);
 		}
 	}
-	// qDebug()<<"Root: "<<rootDir;
+	qDebug() << "Root: " << rootDir;
 
 	/***
 	 * End read folders
 	 * */
 
 	ui->setupUi(this);
+	ui->progressBar->hide();
 
 	/***
 	 * Setup menu actions
@@ -152,6 +153,8 @@ void MainWindow::init() {
 
 	auto preview = ui->actionHigh_Quality_Preview;
 	auto imView = ui->imagesView;
+	imView->setProgressBar(ui->progressBar);
+	imView->init();
 
 	sortingGroup = new QActionGroup(this);
 	sortingGroup->addAction(ui->actionSort_by_full_path);
