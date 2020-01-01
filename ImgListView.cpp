@@ -67,6 +67,12 @@ ImgListView::ImgListView(QWidget *parent)
 	namedFilters << "*.png";
 	namedFilters << "*.jpeg";
 	namedFilters << "*.jpg";
+	namedFilters << "*.gif";
+	namedFilters << "*.bmp";
+	namedFilters << "*.tga";
+	namedFilters << "*.svg";
+	namedFilters << "*.tiff";
+	namedFilters << "*.ico";
 
 
 	proxy0 = new ThumbnailsSorter(this);
@@ -539,9 +545,12 @@ void ImgListView::generateScaledImages() {
 			return;
 		if (thumbnailPainter->getPreviewSize().width() < 200)
 			return;
+
 		QModelIndex index = newModel->index(i, 0);
 		auto		currentFileName = newModel->data(index).toString();
-		auto		pix = thumbnailPainter->drawScaledPixmap(currentFileName);
+		if (bigImgCache.contains(currentFileName))
+			continue;
+		auto pix = thumbnailPainter->drawScaledPixmap(currentFileName);
 		bigImgCache[currentFileName] = pix;
 		emit progressSetValue(i);
 	}

@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 	// qDebug()<<pixmap.height();
 	//#if !defined(QT_DEBUG) || !defined(_WIN32)
 	QSplashScreen splash(pixmap);
-	QFont font = QApplication::font("QMenu");
+	QFont		  font = QApplication::font("QMenu");
 	font.setStyleHint(QFont::Monospace);
 	splash.setFont(font);
 	splash.show();
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 	if (argc > 1)
 		params = QString(argv[1]);
 	MainWindow w(params);
-	QMutex splashLocker;
+	QMutex	   splashLocker;
 
 
 	auto connection = QObject::connect(

@@ -116,7 +116,7 @@ void MainWindow::init() {
 	startDir = settings.value("StartDir", QDir::rootPath()).toString();
 	// qDebug()<<"Read: "<<startDir;
 
-	rootDir = settings.value("RootDir", QDir::root().root().path()).toString();
+	rootDir = settings.value("RootDir", QDir::root().path()).toString();
 
 	if (args.length()) {
 		if (0 == args.trimmed().compare("--filesystem"))
@@ -124,6 +124,7 @@ void MainWindow::init() {
 		else {
 			QStringList argList = args.split("=");
 			QDir		dir(argList.last());
+
 			if (1 < argList.length()
 				&& 0 == argList.first().compare("--setrootfolder")
 				&& dir.exists()) {
