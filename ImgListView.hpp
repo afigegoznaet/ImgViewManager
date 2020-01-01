@@ -49,6 +49,7 @@ signals:
 	void enableHiQPreview(bool flag);
 	void showError();
 	void scrollToIndex(const QModelIndex idx);
+	void adjustSize();
 
 public slots:
 	void changeDir(QString dir);
@@ -61,6 +62,7 @@ public slots:
 	void synchronizedUpdate(const QString &fileName);
 	void setZoom(int zoomDirection);
 	void setScrolling(bool flag) { autoScroll = flag; }
+	void setPrefetchImages(bool flag);
 
 protected:
 	void	keyPressEvent(QKeyEvent *event) override;
@@ -95,6 +97,7 @@ private:
 	QFuture<void>	 cleanerProc;
 	std::atomic_bool stopPrefetching;
 	std::atomic_bool autoScroll{};
+	std::atomic_bool prefetchImages{};
 	QString			 filterText;
 	// QMap<QString, QPixmap> thumbnailsCache;
 	ProgressDialog *  copyDialog;

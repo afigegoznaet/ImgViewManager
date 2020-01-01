@@ -64,8 +64,6 @@ void ImgThumbnailDelegate::paint(QPainter *					 painter,
 }
 
 void ImgThumbnailDelegate::paintPreview(const QModelIndex &index) const {
-
-	adjustSize();
 	auto  view = qobject_cast<ImgListView *>(parent());
 	auto  currentFileName = view->getFileName(index);
 	auto &bigImgCache = view->getBigImgCache();
@@ -82,7 +80,8 @@ void ImgThumbnailDelegate::paintPreview(const QModelIndex &index) const {
 	previewLabel->setPixmap(std::move(scaledPix));
 }
 
-void ImgThumbnailDelegate::adjustSize() const {
+void ImgThumbnailDelegate::adjustSize() {
+
 	auto parentWindow = qobject_cast<MainWindow *>(parent());
 	auto parentObject = parent();
 	while (nullptr == parentWindow) {
@@ -90,10 +89,11 @@ void ImgThumbnailDelegate::adjustSize() const {
 		parentObject = parentObject->parent();
 	}
 
-	auto tmpSize = parentWindow->getTreeWidgetSize();
 	auto tmpPos = parentWindow->getTreeWidgetPos();
-	if (imgSize != tmpSize) {
-		imgSize = tmpSize;
+	auto newSize = parentWindow->getTreeWidgetSize();
+
+	if (imgSize != newSize) {
+		imgSize = newSize;
 		previewLabel->setFixedWidth(imgSize.width());
 		previewLabel->setFixedHeight(imgSize.height());
 	}
@@ -101,6 +101,7 @@ void ImgThumbnailDelegate::adjustSize() const {
 	if (imgPos != tmpPos) {
 		imgPos = tmpPos;
 		previewLabel->move(imgPos);
+		previewLabel->hide();
 	}
 }
 
@@ -115,8 +116,7 @@ QPixmap ImgThumbnailDelegate::drawScaledPixmap(QString fileName) const {
 		reader.setFileName(":/Images/bad_img.png");
 	}
 
-	auto img = reader.read();
-	adjustSize();
+	auto	 img = reader.read();
 	QPixmap	 pix(img.size());
 	QPainter painter(&pix);
 

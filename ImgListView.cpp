@@ -83,6 +83,10 @@ ImgListView::ImgListView(QWidget *parent)
 
 	thumbnailPainter = new ImgThumbnailDelegate(this);
 
+	connect(this, SIGNAL(adjustSize()), thumbnailPainter, SLOT(adjustSize()));
+	connect(this, &ImgListView::adjustSize, this,
+			[this] { setPrefetchImages(prefetchImages); });
+
 	setItemDelegate(thumbnailPainter);
 
 	setModel(proxy0);
@@ -536,12 +540,14 @@ void ImgListView::prefetchThumbnails() {
 }
 
 void ImgListView::generateScaledImages() {
+	if (!newModel)
+		return;
 	const auto rows = newModel->rowCount();
 	emit	   progressSetMaximum(rows);
 	emit	   progressSetValue(0);
 	emit	   progressSetVisible(true);
 	for (int i = 0; i < newModel->rowCount(); i++) {
-		if (stopPrefetching)
+		if (stopPrefetching || !prefetchImages)
 			return;
 		if (thumbnailPainter->getPreviewSize().width() < 200)
 			return;
@@ -898,4 +904,19 @@ void ImgListView::paintEvent(QPaintEvent *event) {
 	if (stopPrefetching)
 		return;
 	QListView::paintEvent(event);
+}
+
+void ImgListView::setPrefetchImages(bool flag) {
+	prefetchImages = flag;
+	emit progressSetVisible(true);
+	if (flag) {
+		stopPrefetching = false;
+		prefetchProc.waitForFinished();
+		prefetchProc = QtConcurrent::run([this]() {
+			emit progressSetVisible(true);
+			bigImgCache.clear();
+			generateScaledImages();
+			emit progressSetVisible(false);
+		});
+	}
 }

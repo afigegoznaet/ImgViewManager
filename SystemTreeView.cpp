@@ -99,3 +99,8 @@ void SystemTreeView::initDir(QString &startDir) {
 }
 
 void SystemTreeView::prepareExit() { fsModel->prepareExit(); }
+
+void SystemTreeView::resizeEvent(QResizeEvent *event) {
+	QTreeView::resizeEvent(event);
+	emit resized();
+}

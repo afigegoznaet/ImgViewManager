@@ -77,6 +77,8 @@ void MainWindow::saveSettings() {
 	settings.setValue("pos", pos());
 	settings.setValue("TreeWidth", ui->fileTree->width());
 	settings.setValue("splitterSizes", ui->splitter->saveState());
+	settings.setValue("preloadImages", ui->actionPreload_Images->isChecked());
+
 	settings.endGroup();
 }
 
@@ -156,6 +158,7 @@ void MainWindow::init() {
 	auto imView = ui->imagesView;
 	imView->setProgressBar(ui->progressBar);
 	imView->init();
+	connect(ui->fileTree, SIGNAL(resized()), imView, SIGNAL(adjustSize()));
 
 	sortingGroup = new QActionGroup(this);
 	sortingGroup->addAction(ui->actionSort_by_full_path);
@@ -170,12 +173,17 @@ void MainWindow::init() {
 			SIGNAL(enableHiQPreview(bool)));
 	connect(ui->actionScroll_when_loading, SIGNAL(toggled(bool)), imView,
 			SLOT(setScrolling(bool)));
+	connect(ui->actionPreload_Images, SIGNAL(toggled(bool)), imView,
+			SLOT(setPrefetchImages(bool)));
+
 	ui->actionSort_by_full_path->setChecked(
 		settings.value("sortByPath", true).toBool());
 	ui->actionSort_by_file_name->setChecked(
 		settings.value("sortByName", true).toBool());
 	ui->actionScroll_when_loading->setChecked(
 		settings.value("scrollWhenLoading", true).toBool());
+	ui->actionPreload_Images->setChecked(
+		settings.value("preloadImages", true).toBool());
 
 	ui->actionHigh_Quality_Preview->setChecked(
 		settings.value("HiQPreview", true).toBool());
@@ -255,8 +263,10 @@ void MainWindow::init() {
 				emit splashText(message, alignment, color);
 			});
 
+
 	// emit splashText("aaaa", 1, Qt::blue);
 	ui->fileTree->init(startDir);
+
 	ui->infoBox->setEnabled(false);
 	connect(ui->filterBox, SIGNAL(textChanged(QString)), imView,
 			SLOT(applyFilter(QString)));

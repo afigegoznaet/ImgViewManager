@@ -32,11 +32,12 @@ signals:
 public slots:
 	void showPreview(bool flag) { enablePreview = flag; }
 	void enableHiQPreview(bool flag) { hiQPreview = flag; }
+	void adjustSize();
 
 private:
 	QLabel *			previewLabel;
-	mutable QPoint		imgPos;
-	mutable QSize		imgSize;
+	QPoint				imgPos;
+	QSize				imgSize;
 	QAbstractItemModel *model{};
 	int					flags;
 	std::atomic_bool	canDraw;
@@ -47,7 +48,6 @@ private:
 	const QBrush		hoverBrush;
 
 	void paintPreview(const QModelIndex &index) const;
-	void adjustSize() const;
 };
 
 #endif // IMGTHUMBNAILDELEGATE_H

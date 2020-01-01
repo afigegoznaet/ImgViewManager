@@ -10,19 +10,23 @@ class SystemTreeView : public QTreeView {
 	Q_OBJECT
 public:
 	explicit SystemTreeView(QWidget *parent = nullptr);
-	void init(const QString &startDir);
-	void initDir(QString &startDir);
+	void	init(const QString &startDir);
+	void	initDir(QString &startDir);
 	QString getCurrentDir();
-	void prepareExit();
+	void	prepareExit();
+
+	void resizeEvent(QResizeEvent *event) override;
+
 
 signals:
+	void resized();
 	void changeDir(QString dir);
 	void splashText(const QString &message, int alignment, const QColor &color);
 public slots:
 
 private:
 	ThumbnailsFileModel *fsModel;
-	QFuture<bool> runner;
+	QFuture<bool>		 runner;
 	QFutureWatcher<void> watcher;
 };
 
