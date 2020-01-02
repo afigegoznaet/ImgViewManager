@@ -908,10 +908,11 @@ void ImgListView::paintEvent(QPaintEvent *event) {
 
 void ImgListView::setPrefetchImages(bool flag) {
 	prefetchImages = flag;
-	emit progressSetVisible(true);
+	emit progressSetVisible(flag);
 	if (flag) {
 		stopPrefetching = false;
-		prefetchProc.waitForFinished();
+		if (prefetchProc.isRunning())
+			return;
 		prefetchProc = QtConcurrent::run([this]() {
 			emit progressSetVisible(true);
 			bigImgCache.clear();
