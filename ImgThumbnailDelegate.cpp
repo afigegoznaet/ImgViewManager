@@ -115,7 +115,9 @@ QPixmap ImgThumbnailDelegate::drawScaledPixmap(QString fileName) const {
 		// qDebug() << "can't Read";
 		reader.setFileName(":/Images/bad_img.png");
 	}
-
+	// reader.setScaledSize(imgSize);
+	reader.setAutoTransform(true);
+	// reader.setQuality(15);
 	auto	 img = reader.read();
 	QPixmap	 pix(img.size());
 	QPainter painter(&pix);
@@ -126,6 +128,7 @@ QPixmap ImgThumbnailDelegate::drawScaledPixmap(QString fileName) const {
 		painter.drawPixmap(0, 0, QPixmap::fromImage(img));
 		painter.save();
 		painter.restore();
+		// return pix;
 		return pix.scaled(
 			imgSize.width(), imgSize.height(), Qt::KeepAspectRatio,
 			hiQPreview ? Qt::SmoothTransformation : Qt::FastTransformation);

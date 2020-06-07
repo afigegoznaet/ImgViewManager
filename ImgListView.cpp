@@ -49,7 +49,7 @@ ImgListView::ImgListView(QWidget *parent)
 		 "less pictures at once",
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
 		 QMessageBox::NoButton, QMessageBox::NoButton),
-	  sourceExtensons({"psd", "eps", "ai", "svg", "PSD", "EPS", "AI", "SVG"}) {
+	  sourceExtensons({"psd", "eps", "ai", "svg", "orf"}) {
 
 	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
@@ -625,6 +625,7 @@ void ImgListView::exportImages() {
 		exportDir = currentDir;
 	QFileDialog selector(this, "Select output folder", exportDir);
 	selector.setOption(QFileDialog::ShowDirsOnly, true);
+	selector.setFileMode(QFileDialog::Directory);
 	if (!selector.exec())
 		return;
 

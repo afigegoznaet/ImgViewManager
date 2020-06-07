@@ -34,7 +34,7 @@ ProgressDialog::ProgressDialog(QWidget *parent, Qt::WindowFlags f)
 			Qt::QueuedConnection);
 
 	QSettings settings;
-	auto headerState = settings.value("ProgressColumns").toByteArray();
+	auto	  headerState = settings.value("ProgressColumns").toByteArray();
 	progress->tableWidget->horizontalHeader()->restoreState(headerState);
 }
 
@@ -45,7 +45,7 @@ ProgressDialog::~ProgressDialog() {
 	delete progress;
 }
 
-void ProgressDialog::processFileAction(QStringList fileList,
+void ProgressDialog::processFileAction(QStringList	  fileList,
 									   const QString &destination) {
 	if (isHidden())
 		show();
@@ -159,12 +159,12 @@ void ProgressDialog::DoSomething() {
 		QString destination(progress->tableWidget->item(0, 1)->text());
 		destination.append("/");
 		QFileInfo fileInfo(source);
-		QString fileName(fileInfo.fileName());
+		QString	  fileName(fileInfo.fileName());
 
 
 		// qDebug()<<source;
 		destination.append(fileName);
-		FileMoverDelegate mover(source, destination, "Copy");
+		FileMoverDelegate mover(source, destination, "Move");
 
 		// connect(&mover,SIGNAL(bytesProgress(uint)), this,
 		// SLOT(onWrite(uint)));
