@@ -650,6 +650,12 @@ void ImgListView::exportImages() {
 							->data(Qt::DisplayRole)
 							.toString();
 
+	for (QList<QModelIndex>::const_reverse_iterator idx = selections.crbegin();
+		 idx != selections.crend(); ++idx) {
+		newProxy->removeRow(idx->row());
+	}
+	newProxy->invalidate();
+	clearSelection();
 	addHiddenFiles(fileList);
 	emit setFileAction(fileList, exportDir);
 }
@@ -792,7 +798,8 @@ QString ImgListView::getTotalSize(QStringList &files, int skipFirstNfiles) {
 }
 
 void ImgListView::addHiddenFiles(QStringList &fileList) {
-	auto initialCount = fileList.count();
+	auto		initialCount = fileList.count();
+	QStringList newElems{};
 	for (const auto &filePath : fileList) {
 		QFileInfo inf(filePath);
 
@@ -801,9 +808,10 @@ void ImgListView::addHiddenFiles(QStringList &fileList) {
 			newFile.replace(filePath.lastIndexOf(inf.completeSuffix()), 5,
 							newSuffix);
 			if (QFile::exists(newFile))
-				fileList << newFile;
+				newElems << newFile;
 		}
 	}
+	fileList << newElems;
 	if (initialCount == fileList.count())
 		openSourceAction->setDisabled(true);
 }
