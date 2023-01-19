@@ -14,7 +14,7 @@
 #include <QProgressBar>
 #include <utility>
 
-//#include <algorithm>
+#include <execution>
 //#include <QStandardPaths>
 /*
 
@@ -546,20 +546,25 @@ void ImgListView::generateScaledImages() {
 	emit	   progressSetMaximum(rows);
 	emit	   progressSetValue(0);
 	emit	   progressSetVisible(true);
-	for (int i = 0; i < newModel->rowCount(); i++) {
-		if (stopPrefetching || !prefetchImages)
-			return;
-		if (thumbnailPainter->getPreviewSize().width() < 200)
-			return;
 
+
+	std::vector<QString> fileNames(newModel->rowCount());
+	for (int i = 0; i < newModel->rowCount(); i++) {
 		QModelIndex index = newModel->index(i, 0);
-		auto		currentFileName = newModel->data(index).toString();
-		if (bigImgCache.contains(currentFileName))
-			continue;
-		auto pix = thumbnailPainter->drawScaledPixmap(currentFileName);
-		bigImgCache[currentFileName] = pix;
-		emit progressSetValue(i);
+		fileNames[i] = newModel->data(index).toString();
 	}
+	if (stopPrefetching || !prefetchImages)
+		return;
+	if (thumbnailPainter->getPreviewSize().width() < 200)
+		return;
+	std::for_each(std::execution::par_unseq, fileNames.begin(), fileNames.end(),
+				  [this](const QString &fileName) {
+					  if (bigImgCache.contains(fileName))
+						  return progressSetValue(bigImgCache.size());
+					  bigImgCache[fileName] =
+						  thumbnailPainter->drawScaledPixmap(fileName);
+					  emit progressSetValue(bigImgCache.size());
+				  });
 }
 
 void ImgListView::keyPressEvent(QKeyEvent *event) {
