@@ -4,7 +4,6 @@
 
 SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 	fsModel = new ThumbnailsFileModel(this);
-	auto model = new QFileSystemModel(this);
 
 	auto parentWindow = qobject_cast<MainWindow *>(parent);
 	auto parentObject = parent->parent();
@@ -14,23 +13,13 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 	}
 	auto rootPath = parentWindow->getRoot();
 
+	auto rootIndex = qobject_cast<QFileSystemModel *>(fsModel->sourceModel())->setRootPath(rootPath);
+
+
 	connect(fsModel, SIGNAL(splashText(QString, int, QColor)), this,
 			SIGNAL(splashText(QString, int, QColor)));
 
-	// auto runner =
-	// QtConcurrent::run([&, rootPath]() { fsModel->scanRoot(rootPath); });
 
-	// fsModel->scanTreeFully(rootPath);
-
-	// qDebug() << "Root: " << rootPath;
-	auto rootIndex = model->setRootPath(rootPath);
-	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
-
-	for (int i = 1; i < model->columnCount(); ++i)
-		hideColumn(i);
-
-	fsModel->setSourceModel(model);
-	fsModel->setDynamicSortFilter(false);
 	setModel(fsModel);
 	setRootIndex(fsModel->mapFromSource(rootIndex));
 	setMouseTracking(true);
@@ -41,7 +30,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 				  QTreeView::item:selected:!active { background: #cce8ff; }\
 				 ");
 
-	for (int i = 1; i < model->columnCount(); ++i)
+	for (int i = 1; i < fsModel->sourceModel()->columnCount(); ++i)
 		hideColumn(i);
 
 	connect(selectionModel(), &QItemSelectionModel::currentChanged, this,
@@ -85,7 +74,6 @@ void SystemTreeView::init(const QString &startDir) {
 
 QString SystemTreeView::getCurrentDir() {
 	auto idx = currentIndex();
-	// qDebug()<<"currentDir";
 	return fsModel->fileInfo(idx).absoluteFilePath();
 }
 

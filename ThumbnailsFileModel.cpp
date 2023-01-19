@@ -10,7 +10,18 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 
 	parentView = qobject_cast<SystemTreeView *>(parent);
 	setDynamicSortFilter(false);
+	setRecursiveFilteringEnabled(true);
 	privatePool.setMaxThreadCount(4);
+	auto model = new QFileSystemModel(this);
+	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
+	setSourceModel(model);
+	setDynamicSortFilter(false);
+	connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex &, int, int)), this, SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
+	connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), this, SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
+}
+
+void ThumbnailsFileModel::rowsToBeInserted(const QModelIndex &parent, int start, int end) {
+	qDebug() << "Rows inserted: " << start;
 }
 
 ThumbnailsFileModel::~ThumbnailsFileModel() {
@@ -27,11 +38,11 @@ bool ThumbnailsFileModel::hasImages(const QDir &dir) const {
 
 
 QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index,
-										bool isSource) const {
+										bool			   isSource) const {
 	if (!index.isValid())
 		return QFileInfo();
 	QPersistentModelIndex idx(index);
-	auto source = dynamic_cast<QFileSystemModel *>(sourceModel());
+	auto				  source = dynamic_cast<QFileSystemModel *>(sourceModel());
 	if (isSource)
 		return source->fileInfo(idx);
 
@@ -91,7 +102,7 @@ bool ThumbnailsFileModel::filterAcceptsRow(
 
 	// return QSortFilterProxyModel::filterAcceptsRow(source_row, source_index);
 	auto *asd = qobject_cast<QFileSystemModel *>(sourceModel());
-	auto newIndex = asd->index(source_row, 0, source_index);
+	auto  newIndex = asd->index(source_row, 0, source_index);
 
 	auto dirPath = fileInfo(newIndex, true).absoluteFilePath();
 
@@ -124,9 +135,9 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath) {
 
 QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString &startDir) {
 	return QtConcurrent::run([&, startDir]() {
-		auto *fsModel = qobject_cast<QFileSystemModel *>(sourceModel());
+		auto *		fsModel = qobject_cast<QFileSystemModel *>(sourceModel());
 		QModelIndex source_index = fsModel->index(startDir);
-		bool res = false;
+		bool		res = false;
 
 		for (int i = 0; i < fsModel->rowCount(source_index); i++) {
 			res |= filterAcceptsRow(i, source_index);
@@ -147,7 +158,7 @@ QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString &startDir) {
 }
 
 ThumbnailsFileModel::ScannerRunnable::ScannerRunnable(ThumbnailsFileModel *host,
-													  QString dir)
+													  QString			   dir)
 	: host(host), dir(std::move(dir)) {}
 
 void ThumbnailsFileModel::ScannerRunnable::run() {
