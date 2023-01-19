@@ -366,146 +366,152 @@ void ImgListView::prefetchThumbnails() {
 
 		const auto &dirEntries = dir.entryInfoList(namedFilters);
 
-		emit progressSetMaximum(dirEntries.count());
-		int	 counter = 0;
-
+		std::vector<QString> fileNames;
+		fileNames.reserve(dirEntries.count());
 		for (const auto &fileInfo : dirEntries) {
 			if (stopPrefetching)
-				break;
+				return;
 			if (fileInfo.isDir())
 				continue;
-
-			auto item = *newModel
-							 ->findItems(fileInfo.absoluteFilePath(),
-										 Qt::MatchFixedString)
-							 .cbegin();
-
-			emit progressSetValue(counter++);
-
-			auto currentFileName = fileInfo.absoluteFilePath();
-			auto tcEntry = oldCache.constFind(currentFileName);
-			if (tcEntry == oldCache.constEnd() || tcEntry.value().isNull()) {
-				if (stopPrefetching)
-					break;
-				emit		 progressSetVisible(true);
-				QSize		 iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
-				QSize		 imgSize(iconSize);
-				QImageReader reader(currentFileName);
-				if (!reader.canRead()) {
-					qDebug() << "can't Read: " << currentFileName;
-					item->setData(QIcon(":/Images/bad_img.png"),
-								  Qt::DecorationRole);
-					continue;
-					// item->setIcon(icon);
-				}
-
-				auto picSize = reader.size();
-				if (picSize.width() > iconSize.width()
-					|| picSize.height() > iconSize.height()) {
-					// auto picSize = reader.size();
-					double coef = picSize.height() * 1.0 / picSize.width();
-					if (coef > 1)
-						imgSize.setWidth(
-							static_cast<int>(iconSize.width() / coef));
-					else
-						imgSize.setHeight(
-							static_cast<int>(iconSize.height() * coef));
-					reader.setScaledSize(imgSize);
-				}
-
-
-				reader.setAutoTransform(true);
-				reader.setQuality(15);
-
-				if (stopPrefetching)
-					break;
-
-				auto img = reader.read();
-
-				QImage newImg(iconSize, QImage::Format_ARGB32);
-				newImg.fill(qRgba(0, 0, 0, 0));
-				QPainter painter(&newImg);
-
-				if (!newImg.isNull()) {
-
-					int hDelta(0), vDelta(0);
-
-					if (img.width() < iconSize.width())
-						hDelta = (iconSize.width() - img.width()) / 2;
-					if (img.height() < iconSize.height())
-						vDelta = (iconSize.height() - img.height()) / 2;
-
-					painter.setRenderHint(QPainter::Antialiasing, true);
-					painter.setRenderHint(QPainter::SmoothPixmapTransform,
-										  true);
-					painter.drawPixmap(hDelta, vDelta, img.width(),
-									   img.height(), QPixmap::fromImage(img));
-					painter.save();
-					painter.restore();
-				}
-
-				if (stopPrefetching)
-					break;
-				QPixmap newPixmap(QPixmap::fromImage(newImg));
-				if (newPixmap.isNull()) {
-					QMutexLocker locker(&cleanerMutex);
-					stopPrefetching = true;
-					newModel->setRowCount(item->row() - 100);
-					newProxy->invalidate();
-					newCache.clear();
-					oldCache.clear();
-					emit showError();
-					break;
-				}
-				QIcon icon;
-				auto  genPix =
-					newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio,
-									 Qt::SmoothTransformation);
-				// icon.addPixmap(genPix);
-				icon.addPixmap(genPix, QIcon::Selected);
-				item->setIcon(icon);
-				newCache.insert(currentFileName, newPixmap);
-				// thumbnailPainter->resumeDrawing();
-			} else {
-				QIcon icon;
-				auto  genPix =
-					tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio,
-									Qt::SmoothTransformation);
-				if (genPix.isNull()) {
-					stopPrefetching = true;
-					cleanerMutex.lock();
-					newModel->setRowCount(0);
-					newProxy->invalidate();
-					newCache.clear();
-					oldCache.clear();
-					cleanerMutex.unlock();
-					emit showError();
-					break;
-				}
-				// icon.addPixmap();
-				icon.addPixmap(genPix, QIcon::Selected);
-				item->setIcon(icon);
-				// item->setIcon();
-				newCache.insert(currentFileName, *tcEntry);
-			}
-
-			item->setText(fileInfo.absoluteFilePath());
-
-			if (stopPrefetching)
-				break;
-
-			// QMutex locker;
-			// locker.lock();
-			emit callUpdate(fileInfo.absoluteFilePath());
-
-			if (autoScroll) {
-				auto theIndex = newProxy->mapFromSource(item->index());
-				emit scrollToIndex(theIndex);
-			}
-
-
-			// synchronizer.wait(&locker);
+			fileNames.push_back(fileInfo.absoluteFilePath());
 		}
+
+		emit			progressSetMaximum(fileNames.size());
+		std::atomic_int counter = 0;
+		std::for_each(
+			std::execution::par_unseq, fileNames.begin(), fileNames.end(),
+			[&](const QString &fileName) {
+				if (stopPrefetching || !prefetchImages)
+					return;
+				auto item = *newModel->findItems(fileName, Qt::MatchFixedString)
+								 .cbegin();
+				emit progressSetValue(counter++);
+
+				auto tcEntry = oldCache.constFind(fileName);
+				if (tcEntry == oldCache.constEnd()
+					|| tcEntry.value().isNull()) {
+					if (stopPrefetching)
+						return;
+					emit		 progressSetVisible(true);
+					QSize		 iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
+					QSize		 imgSize(iconSize);
+					QImageReader reader(fileName);
+					if (!reader.canRead()) {
+						qDebug() << "can't Read: " << fileName;
+						item->setData(QIcon(":/Images/bad_img.png"),
+									  Qt::DecorationRole);
+						return;
+					}
+
+					auto picSize = reader.size();
+					if (picSize.width() > iconSize.width()
+						|| picSize.height() > iconSize.height()) {
+						// auto picSize = reader.size();
+						double coef = picSize.height() * 1.0 / picSize.width();
+						if (coef > 1)
+							imgSize.setWidth(
+								static_cast<int>(iconSize.width() / coef));
+						else
+							imgSize.setHeight(
+								static_cast<int>(iconSize.height() * coef));
+						reader.setScaledSize(imgSize);
+					}
+
+
+					reader.setAutoTransform(true);
+					reader.setQuality(15);
+
+					if (stopPrefetching)
+						return;
+
+					auto img = reader.read();
+
+					QImage newImg(iconSize, QImage::Format_ARGB32);
+					newImg.fill(qRgba(0, 0, 0, 0));
+					QPainter painter(&newImg);
+
+					if (!newImg.isNull()) {
+
+						int hDelta(0), vDelta(0);
+
+						if (img.width() < iconSize.width())
+							hDelta = (iconSize.width() - img.width()) / 2;
+						if (img.height() < iconSize.height())
+							vDelta = (iconSize.height() - img.height()) / 2;
+
+						painter.setRenderHint(QPainter::Antialiasing, true);
+						painter.setRenderHint(QPainter::SmoothPixmapTransform,
+											  true);
+						painter.drawPixmap(hDelta, vDelta, img.width(),
+										   img.height(),
+										   QPixmap::fromImage(img));
+						painter.save();
+						painter.restore();
+					}
+
+					if (stopPrefetching)
+						return;
+					QPixmap newPixmap(QPixmap::fromImage(newImg));
+					if (newPixmap.isNull()) {
+						QMutexLocker locker(&cleanerMutex);
+						stopPrefetching = true;
+						newModel->setRowCount(item->row() - 100);
+						newProxy->invalidate();
+						newCache.clear();
+						oldCache.clear();
+						emit showError();
+						return;
+					}
+					QIcon icon;
+					auto  genPix =
+						newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio,
+										 Qt::SmoothTransformation);
+					// icon.addPixmap(genPix);
+					icon.addPixmap(genPix, QIcon::Selected);
+					item->setIcon(icon);
+					newCache.insert(fileName, newPixmap);
+					// thumbnailPainter->resumeDrawing();
+				} else {
+					QIcon icon;
+					auto  genPix =
+						tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio,
+										Qt::SmoothTransformation);
+					if (genPix.isNull()) {
+						stopPrefetching = true;
+						cleanerMutex.lock();
+						newModel->setRowCount(0);
+						newProxy->invalidate();
+						newCache.clear();
+						oldCache.clear();
+						cleanerMutex.unlock();
+						emit showError();
+						return;
+					}
+					// icon.addPixmap();
+					icon.addPixmap(genPix, QIcon::Selected);
+					item->setIcon(icon);
+					// item->setIcon();
+					newCache.insert(fileName, *tcEntry);
+				}
+
+				item->setText(fileName);
+
+				if (stopPrefetching)
+					return;
+
+				// QMutex locker;
+				// locker.lock();
+				emit callUpdate(fileName);
+
+				if (autoScroll) {
+					auto theIndex = newProxy->mapFromSource(item->index());
+					emit scrollToIndex(theIndex);
+				}
+
+
+				// synchronizer.wait(&locker);
+			});
+
 		emit progressSetVisible(false);
 		if (newCache.count() != oldCache.count()) {
 			// qDebug()<<"Saving cache to file";
@@ -553,12 +559,13 @@ void ImgListView::generateScaledImages() {
 		QModelIndex index = newModel->index(i, 0);
 		fileNames[i] = newModel->data(index).toString();
 	}
-	if (stopPrefetching || !prefetchImages)
-		return;
+
 	if (thumbnailPainter->getPreviewSize().width() < 200)
 		return;
 	std::for_each(std::execution::par_unseq, fileNames.begin(), fileNames.end(),
 				  [this](const QString &fileName) {
+					  if (stopPrefetching || !prefetchImages)
+						  return;
 					  if (bigImgCache.contains(fileName))
 						  return progressSetValue(bigImgCache.size());
 					  bigImgCache[fileName] =
