@@ -214,15 +214,6 @@ void ImgListView::init() {
 										  QStandardPaths::DocumentsLocation))
 					.toString();
 	setMouseTracking(true);
-	autoScroll = false;
-
-	connect(
-		this, &ImgListView::scrollToIndex, this,
-		[&](const QModelIndex idx) {
-			moveToThread(this->thread());
-			scrollTo(newProxy->index(idx.row(), 0));
-		},
-		Qt::QueuedConnection);
 }
 
 ImgListView::~ImgListView() {
@@ -425,6 +416,8 @@ void ImgListView::prefetchThumbnails() {
 						return;
 
 					auto img = reader.read();
+					if (reader.error() != 0)
+						qDebug() << "Reader error: " << reader.errorString();
 
 					QImage newImg(iconSize, QImage::Format_ARGB32);
 					newImg.fill(qRgba(0, 0, 0, 0));
@@ -502,14 +495,6 @@ void ImgListView::prefetchThumbnails() {
 				// QMutex locker;
 				// locker.lock();
 				emit callUpdate(fileName);
-
-				if (autoScroll) {
-					auto theIndex = newProxy->mapFromSource(item->index());
-					emit scrollToIndex(theIndex);
-				}
-
-
-				// synchronizer.wait(&locker);
 			});
 
 		emit progressSetVisible(false);

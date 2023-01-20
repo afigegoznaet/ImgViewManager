@@ -13,7 +13,8 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 	}
 	auto rootPath = parentWindow->getRoot();
 
-	auto rootIndex = qobject_cast<QFileSystemModel *>(fsModel->sourceModel())->setRootPath(rootPath);
+	auto rootIndex = qobject_cast<QFileSystemModel *>(fsModel->sourceModel())
+						 ->setRootPath(rootPath);
 
 
 	connect(fsModel, SIGNAL(splashText(QString, int, QColor)), this,

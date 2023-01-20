@@ -48,7 +48,6 @@ signals:
 	void showPreview(bool flag);
 	void enableHiQPreview(bool flag);
 	void showError();
-	void scrollToIndex(const QModelIndex idx);
 	void adjustSize();
 
 public slots:
@@ -61,7 +60,6 @@ public slots:
 	void resetViewSlot();
 	void synchronizedUpdate(const QString &fileName);
 	void setZoom(int zoomDirection);
-	void setScrolling(bool flag) { autoScroll = flag; }
 	void setPrefetchImages(bool flag);
 
 protected:
@@ -96,7 +94,6 @@ private:
 	QFuture<void>	 prefetchProc;
 	QFuture<void>	 cleanerProc;
 	std::atomic_bool stopPrefetching;
-	std::atomic_bool autoScroll{};
 	std::atomic_bool prefetchImages{};
 	QString			 filterText;
 	// QMap<QString, QPixmap> thumbnailsCache;

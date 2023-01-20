@@ -4,6 +4,7 @@
 
 ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	: QSortFilterProxyModel(parent), privatePool(this), scanner(8), counter(0) {
+	setDynamicSortFilter(true);
 	filter << "*.png";
 	filter << "*.jpeg";
 	filter << "*.jpg";
@@ -16,11 +17,14 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 	setSourceModel(model);
 	setDynamicSortFilter(false);
-	connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex &, int, int)), this, SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
-	connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), this, SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
+	connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex &, int, int)),
+			this, SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
+	connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), this,
+			SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
 }
 
-void ThumbnailsFileModel::rowsToBeInserted(const QModelIndex &parent, int start, int end) {
+void ThumbnailsFileModel::rowsToBeInserted(const QModelIndex &parent, int start,
+										   int end) {
 	qDebug() << "Rows inserted: " << start;
 }
 
@@ -42,7 +46,7 @@ QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index,
 	if (!index.isValid())
 		return QFileInfo();
 	QPersistentModelIndex idx(index);
-	auto				  source = dynamic_cast<QFileSystemModel *>(sourceModel());
+	auto source = dynamic_cast<QFileSystemModel *>(sourceModel());
 	if (isSource)
 		return source->fileInfo(idx);
 

@@ -67,8 +67,6 @@ void MainWindow::saveSettings() {
 	settings.setValue("StartDir", startDir);
 	settings.setValue("sortByPath", ui->actionSort_by_full_path->isChecked());
 	settings.setValue("sortByName", ui->actionSort_by_file_name->isChecked());
-	settings.setValue("scrollWhenLoading",
-					  ui->actionScroll_when_loading->isChecked());
 	settings.setValue("showPreview", ui->actionShow_Preview->isChecked());
 	settings.setValue("HiQPreview",
 					  ui->actionHigh_Quality_Preview->isChecked());
@@ -171,8 +169,6 @@ void MainWindow::init() {
 
 	connect(preview, SIGNAL(toggled(bool)), imView,
 			SIGNAL(enableHiQPreview(bool)));
-	connect(ui->actionScroll_when_loading, SIGNAL(toggled(bool)), imView,
-			SLOT(setScrolling(bool)));
 	connect(ui->actionPreload_Images, SIGNAL(toggled(bool)), imView,
 			SLOT(setPrefetchImages(bool)));
 
@@ -180,8 +176,6 @@ void MainWindow::init() {
 		settings.value("sortByPath", true).toBool());
 	ui->actionSort_by_file_name->setChecked(
 		settings.value("sortByName", true).toBool());
-	ui->actionScroll_when_loading->setChecked(
-		settings.value("scrollWhenLoading", true).toBool());
 	ui->actionPreload_Images->setChecked(
 		settings.value("preloadImages", true).toBool());
 
