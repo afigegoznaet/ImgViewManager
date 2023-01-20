@@ -17,15 +17,23 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 	setSourceModel(model);
 	setDynamicSortFilter(false);
-	connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex &, int, int)),
-			this, SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
+	//	connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex &, int,
+	// int)), 			this, SLOT(rowsToBeInserted(const QModelIndex &, int,
+	// int)));
 	connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), this,
-			SLOT(rowsToBeInserted(const QModelIndex &, int, int)));
+			SLOT(rowsInserted(const QModelIndex &, int, int)));
 }
 
-void ThumbnailsFileModel::rowsToBeInserted(const QModelIndex &parent, int start,
-										   int end) {
-	qDebug() << "Rows inserted: " << start;
+void ThumbnailsFileModel::rowsInserted(const QModelIndex &parent, int start,
+									   int end) {
+	if (start == 0)
+		return;
+	qDebug() << "Rows inserted start: " << start;
+	qDebug() << "Rows inserted end: " << end;
+	invalidateFilter();
+	//	QPersistentModelIndex idx{parent};
+	//	// if (filterAcceptsRow(idx))
+	//	invalidateFilter();
 }
 
 ThumbnailsFileModel::~ThumbnailsFileModel() {

@@ -27,7 +27,7 @@ public:
 signals:
 	void splashText(const QString &message, int alignment, const QColor &color);
 public slots:
-	void rowsToBeInserted(const QModelIndex &parent, int start, int end);
+	void rowsInserted(const QModelIndex &parent, int start, int end);
 
 private:
 	QStringList						  filter;

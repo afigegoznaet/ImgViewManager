@@ -551,7 +551,7 @@ void ImgListView::generateScaledImages() {
 				  [this](const QString &fileName) {
 					  if (stopPrefetching || !prefetchImages)
 						  return;
-					  if (bigImgCache.contains(fileName))
+					  if (!bigImgCache[fileName].isNull())
 						  return progressSetValue(bigImgCache.size());
 					  bigImgCache[fileName] =
 						  thumbnailPainter->drawScaledPixmap(fileName);
