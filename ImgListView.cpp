@@ -1,3 +1,6 @@
+#include <execution>
+struct event{};
+
 #include "ImgListView.hpp"
 #include "MainWindow.hpp"
 #include <QStandardItemModel>
@@ -14,7 +17,6 @@
 #include <QProgressBar>
 #include <utility>
 
-#include <execution>
 //#include <QStandardPaths>
 /*
 
@@ -49,7 +51,8 @@ ImgListView::ImgListView(QWidget *parent)
 		 "less pictures at once",
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
 		 QMessageBox::NoButton, QMessageBox::NoButton),
-	  sourceExtensons({"psd", "eps", "ai", "svg", "orf"}) {
+	  sourceExtensons({"psd", "eps", "ai", "svg", "orf",
+					  "PSD", "EPS", "AI", "SVG", "ORF"}) {
 
 	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);

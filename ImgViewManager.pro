@@ -71,7 +71,8 @@ linux {
 	#QMAKE_LFLAGS+="-fsanitize=thread -shared"
 	#QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
 	#QMAKE_LFLAGS+=" -fsanitize=address"
-	QMAKE_CXXFLAGS+="-fno-exceptions"
+        QMAKE_CXXFLAGS+="-fexceptions -fpermissive"
+        LIBS += -ltbb
 CONFIG(debug, debug|release) {
   message( "debug" )
 QMAKE_CXXFLAGS+="-fsanitize=address"

@@ -1,6 +1,6 @@
 #ifndef IMGLISTVIEW_H
 #define IMGLISTVIEW_H
-
+#include <atomic>
 #include <QListView>
 #include <QMenu>
 #include <QtConcurrent>
