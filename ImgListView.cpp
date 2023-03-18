@@ -51,8 +51,13 @@ ImgListView::ImgListView(QWidget *parent)
 		 "less pictures at once",
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
 		 QMessageBox::NoButton, QMessageBox::NoButton),
-	  sourceExtensons({"psd", "eps", "ai", "svg", "orf",
-					  "PSD", "EPS", "AI", "SVG", "ORF"}) {
+#ifdef WIN32
+		sourceExtensons({"psd", "eps", "ai", "svg", "orf"})
+#else
+		sourceExtensons({"psd", "eps", "ai", "svg", "orf",
+						"PSD", "EPS", "AI", "SVG", "ORF"})
+#endif
+	   {
 
 	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
