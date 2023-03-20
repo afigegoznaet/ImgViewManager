@@ -125,17 +125,10 @@ void MainWindow::init() {
 			QStringList argList = args.split("=");
 			QDir		dir(argList.last());
 
-			if (1 < argList.length()
-				&& 0 == argList.first().compare("--setrootfolder")
-				&& dir.exists()) {
+			if (dir.exists()) {
+				while(dir.cdUp());
 				rootDir = dir.absolutePath();
-			} else {
-				if (QDir(argList.first()).exists())
-					startDir = argList.first();
 			}
-			// qDebug()<<QDir::rootPath();
-			// qDebug()<<argList.last();
-			// qDebug()<<"Root: "<<rootDir;
 			settings.setValue("RootDir", rootDir);
 		}
 	}
