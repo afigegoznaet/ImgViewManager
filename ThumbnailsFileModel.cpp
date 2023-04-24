@@ -17,23 +17,6 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 	setSourceModel(model);
 	setDynamicSortFilter(false);
-	//	connect(model, SIGNAL(rowsAboutToBeInserted(const QModelIndex &, int,
-	// int)), 			this, SLOT(rowsToBeInserted(const QModelIndex &, int,
-	// int)));
-	connect(model, SIGNAL(rowsInserted(const QModelIndex &, int, int)), this,
-			SLOT(rowsInserted(const QModelIndex &, int, int)));
-}
-
-void ThumbnailsFileModel::rowsInserted(const QModelIndex &parent, int start,
-									   int end) {
-	if (start == 0)
-		return;
-	qDebug() << "Rows inserted start: " << start;
-	qDebug() << "Rows inserted end: " << end;
-	invalidateFilter();
-	//	QPersistentModelIndex idx{parent};
-	//	// if (filterAcceptsRow(idx))
-	//	invalidateFilter();
 }
 
 ThumbnailsFileModel::~ThumbnailsFileModel() {
@@ -147,7 +130,7 @@ QModelIndex ThumbnailsFileModel::setRootPath(const QString &newPath) {
 
 QFuture<bool> ThumbnailsFileModel::scanTreeAsync(const QString &startDir) {
 	return QtConcurrent::run([&, startDir]() {
-		auto *		fsModel = qobject_cast<QFileSystemModel *>(sourceModel());
+		auto	   *fsModel = qobject_cast<QFileSystemModel *>(sourceModel());
 		QModelIndex source_index = fsModel->index(startDir);
 		bool		res = false;
 

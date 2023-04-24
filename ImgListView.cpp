@@ -1,5 +1,5 @@
 #include <execution>
-struct event{};
+struct event {};
 
 #include "ImgListView.hpp"
 #include "MainWindow.hpp"
@@ -17,7 +17,7 @@ struct event{};
 #include <QProgressBar>
 #include <utility>
 
-//#include <QStandardPaths>
+// #include <QStandardPaths>
 /*
 
 
@@ -52,12 +52,12 @@ ImgListView::ImgListView(QWidget *parent)
 		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
 		 QMessageBox::NoButton, QMessageBox::NoButton),
 #ifdef WIN32
-		sourceExtensons({"psd", "eps", "ai", "svg", "orf"})
+	  sourceExtensons({"psd", "eps", "ai", "svg", "orf"})
 #else
-		sourceExtensons({"psd", "eps", "ai", "svg", "orf",
-						"PSD", "EPS", "AI", "SVG", "ORF"})
+	  sourceExtensons(
+		  {"psd", "eps", "ai", "svg", "orf", "PSD", "EPS", "AI", "SVG", "ORF"})
 #endif
-	   {
+{
 
 	// fsModel = new QFileSystemModel(this);
 	recursiveModel0 = new QStandardItemModel(this);
@@ -303,7 +303,7 @@ void ImgListView::prefetchThumbnails() {
 		}
 
 		QList<QStandardItem *> items;
-		const auto &		   crFileList = fileList;
+		const auto			  &crFileList = fileList;
 		for (const auto &fileName : crFileList) {
 			if (stopPrefetching)
 				return;
@@ -559,7 +559,7 @@ void ImgListView::generateScaledImages() {
 				  [this](const QString &fileName) {
 					  if (stopPrefetching || !prefetchImages)
 						  return;
-					  if (!bigImgCache[fileName].isNull())
+					  if (bigImgCache.count(fileName))
 						  return progressSetValue(bigImgCache.size());
 					  bigImgCache[fileName] =
 						  thumbnailPainter->drawScaledPixmap(fileName);

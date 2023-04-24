@@ -21,18 +21,16 @@ public:
 	QFuture<void> scanTreeFully(const QString &startDir = QDir::rootPath());
 	bool		  hasChildren(const QModelIndex &parent) const override;
 	void		  scanRoot(const QString &root);
-	QThreadPool & getPool() { return privatePool; }
+	QThreadPool	 &getPool() { return privatePool; }
 
 
 signals:
 	void splashText(const QString &message, int alignment, const QColor &color);
-public slots:
-	void rowsInserted(const QModelIndex &parent, int start, int end);
 
 private:
 	QStringList						  filter;
 	mutable QMap<QString, QAtomicInt> treeMap;
-	mutable SystemTreeView *		  parentView;
+	mutable SystemTreeView			 *parentView;
 	bool							  stopPrefetching = false;
 	mutable QMutex					  scannerMutex;
 	QThreadPool						  privatePool;
