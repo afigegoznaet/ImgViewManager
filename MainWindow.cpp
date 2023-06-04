@@ -126,7 +126,9 @@ void MainWindow::init() {
 			QDir		dir(argList.last());
 
 			if (dir.exists()) {
-				while(dir.cdUp());
+				startDir = argList.last();
+				while (dir.cdUp())
+					;
 				rootDir = dir.absolutePath();
 			}
 			settings.setValue("RootDir", rootDir);

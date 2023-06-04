@@ -157,9 +157,10 @@ void ImgListView::init() {
 #if !defined(QT_DEBUG) || !defined(_WIN32)
 	// connect(this, &ImgListView::progressSetVisible, [&](bool visible) {
 	// progressBar->setVisible(visible); });
+
+#endif
 	connect(this, SIGNAL(progressSetVisible(bool)), progressBar,
 			SLOT(setVisible(bool)));
-#endif
 	connect(this, &ImgListView::progressSetMaximum, progressBar,
 			&QProgressBar::setMaximum, Qt::QueuedConnection);
 	connect(this, &ImgListView::progressSetValue, progressBar,
