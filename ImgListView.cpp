@@ -493,7 +493,8 @@ void ImgListView::prefetchThumbnails() {
 					icon.addPixmap(genPix, QIcon::Selected);
 					item->setIcon(icon);
 					// item->setIcon();
-					newCache.insert(fileName, *tcEntry);
+					if (!stopPrefetching)
+						newCache.insert(fileName, *tcEntry);
 				}
 
 				item->setText(fileName);
