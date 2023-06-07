@@ -375,6 +375,10 @@ void ImgListView::prefetchThumbnails() {
 				continue;
 			fileNames.push_back(fileInfo.absoluteFilePath());
 		}
+		newCache.clear();
+		for (const auto &fName : fileNames) {
+			newCache.insert(fName, {});
+		}
 
 		emit			progressSetMaximum(fileNames.size());
 		std::atomic_int counter = 0;
@@ -563,8 +567,9 @@ void ImgListView::generateScaledImages() {
 						  return;
 					  if (bigImgCache.count(fileName))
 						  return progressSetValue(bigImgCache.size());
-					  bigImgCache[fileName] =
-						  thumbnailPainter->drawScaledPixmap(fileName);
+					  bigImgCache.insert(
+						  fileName,
+						  thumbnailPainter->drawScaledPixmap(fileName));
 					  emit progressSetValue(bigImgCache.size());
 				  });
 }
