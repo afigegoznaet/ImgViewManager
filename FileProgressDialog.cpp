@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <set>
 #include "FileMoverDelegate.hpp"
+#include <utility>
 
 ProgressDialog::ProgressDialog(QWidget *parent, Qt::WindowFlags f)
 	: QDialog(parent, f), progress(new Ui::ProgressDialog), status(true) {
@@ -77,7 +78,7 @@ void ProgressDialog::processFileAction(QStringList	  fileList,
 	progress->progressBar->setMaximum(progress->tableWidget->rowCount());
 	progress->progressBar->setValue(counter);
 	if (0 == initialCount)
-		QtConcurrent::run(this, &ProgressDialog::DoSomething);
+		std::ignore = QtConcurrent::run(&ProgressDialog::DoSomething, this);
 }
 
 void ProgressDialog::onWrite(uint percentsWritten) {
@@ -132,7 +133,7 @@ void ProgressDialog::movementResult(int result) {
 		progress->progressBar->setValue(++counter);
 		if (progress->tableWidget->rowCount())
 			progress->tableWidget->removeRow(0);
-		QtConcurrent::run(this, &ProgressDialog::DoSomething);
+		std::ignore = QtConcurrent::run(&ProgressDialog::DoSomething, this);
 	}
 	moverBlocker.unlock();
 }

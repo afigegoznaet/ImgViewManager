@@ -12,7 +12,7 @@ win32 {
 }
 TEMPLATE = app
 
-CONFIG += c++17
+CONFIG += c++20
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -71,8 +71,7 @@ linux {
 	#QMAKE_LFLAGS+="-fsanitize=thread -shared"
 	#QMAKE_CXXFLAGS+="-fsanitize=address  -fomit-frame-pointer"
 	#QMAKE_LFLAGS+=" -fsanitize=address"
-        QMAKE_CXXFLAGS+="-fexceptions -fpermissive"
-        LIBS += -ltbb
+	QMAKE_CXXFLAGS+="-fexceptions -fpermissive"
 CONFIG(debug, debug|release) {
   message( "debug" )
 QMAKE_CXXFLAGS+="-fsanitize=address"

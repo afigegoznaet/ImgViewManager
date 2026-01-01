@@ -2,6 +2,7 @@
 #define DIALOG_H
 
 #include <QDialog>
+#include <QFuture>
 #include <QtConcurrent/QtConcurrent>
 #include <QMessageBox>
 
@@ -14,8 +15,8 @@ class ProgressDialog : public QDialog {
 
 	// friend class MainWindow;
 public:
-	explicit ProgressDialog(QWidget *parent = 0,
-							Qt::WindowFlags f = Qt::WindowFlags() | Qt::Window);
+	explicit ProgressDialog(QWidget		   *parent = 0,
+							Qt::WindowFlags f = Qt::WindowFlags());
 	~ProgressDialog();
 
 signals:
@@ -28,22 +29,22 @@ public slots:
 	void onWrite(uint);
 	void movementResult(int);
 	void dirMovementResult(int);
-	void errorMsg(const QString& errorText);
+	void errorMsg(const QString &errorText);
 	void hideDialogSlot();
-	void processFileAction(QStringList fileList, const QString& destination);
+	void processFileAction(QStringList fileList, const QString &destination);
 
 private:
-	Ui::ProgressDialog *progress;
-	QFuture<void> stub;
-	bool status;
-	QWaitCondition cond;
-	QWaitCondition condStatus;
-	QString pauseButtonLabels[2] = {"Continue", "Pause"};
-	QMutex moverBlocker;
-	int counter = 0;
+	Ui::ProgressDialog	*progress;
+	QFuture<void>		 stub;
+	bool				 status;
+	QWaitCondition		 cond;
+	QWaitCondition		 condStatus;
+	QString				 pauseButtonLabels[2] = {"Continue", "Pause"};
+	QMutex				 moverBlocker;
+	int					 counter = 0;
 	QFutureWatcher<void> watcher;
 
-	void DoSomething(void);
+	void						DoSomething(void);
 	QMessageBox::StandardButton showError(int result);
 };
 

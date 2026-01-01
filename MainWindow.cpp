@@ -5,7 +5,7 @@
 #include <QLabel>
 #include <QPlainTextEdit>
 #include <utility>
-#include <utility>
+#include <QActionGroup>
 
 #ifdef VALIDATE_LICENSE
 #include <sodium.h>
@@ -23,7 +23,7 @@ static char aboutText[] =
 	"Content rights belong to their respective owners.";
 
 
-static char pubKey[] =
+[[maybe_unused]] static char pubKey[] =
 	"uFsUig1mNYoTGFnaClEW/2svEZeiBIwdWS9KTiIb+rz0I7gLpJj/o57Yki/jQHHpjI3Hs0o2Riyg3qOBubQR3rhbFIoNZjWKExhZ2gpRFv9rLxGXogSMHVkvSk4iG/q8";
 // static char secKey[] =
 // "9CO4C6SY/6Oe2JIv40Bx6YyNx7NKNkYsoN6jgbm0Ed64WxSKDWY1ihMYWdoKURb/ay8Rl6IEjB1ZL0pOIhv6vA==";
@@ -200,13 +200,13 @@ void MainWindow::init() {
 			SLOT(exportImages()));
 
 	ui->actionExit->setShortcut(QKeySequence::Quit);
-	ui->actionExit->setShortcut(QKeySequence(Qt::ALT + Qt::Key_X));
+	ui->actionExit->setShortcut(QKeySequence(Qt::ALT | Qt::Key_X));
 
-	ui->actionZoom_In->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus));
-	ui->actionZoom_Out->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
-	ui->actionZoom_In->setShortcut(QKeySequence(Qt::CTRL + Qt::WheelFocus));
-	ui->actionZoom_Out->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus));
-	ui->actionReset_zoom->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_Slash));
+	ui->actionZoom_In->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Plus));
+	ui->actionZoom_Out->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus));
+	ui->actionZoom_In->setShortcut(QKeySequence(Qt::CTRL | Qt::WheelFocus));
+	ui->actionZoom_Out->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Minus));
+	ui->actionReset_zoom->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_Slash));
 
 	/***
 	 * End setup menu actions
@@ -380,7 +380,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event) {
 		// qDebug()<<wheel->modifiers();
 		// qDebug()<<wheel->delta();
 		if (wheel->modifiers() == Qt::ControlModifier) {
-			ui->imagesView->setZoom(wheel->delta());
+			ui->imagesView->setZoom(wheel->angleDelta().y());
 			return true;
 		}
 	}

@@ -23,10 +23,10 @@ ImgThumbnailDelegate::ImgThumbnailDelegate(QObject *parent)
 	// qDebug() << "Preview enabled: " << enablePreview;
 }
 
-void ImgThumbnailDelegate::drawDisplay(QPainter *				   painter,
+void ImgThumbnailDelegate::drawDisplay(QPainter					  *painter,
 									   const QStyleOptionViewItem &option,
-									   const QRect &			   rect,
-									   const QString &			   text) const {
+									   const QRect				  &rect,
+									   const QString			  &text) const {
 	QString shortText = text.split('/').last();
 	shortText.truncate(shortText.indexOf('.'));
 	QRect newRect(rect);
@@ -36,22 +36,22 @@ void ImgThumbnailDelegate::drawDisplay(QPainter *				   painter,
 	QItemDelegate::drawDisplay(painter, option, newRect, shortText);
 }
 
-void ImgThumbnailDelegate::paint(QPainter *					 painter,
+void ImgThumbnailDelegate::paint(QPainter					*painter,
 								 const QStyleOptionViewItem &option,
-								 const QModelIndex &		 index) const {
+								 const QModelIndex			&index) const {
 
 	QStyleOptionViewItem modOption(option);
 
 	if (index.isValid()) {
 		if (option.state & QStyle::State_MouseOver) {
-			painter->setRenderHint(QPainter::HighQualityAntialiasing);
+			painter->setRenderHint(QPainter::LosslessImageRendering);
 			painter->fillRect(option.rect, hoverBrush);
 			paintPreview(index);
 			if (enablePreview)
 				previewLabel->setVisible(true);
 		}
 		if (option.state & QStyle::State_Selected) {
-			painter->setRenderHint(QPainter::HighQualityAntialiasing);
+			painter->setRenderHint(QPainter::LosslessImageRendering);
 			painter->fillRect(option.rect, selectionBrush);
 			modOption.palette.setColor(QPalette::HighlightedText,
 									   option.palette.text().color());

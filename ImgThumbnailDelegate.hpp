@@ -1,6 +1,7 @@
 #ifndef IMGTHUMBNAILDELEGATE_H
 #define IMGTHUMBNAILDELEGATE_H
 #include <QItemDelegate>
+#include <atomic>
 
 class QLabel;
 class QAbstractItemModel;
@@ -18,7 +19,7 @@ public:
 		return gridSize;
 	}
 	void					hidePreview() const;
-	const QSize &			getPreviewSize() const { return imgSize; }
+	const QSize			   &getPreviewSize() const { return imgSize; }
 	const std::atomic_bool &getHiQPreview() const { return hiQPreview; }
 	[[nodiscard]] QPixmap	drawScaledPixmap(QString fileName) const;
 
@@ -35,7 +36,7 @@ public slots:
 	void adjustSize();
 
 private:
-	QLabel *			previewLabel;
+	QLabel			   *previewLabel;
 	QPoint				imgPos;
 	QSize				imgSize;
 	QAbstractItemModel *model{};
