@@ -3,3 +3,4 @@
 ui_*.h
 *.autosave
 \.*
+/build/**

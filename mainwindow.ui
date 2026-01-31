@@ -18,7 +18,7 @@
     <item row="0" column="0">
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
-       <enum>Qt::Horizontal</enum>
+       <enum>Qt::Orientation::Horizontal</enum>
       </property>
       <widget class="SystemTreeView" name="fileTree">
        <property name="sizePolicy">
@@ -83,7 +83,7 @@
      <x>0</x>
      <y>0</y>
      <width>740</width>
-     <height>19</height>
+     <height>30</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -210,12 +210,12 @@
   <customwidget>
    <class>SystemTreeView</class>
    <extends>QTreeView</extends>
-   <header>SystemTreeView.hpp</header>
+   <header location="global">SystemTreeView.hpp</header>
   </customwidget>
   <customwidget>
    <class>ImgListView</class>
    <extends>QListView</extends>
-   <header>ImgListView.hpp</header>
+   <header location="global">ImgListView.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

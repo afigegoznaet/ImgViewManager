@@ -36,7 +36,7 @@ SystemTreeView::SystemTreeView(QWidget *parent) : QTreeView(parent) {
 
 	connect(selectionModel(), &QItemSelectionModel::currentChanged, this,
 			[this](QModelIndex current, QModelIndex) {
-				emit changeDir(fsModel->fileInfo(current).absoluteFilePath());
+				Q_EMIT changeDir(fsModel->fileInfo(current).absoluteFilePath());
 			});
 }
 
@@ -56,7 +56,9 @@ void SystemTreeView::init(const QString &startDir) {
 	while (dir.cdUp()) {
 
 		runner = fsModel->scanTreeAsync(dir.absolutePath());
-		runner.waitForFinished();
+		while (!runner.isFinished()) {
+			QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+		}
 		auto idx = fsModel->fileIndex(dir.absolutePath());
 		if (idx.isValid()) {
 			expand(idx);
@@ -91,5 +93,5 @@ void SystemTreeView::prepareExit() { fsModel->prepareExit(); }
 
 void SystemTreeView::resizeEvent(QResizeEvent *event) {
 	QTreeView::resizeEvent(event);
-	emit resized();
+	Q_EMIT resized();
 }

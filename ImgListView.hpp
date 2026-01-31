@@ -18,16 +18,16 @@ class ImgListView : public QListView {
 public:
 	explicit ImgListView(QWidget *parent = nullptr);
 	void prepareExit();
-	~ImgListView() override;
+	~ImgListView() noexcept override;
 	void setProgressBar(QProgressBar *_progressBar) {
 		progressBar = _progressBar;
 	}
 
 	const QString getFileName(const QModelIndex &index) const;
-	auto &		  getBigImgCache() { return bigImgCache; }
+	auto		 &getBigImgCache() { return bigImgCache; }
 	void		  init();
 
-signals:
+Q_SIGNALS:
 	void callUpdate(const QString &);
 	void emitUpdate(const QModelIndex &);
 	void numFiles(int total, int visible);
@@ -50,7 +50,7 @@ signals:
 	void showError();
 	void adjustSize();
 
-public slots:
+public Q_SLOTS:
 	void changeDir(QString dir);
 	void onDoubleClicked();
 	void applyFilter(const QString &inFilter);
@@ -63,28 +63,32 @@ public slots:
 	void setPrefetchImages(bool flag);
 
 protected:
-	void	keyPressEvent(QKeyEvent *event) override;
+	void keyPressEvent(QKeyEvent *event) override;
+	void mousePressEvent(QMouseEvent *event) override;
+	void leaveEvent(QEvent *) override;
+	void paintEvent(QPaintEvent *event) override;
+
+private:
 	void	prefetchThumbnails();
 	void	generateScaledImages();
-	void	mousePressEvent(QMouseEvent *event) override;
 	void	getDirs(const QString &rootDir, QStringList &dirList);
 	QString getTotalSize(QStringList &files, int skipFirstNfiles = 0);
 	void	addHiddenFiles(QStringList &fileList);
-	void	leaveEvent(QEvent *) override;
-	void	paintEvent(QPaintEvent *event) override;
+	void	prepareThumbnail(const QString		   &fileName,
+							 QMap<QString, QImage> &oldCache,
+							 QMap<QString, QImage> &newCache,
+							 std::atomic_int32_t   &counter);
 
-	// QFileSystemModel* fsModel;
-	// QSortFilterProxyModel* proxy;
 private:
-	ThumbnailsSorter *	   newProxy{};
-	QStandardItemModel *   newModel{};
-	ThumbnailsSorter *	   oldProxy{};
-	QStandardItemModel *   oldModel{};
+	ThumbnailsSorter	  *newProxy{};
+	QStandardItemModel	  *newModel{};
+	ThumbnailsSorter	  *oldProxy{};
+	QStandardItemModel	  *oldModel{};
 	QMap<QString, QPixmap> bigImgCache;
 
 
-	ThumbnailsSorter *	proxy0;
-	ThumbnailsSorter *	proxy1;
+	ThumbnailsSorter   *proxy0;
+	ThumbnailsSorter   *proxy1;
 	QStandardItemModel *recursiveModel0;
 	QStandardItemModel *recursiveModel1;
 
@@ -97,8 +101,8 @@ private:
 	std::atomic_bool prefetchImages{};
 	QString			 filterText;
 	// QMap<QString, QPixmap> thumbnailsCache;
-	ProgressDialog *  copyDialog;
-	QProgressBar *	  progressBar;
+	ProgressDialog	 *copyDialog;
+	QProgressBar	 *progressBar;
 	QMenu			  m_menu;
 	QString			  currentDir;
 	QString			  exportDir;

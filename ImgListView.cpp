@@ -46,11 +46,10 @@ struct event {};
 ImgListView::ImgListView(QWidget *parent)
 	: QListView(parent), stopPrefetching(false),
 	  spinner(":/Images/spinner.png"),
-	  mb("Out of memory",
+	  mb(QMessageBox::Critical, "Out of memory",
 		 "The application is unable to allocate anymore memory, try to display "
 		 "less pictures at once",
-		 QMessageBox::Critical, QMessageBox::Ok | QMessageBox::NoButton,
-		 QMessageBox::NoButton, QMessageBox::NoButton),
+		 QMessageBox::Ok),
 #ifdef WIN32
 	  sourceExtensons({"psd", "eps", "ai", "svg", "orf"})
 #else
@@ -167,25 +166,27 @@ void ImgListView::init() {
 			&QProgressBar::setValue, Qt::QueuedConnection);
 
 	openAction = m_menu.addAction(
-		"&Open image", this,
-		[&]() {
-			QDesktopServices::openUrl(QUrl::fromLocalFile(
-				model()
-					->data(indexAt(mapFromGlobal(QCursor::pos())))
-					.toString()));
-		},
-		QKeySequence(Qt::CTRL + Qt::Key_O));
+		"&Open image", QKeySequence(Qt::ControlModifier | Qt::Key_O), this,
+		[this]() {
+			const QModelIndex idx = indexAt(mapFromGlobal(QCursor::pos()));
+			if (!idx.isValid())
+				return;
+			const QString path = model()->data(idx, Qt::DisplayRole).toString();
+			if (path.isEmpty())
+				return;
+			QDesktopServices::openUrl(QUrl::fromLocalFile(path));
+		});
 	openAction->setShortcutContext(Qt::ApplicationShortcut);
 	openAction->setIconVisibleInMenu(false);
 
-	exportAction = m_menu.addAction(
-		"Export &image", this, [&]() { exportImages(); },
-		QKeySequence(Qt::CTRL + Qt::Key_I));
+	exportAction =
+		m_menu.addAction("Export &image", QKeySequence(Qt::CTRL | Qt::Key_I),
+						 this, [&]() { exportImages(); });
 	exportAction->setShortcutContext(Qt::ApplicationShortcut);
 
-	openSourceAction = m_menu.addAction(
-		"&Open source file", this, [&]() { openSource(); },
-		QKeySequence(Qt::CTRL + Qt::Key_S));
+	openSourceAction = m_menu.addAction("&Open source file",
+										QKeySequence(Qt::CTRL | Qt::Key_S),
+										this, [&]() { openSource(); });
 	openSourceAction->setShortcutContext(Qt::ApplicationShortcut);
 	// openSourceAction->setDisabled(true);
 
@@ -225,7 +226,7 @@ void ImgListView::init() {
 	setMouseTracking(true);
 }
 
-ImgListView::~ImgListView() {
+ImgListView::~ImgListView() noexcept {
 
 	QSettings settings;
 	settings.setValue("LastDir", exportDir);
@@ -234,9 +235,14 @@ ImgListView::~ImgListView() {
 void ImgListView::changeDir(QString dir) {
 	currentDir = std::move(dir);
 
-	stopPrefetching = true;
+	stopPrefetching.store(true, std::memory_order_release);
 
-	prefetchProc.waitForFinished();
+	while (!prefetchProc.isFinished()) {
+		// Let Qt process input/paint/timers etc.
+		QCoreApplication::processEvents(QEventLoop::AllEvents, 10);
+		QThread::msleep(1);
+	}
+
 	// thumbnailPainter->stopDrawing();
 
 	scrollToTop();
@@ -245,9 +251,133 @@ void ImgListView::changeDir(QString dir) {
 		bigImgCache.clear();
 		prefetchThumbnails();
 		generateScaledImages();
-		emit progressSetVisible(false);
+		QMetaObject::invokeMethod(
+			this, [this] { Q_EMIT progressSetVisible(false); },
+			Qt::QueuedConnection);
 	});
 	//
+}
+
+void ImgListView::prepareThumbnail(const QString		 &fileName,
+								   QMap<QString, QImage> &oldCache,
+								   QMap<QString, QImage> &newCache,
+								   std::atomic_int32_t	 &counter) {
+	if (stopPrefetching || !prefetchImages)
+		return;
+	auto item = *newModel->findItems(fileName, Qt::MatchFixedString).cbegin();
+	Q_EMIT progressSetValue(counter++);
+
+	auto tcEntry = oldCache.constFind(fileName);
+	if (tcEntry == oldCache.constEnd() || tcEntry.value().isNull()) {
+		if (stopPrefetching)
+			return;
+		Q_EMIT progressSetVisible(true);
+		QSize		 iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
+		QSize		 imgSize(iconSize);
+		QImageReader reader(fileName);
+		if (!reader.canRead()) {
+			qDebug() << "can't Read: " << fileName;
+			item->setData(QIcon(":/Images/bad_img.png"), Qt::DecorationRole);
+			return;
+		}
+
+		auto picSize = reader.size();
+		if (picSize.width() > iconSize.width()
+			|| picSize.height() > iconSize.height()) {
+			// auto picSize = reader.size();
+			double coef = picSize.height() * 1.0 / picSize.width();
+			if (coef > 1)
+				imgSize.setWidth(static_cast<int>(iconSize.width() / coef));
+			else
+				imgSize.setHeight(static_cast<int>(iconSize.height() * coef));
+			reader.setScaledSize(imgSize);
+		}
+
+
+		reader.setAutoTransform(true);
+		reader.setQuality(15);
+
+		if (stopPrefetching)
+			return;
+
+		auto img = reader.read();
+		if (reader.error() != 0)
+			qDebug() << "Reader error: " << reader.errorString();
+
+		QImage newImg(iconSize, QImage::Format_ARGB32);
+		newImg.fill(qRgba(0, 0, 0, 0));
+		QPainter painter(&newImg);
+
+		if (!newImg.isNull()) {
+
+			int hDelta(0), vDelta(0);
+
+			if (img.width() < iconSize.width())
+				hDelta = (iconSize.width() - img.width()) / 2;
+			if (img.height() < iconSize.height())
+				vDelta = (iconSize.height() - img.height()) / 2;
+
+			painter.setRenderHint(QPainter::Antialiasing, true);
+			painter.setRenderHint(QPainter::SmoothPixmapTransform, true);
+			const int x = (iconSize.width() - img.width()) / 2;
+			const int y = (iconSize.height() - img.height()) / 2;
+			painter.drawImage(x, y, img);
+			painter.save();
+			painter.restore();
+		}
+
+		if (stopPrefetching)
+			return;
+		// QPixmap newPixmap(QPixmap::fromImage(newImg));
+		if (newImg.isNull()) {
+			QMutexLocker locker(&cleanerMutex);
+			stopPrefetching = true;
+			newModel->setRowCount(item->row() - 100);
+			newProxy->invalidate();
+			newCache.clear();
+			oldCache.clear();
+			Q_EMIT showError();
+			return;
+		}
+		QIcon icon;
+		auto  genPix = newImg.scaled(this->iconSize(), Qt::KeepAspectRatio,
+									 Qt::SmoothTransformation);
+		// icon.addPixmap(genPix);
+		icon.addPixmap(QPixmap::fromImage(genPix), QIcon::Selected);
+		item->setIcon(icon);
+		newCache.insert(fileName, newImg);
+		// thumbnailPainter->resumeDrawing();
+	} else {
+		QIcon icon;
+		auto  genPix = tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio,
+									   Qt::SmoothTransformation);
+		if (genPix.isNull()) {
+			stopPrefetching = true;
+			cleanerMutex.lock();
+			newModel->setRowCount(0);
+			newProxy->invalidate();
+			newCache.clear();
+			oldCache.clear();
+			cleanerMutex.unlock();
+			Q_EMIT showError();
+			return;
+		}
+		// icon.addPixmap();
+		icon.addPixmap(QPixmap::fromImage(genPix), QIcon::Selected);
+		item->setIcon(icon);
+		// item->setIcon();
+		if (!stopPrefetching)
+			newCache.insert(fileName, *tcEntry);
+	}
+
+	item->setText(fileName);
+
+	if (stopPrefetching)
+		return;
+
+	// QMutex locker;
+	// locker.lock();
+	Q_EMIT callUpdate(fileName);
 }
 
 void ImgListView::prefetchThumbnails() {
@@ -264,23 +394,13 @@ void ImgListView::prefetchThumbnails() {
 		oldModel = recursiveModel1;
 	}
 
-	emit callFullUpdate();
+	Q_EMIT callFullUpdate();
 
 	newModel->blockSignals(true);
 
-	// setModel(emptyModel);
-	/*
-		cleanerProc = QtConcurrent::run([&]() {
-			QMutexLocker locker(&cleanerMutex);
-			if (oldModel)
-				oldModel->setRowCount(0);
-		});
-		*/
 	newModel->setRowCount(0);
 
-	// oldModel->clear();
-	// newProxy->clear();
-	emit		genericMessage("Scanning " + currentDir);
+	Q_EMIT genericMessage("Scanning " + currentDir);
 	QStringList dirs;
 	dirs << currentDir;
 	getDirs(dirs.first(), dirs);
@@ -292,7 +412,7 @@ void ImgListView::prefetchThumbnails() {
 		if (stopPrefetching)
 			break;
 
-		emit genericMessage("Scanning " + dirEntry);
+		Q_EMIT genericMessage("Scanning " + dirEntry);
 		QDir dir(dirEntry);
 		auto dirEntries = dir.entryInfoList(namedFilters);
 		for (auto &fileInfo : dirEntries) {
@@ -324,17 +444,17 @@ void ImgListView::prefetchThumbnails() {
 
 	newProxy->sort();
 	// proxy->setSourceModel(recursiveModel);
-	emit resetViewSignal();
+	Q_EMIT resetViewSignal();
 
 
-	emit filterSignal(filterText);
+	Q_EMIT filterSignal(filterText);
 
-	int	 dirCounter = 0;
-	emit taskBarSetMaximum(dirs.size());
+	int dirCounter = 0;
+	Q_EMIT taskBarSetMaximum(dirs.size());
 
 
 	for (const auto &dirEntry : ddirs) {
-		emit taskBarSetValue(dirCounter++);
+		Q_EMIT taskBarSetValue(dirCounter++);
 		if (stopPrefetching)
 			break;
 		QDir	dir(dirEntry);
@@ -343,16 +463,16 @@ void ImgListView::prefetchThumbnails() {
 
 		QFile thumbnailsFile(fileName);
 
-		QMap<QString, QPixmap> oldCache;
-		QMap<QString, QPixmap> newCache;
-		QDataStream			   in(&thumbnailsFile);
+		QMap<QString, QImage> oldCache;
+		QMap<QString, QImage> newCache;
+		QDataStream			  in(&thumbnailsFile);
 		in.setVersion(QDataStream::Qt_5_7);
 		if (thumbnailsFile.open(QIODevice::ReadOnly)) {
 			quint32 num;
 			in >> num;
 			for (quint32 i = 0; i < num; ++i) {
 				QString k;
-				QPixmap v;
+				QImage	v;
 				in >> k >> v;
 				if (in.status() != QDataStream::Ok) {
 					oldCache.clear();
@@ -380,142 +500,21 @@ void ImgListView::prefetchThumbnails() {
 			newCache.insert(fName, {});
 		}
 
-		emit			progressSetMaximum(fileNames.size());
-		std::atomic_int counter = 0;
-		std::for_each(
-			std::execution::par_unseq, fileNames.begin(), fileNames.end(),
-			[&](const QString &fileName) {
-				if (stopPrefetching || !prefetchImages)
-					return;
-				auto item = *newModel->findItems(fileName, Qt::MatchFixedString)
-								 .cbegin();
-				emit progressSetValue(counter++);
+		Q_EMIT progressSetMaximum(fileNames.size());
+		std::atomic_int	   counter = 0;
+		std::atomic_size_t pending = fileNames.size();
+		std::for_each(std::execution::par, fileNames.begin(), fileNames.end(),
+					  [&](const auto &fileName) {
+						  prepareThumbnail(fileName, oldCache, newCache,
+										   counter);
+						  pending--;
+					  });
 
-				auto tcEntry = oldCache.constFind(fileName);
-				if (tcEntry == oldCache.constEnd()
-					|| tcEntry.value().isNull()) {
-					if (stopPrefetching)
-						return;
-					emit		 progressSetVisible(true);
-					QSize		 iconSize(PREVIEW_SIZE, PREVIEW_SIZE);
-					QSize		 imgSize(iconSize);
-					QImageReader reader(fileName);
-					if (!reader.canRead()) {
-						qDebug() << "can't Read: " << fileName;
-						item->setData(QIcon(":/Images/bad_img.png"),
-									  Qt::DecorationRole);
-						return;
-					}
-
-					auto picSize = reader.size();
-					if (picSize.width() > iconSize.width()
-						|| picSize.height() > iconSize.height()) {
-						// auto picSize = reader.size();
-						double coef = picSize.height() * 1.0 / picSize.width();
-						if (coef > 1)
-							imgSize.setWidth(
-								static_cast<int>(iconSize.width() / coef));
-						else
-							imgSize.setHeight(
-								static_cast<int>(iconSize.height() * coef));
-						reader.setScaledSize(imgSize);
-					}
-
-
-					reader.setAutoTransform(true);
-					reader.setQuality(15);
-
-					if (stopPrefetching)
-						return;
-
-					auto img = reader.read();
-					if (reader.error() != 0)
-						qDebug() << "Reader error: " << reader.errorString();
-
-					QImage newImg(iconSize, QImage::Format_ARGB32);
-					newImg.fill(qRgba(0, 0, 0, 0));
-					QPainter painter(&newImg);
-
-					if (!newImg.isNull()) {
-
-						int hDelta(0), vDelta(0);
-
-						if (img.width() < iconSize.width())
-							hDelta = (iconSize.width() - img.width()) / 2;
-						if (img.height() < iconSize.height())
-							vDelta = (iconSize.height() - img.height()) / 2;
-
-						painter.setRenderHint(QPainter::Antialiasing, true);
-						painter.setRenderHint(QPainter::SmoothPixmapTransform,
-											  true);
-						painter.drawPixmap(hDelta, vDelta, img.width(),
-										   img.height(),
-										   QPixmap::fromImage(img));
-						painter.save();
-						painter.restore();
-					}
-
-					if (stopPrefetching)
-						return;
-					QPixmap newPixmap(QPixmap::fromImage(newImg));
-					if (newPixmap.isNull()) {
-						QMutexLocker locker(&cleanerMutex);
-						stopPrefetching = true;
-						newModel->setRowCount(item->row() - 100);
-						newProxy->invalidate();
-						newCache.clear();
-						oldCache.clear();
-						emit showError();
-						return;
-					}
-					QIcon icon;
-					auto  genPix =
-						newPixmap.scaled(this->iconSize(), Qt::KeepAspectRatio,
-										 Qt::SmoothTransformation);
-					// icon.addPixmap(genPix);
-					icon.addPixmap(genPix, QIcon::Selected);
-					item->setIcon(icon);
-					newCache.insert(fileName, newPixmap);
-					// thumbnailPainter->resumeDrawing();
-				} else {
-					QIcon icon;
-					auto  genPix =
-						tcEntry->scaled(this->iconSize(), Qt::KeepAspectRatio,
-										Qt::SmoothTransformation);
-					if (genPix.isNull()) {
-						stopPrefetching = true;
-						cleanerMutex.lock();
-						newModel->setRowCount(0);
-						newProxy->invalidate();
-						newCache.clear();
-						oldCache.clear();
-						cleanerMutex.unlock();
-						emit showError();
-						return;
-					}
-					// icon.addPixmap();
-					icon.addPixmap(genPix, QIcon::Selected);
-					item->setIcon(icon);
-					// item->setIcon();
-					if (!stopPrefetching)
-						newCache.insert(fileName, *tcEntry);
-				}
-
-				item->setText(fileName);
-
-				if (stopPrefetching)
-					return;
-
-				// QMutex locker;
-				// locker.lock();
-				emit callUpdate(fileName);
-			});
-
-		emit progressSetVisible(false);
+		Q_EMIT progressSetVisible(false);
 		if (newCache.count() != oldCache.count()) {
 			// qDebug()<<"Saving cache to file";
-			QtConcurrent::run([fName = std::move(fileName),
-							   newCache = std::move(newCache)]() {
+			std::ignore = QtConcurrent::run([fName = std::move(fileName),
+											 newCache = std::move(newCache)]() {
 				QFile thumbnailsFile(fName);
 				if (thumbnailsFile.open(QIODevice::WriteOnly
 										| QIODevice::Truncate)) {
@@ -535,22 +534,22 @@ void ImgListView::prefetchThumbnails() {
 		}
 	}
 
-	emit taskBarSetValue(0);
+	Q_EMIT taskBarSetValue(0);
 
 	QMutexLocker locker(&cleanerMutex);
 	oldModel->setRowCount(0);
 
 	if (!stopPrefetching)
-		emit callFullUpdate();
+		Q_EMIT callFullUpdate();
 }
 
 void ImgListView::generateScaledImages() {
 	if (!newModel)
 		return;
 	const auto rows = newModel->rowCount();
-	emit	   progressSetMaximum(rows);
-	emit	   progressSetValue(0);
-	emit	   progressSetVisible(true);
+	Q_EMIT progressSetMaximum(rows);
+	Q_EMIT progressSetValue(0);
+	Q_EMIT progressSetVisible(true);
 
 
 	std::vector<QString> fileNames(newModel->rowCount());
@@ -570,7 +569,7 @@ void ImgListView::generateScaledImages() {
 					  bigImgCache.insert(
 						  fileName,
 						  thumbnailPainter->drawScaledPixmap(fileName));
-					  emit progressSetValue(bigImgCache.size());
+					  Q_EMIT progressSetValue(bigImgCache.size());
 				  });
 }
 
@@ -596,8 +595,10 @@ void ImgListView::onDoubleClicked() {
 void ImgListView::prepareExit() {
 	stopPrefetching = true;
 	thumbnailPainter->stopDrawing();
-	newProxy->invalidate();
-	newModel->setRowCount(0);
+	if (newProxy)
+		newProxy->invalidate();
+	if (newModel)
+		newModel->setRowCount(0);
 	prefetchProc.waitForFinished();
 	cleanerProc.waitForFinished();
 }
@@ -615,7 +616,7 @@ void ImgListView::applyFilter(const QString &inFilter) {
 	if (visCount > totalCount)
 		visCount = totalCount;
 
-	emit numFiles(totalCount, visCount);
+	Q_EMIT numFiles(totalCount, visCount);
 }
 
 
@@ -669,7 +670,7 @@ void ImgListView::exportImages() {
 	newProxy->invalidate();
 	clearSelection();
 	addHiddenFiles(fileList);
-	emit setFileAction(fileList, exportDir);
+	Q_EMIT setFileAction(fileList, exportDir);
 }
 
 void ImgListView::mousePressEvent(QMouseEvent *event) {
@@ -836,7 +837,7 @@ void ImgListView::checkSelections(const QItemSelection &,
 		return applyFilter(filterText);
 	QString info = QString::number(selectedCount) + " selected of "
 				   + QString::number(newModel->rowCount());
-	emit genericMessage(info);
+	Q_EMIT genericMessage(info);
 }
 
 void ImgListView::resetViewSlot() {
@@ -889,7 +890,7 @@ void ImgListView::setZoom(int zoomDirection) {
 		setIconSize(QSize(default_icon_size, default_icon_size));
 		setGridSize(QSize(iconSize().width() + 32, iconSize().height() + 32));
 	}
-	emit callFullUpdate();
+	Q_EMIT callFullUpdate();
 }
 
 void ImgListView::openSource() {
@@ -929,16 +930,16 @@ void ImgListView::paintEvent(QPaintEvent *event) {
 
 void ImgListView::setPrefetchImages(bool flag) {
 	prefetchImages = flag;
-	emit progressSetVisible(flag);
+	Q_EMIT progressSetVisible(flag);
 	if (flag) {
 		stopPrefetching = false;
 		if (prefetchProc.isRunning())
 			return;
 		prefetchProc = QtConcurrent::run([this]() {
-			emit progressSetVisible(true);
+			Q_EMIT progressSetVisible(true);
 			bigImgCache.clear();
 			generateScaledImages();
-			emit progressSetVisible(false);
+			Q_EMIT progressSetVisible(false);
 		});
 	}
 }

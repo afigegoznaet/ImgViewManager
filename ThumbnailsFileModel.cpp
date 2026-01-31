@@ -12,12 +12,14 @@ ThumbnailsFileModel::ThumbnailsFileModel(QObject *parent)
 	parentView = qobject_cast<SystemTreeView *>(parent);
 	setDynamicSortFilter(false);
 	setRecursiveFilteringEnabled(true);
-	privatePool.setMaxThreadCount(4);
+	privatePool.setMaxThreadCount(
+		std::max(std::thread::hardware_concurrency() - 1, 1u));
 	auto model = new QFileSystemModel(this);
 	model->setFilter(QDir::AllDirs | QDir::NoDotAndDotDot);
 	setSourceModel(model);
 	setDynamicSortFilter(false);
 }
+
 
 ThumbnailsFileModel::~ThumbnailsFileModel() {
 	treeMap.clear();
@@ -45,8 +47,11 @@ QFileInfo ThumbnailsFileModel::fileInfo(const QModelIndex &index,
 }
 
 QModelIndex ThumbnailsFileModel::fileIndex(const QString &path) const {
+	auto *sm = qobject_cast<QFileSystemModel *>(sourceModel());
+	if (!sm)
+		return {};
 	QPersistentModelIndex idx =
-		(dynamic_cast<QFileSystemModel *>(this->sourceModel()))->index(path, 0);
+		(dynamic_cast<QFileSystemModel *>(sm))->index(path, 0);
 	if (!idx.isValid())
 		return {};
 	return mapFromSource(idx);
@@ -59,8 +64,8 @@ bool ThumbnailsFileModel::hasPics(const QString &scDir) const {
 		return false;
 	QDir dir(scDir);
 
-	QtConcurrent::run([this, scDir]() {
-		emit parentView->splashText(scDir, Qt::AlignCenter, Qt::white);
+	std::ignore = QtConcurrent::run([this, scDir]() {
+		Q_EMIT parentView->splashText(scDir, Qt::AlignCenter, Qt::white);
 	});
 
 	if (hasImages(scDir)) {
